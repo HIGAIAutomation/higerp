@@ -1,0 +1,357 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tenant {
+  id         String   @id @default(uuid())
+  name       String
+  slug       String   @unique
+  planTier   String   @default("free")
+  dbConfig   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  users               User[]
+  departments         Department[]
+  employees           Employee[]
+  documentTemplates   DocumentTemplate[]
+  generatedDocuments  GeneratedDocument[]
+  leads               Lead[]
+  packages            Package[]
+  projects            Project[]
+  invoices            Invoice[]
+  expenses            Expense[]
+  transactions        Transaction[]
+  tickets             Ticket[]
+  assets              Asset[]
+  knowledgeBases      KnowledgeBase[]
+  
+  marketingPosts      MarketingPost[]
+  marketingPostHistories MarketingPostHistory[]
+  adCampaigns         AdCampaign[]
+  specialDayPosters   SpecialDayPoster[]
+  projectPayments     ProjectPayment[]
+}
+
+model User {
+  id          String   @id @default(uuid())
+  tenantId    String
+  email       String?  @unique
+  username    String   @unique
+  password    String
+  role        String   @default("user")
+  dob         String?
+  address     String?
+  designation String?
+  salary      Decimal?
+  pageAccess  Json?
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  parentId  String?
+  parent    Department?  @relation("SubDepartments", fields: [parentId], references: [id])
+  children  Department[] @relation("SubDepartments")
+  tenant    Tenant       @relation(fields: [tenantId], references: [id])
+  employees Employee[]
+}
+
+model Employee {
+  id           String   @id @default(uuid())
+  tenantId     String
+  firstName    String
+  lastName     String
+  email        String   @unique
+  deptId       String?
+  designation  String?
+  salaryBasis  Decimal?
+  joiningDate  DateTime?
+  status       String   @default("active")
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  
+  tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  department   Department? @relation(fields: [deptId], references: [id])
+}
+
+model DocumentTemplate {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  category    String
+  contentHtml String
+  createdAt   DateTime @default(now())
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  generated   GeneratedDocument[]
+}
+
+model GeneratedDocument {
+  id          String   @id @default(uuid())
+  tenantId    String
+  templateId  String?
+  entityType  String
+  entityId    String
+  filePath    String?
+  compiledHtml String?
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  
+  tenant      Tenant            @relation(fields: [tenantId], references: [id])
+  template    DocumentTemplate? @relation(fields: [templateId], references: [id])
+  // Note: entityId is polymorphic, but we can't easily express that in Prisma without separate fields or raw SQL.
+  // We'll manage relations carefully in the application layer.
+}
+
+model Lead {
+  id          String   @id @default(uuid())
+  tenantId    String
+  companyName String?
+  contact     String?
+  source      String?
+  status      String   @default("new")
+  assignedTo  String?
+  valEstimate Decimal?
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  opportunities Opportunity[]
+}
+
+model Opportunity {
+  id                String   @id @default(uuid())
+  tenantId          String
+  leadId            String
+  stage             String
+  expectedCloseDate DateTime?
+  
+  lead              Lead     @relation(fields: [leadId], references: [id])
+}
+
+model Package {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?
+  basePrice   Decimal
+  isActive    Boolean  @default(true)
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tiers       PricingTier[]
+}
+
+model PricingTier {
+  id        String   @id @default(uuid())
+  packageId String
+  name      String
+  price     Decimal
+  features  Json?
+  
+  package   Package  @relation(fields: [packageId], references: [id])
+}
+
+model Project {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  name               String
+  category           String   @default("Web/App Development")
+  description        String?
+  startDate          DateTime?
+  endDate            DateTime?
+  status             String   @default("planned")
+  whatsappNumber     String?
+  price              Decimal  @default(0)
+  modules            String?
+  deliveryCode       Boolean  @default(false)
+  deliveryDocs       Boolean  @default(false)
+  deliveryDb         Boolean  @default(false)
+  deliveryQa         Boolean  @default(false)
+  deliveryPayment    Boolean  @default(false)
+  postCount          Int      @default(0)
+  videoCount         Int      @default(0)
+  
+  tenant             Tenant   @relation(fields: [tenantId], references: [id])
+  marketingPosts     MarketingPost[]
+  marketingPostHistories MarketingPostHistory[]
+  adCampaigns        AdCampaign[]
+  specialDayPosters  SpecialDayPoster[]
+  projectPayments    ProjectPayment[]
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  tenantId      String
+  invoiceNumber String
+  clientId      String
+  subtotal      Decimal
+  cgst          Decimal  @default(0)
+  sgst          Decimal  @default(0)
+  igst          Decimal  @default(0)
+  total         Decimal
+  status        String   @default("draft")
+  dueDate       DateTime?
+  createdAt     DateTime @default(now())
+  
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  tenantId    String
+  category    String
+  amount      Decimal
+  description String?
+  date        DateTime @default(now())
+  status      String   @default("pending")
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  tenantId    String
+  type        String   // 'DEBIT', 'CREDIT'
+  amount      Decimal
+  description String?
+  date        DateTime @default(now())
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  tenantId    String
+  title       String
+  description String
+  priority    String   @default("medium") // 'low', 'medium', 'high', 'critical'
+  status      String   @default("open")   // 'open', 'in_progress', 'resolved', 'closed'
+  userId      String?  // Creator
+  assignedTo  String?  // Agent
+  aiSummary   String?  // AI generated summary
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Asset {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  type        String   // 'hardware', 'software', 'license'
+  serialNumber String?
+  status      String   @default("active")
+  assignedTo  String?  // Employee ID
+  purchaseDate DateTime?
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model KnowledgeBase {
+  id          String   @id @default(uuid())
+  tenantId    String
+  title       String
+  content     String   @db.Text
+  category    String?
+  tags        String[]
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model MarketingPost {
+  id         String    @id @default(uuid())
+  tenantId   String
+  projectId  String
+  platform   String    // 'instagram', 'fb', 'youtube', 'linkedin'
+  postType   String    // 'video', 'image'
+  status     String    // 'completed', 'inprogress', 'posted'
+  comments   String?
+  month      String?   // YYYY-MM
+  assignedTo String?   // username
+  dueDate    DateTime?
+  updatedBy  String    // username
+  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime  @default(now())
+
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id])
+}
+
+model MarketingPostHistory {
+  id         String    @id @default(uuid())
+  tenantId   String
+  projectId  String
+  platform   String    // 'instagram', 'fb', 'youtube', 'linkedin'
+  postType   String    // 'video', 'image'
+  status     String    // 'completed', 'inprogress', 'posted'
+  comments   String?
+  month      String?   // YYYY-MM
+  assignedTo String?   // username
+  dueDate    DateTime?
+  updatedBy  String    // username
+  createdAt  DateTime  @default(now())
+
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id])
+}
+
+model AdCampaign {
+  id         String   @id @default(uuid())
+  tenantId   String
+  projectId  String
+  name       String
+  spend      Decimal
+  leads      Int
+  startDate  DateTime
+  endDate    DateTime?
+  updatedBy  String   // username
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model SpecialDayPoster {
+  id                  String   @id @default(uuid())
+  tenantId            String
+  projectId           String
+  month               String   // YYYY-MM
+  holidayName         String
+  scheduledDate       DateTime
+  isPlannedOnFirstDay Boolean  @default(false)
+  status              String   // e.g. pending, designed, posted
+  updatedBy           String   // username
+  updatedAt           DateTime @updatedAt
+  createdAt           DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model ProjectPayment {
+  id            String   @id @default(uuid())
+  tenantId      String
+  projectId     String
+  invoiceNumber String
+  amount        Decimal
+  dueDate       DateTime
+  status        String   @default("pending") // pending, paid
+  whatsappSent  Boolean  @default(false)
+  updatedBy     String?  // username
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+}

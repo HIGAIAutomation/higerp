@@ -1,0 +1,136 @@
+import { MarketingService } from './marketing.service';
+export declare class MarketingController {
+    private marketingService;
+    constructor(marketingService: MarketingService);
+    getAllPostsByMonth(month: string, req: any): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+        updatedAt: Date;
+    }[]>;
+    getAllPostHistory(month: string, req: any): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+    }[]>;
+    getTenantUsers(req: any): Promise<{
+        id: string;
+        email: string | null;
+        username: string;
+        role: string;
+    }[]>;
+    getPosts(projectId: string, month: string, req: any): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+        updatedAt: Date;
+    }[]>;
+    upsertPost(projectId: string, body: any, req: any): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+        updatedAt: Date;
+    }>;
+    getPostHistory(projectId: string, month: string, req: any): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+    }[]>;
+    getCampaigns(projectId: string, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        name: string;
+        projectId: string;
+        updatedBy: string;
+        updatedAt: Date;
+        leads: number;
+        startDate: Date;
+        endDate: Date | null;
+        spend: import("@prisma/client-runtime-utils").Decimal;
+    }[]>;
+    createCampaign(projectId: string, body: any, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        name: string;
+        projectId: string;
+        updatedBy: string;
+        updatedAt: Date;
+        leads: number;
+        startDate: Date;
+        endDate: Date | null;
+        spend: import("@prisma/client-runtime-utils").Decimal;
+    }>;
+    getSpecialDayPosters(projectId: string, month: string, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        month: string;
+        updatedBy: string;
+        updatedAt: Date;
+        holidayName: string;
+        scheduledDate: Date;
+        isPlannedOnFirstDay: boolean;
+    }[]>;
+    upsertSpecialDayPoster(projectId: string, body: any, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        month: string;
+        updatedBy: string;
+        updatedAt: Date;
+        holidayName: string;
+        scheduledDate: Date;
+        isPlannedOnFirstDay: boolean;
+    }>;
+}

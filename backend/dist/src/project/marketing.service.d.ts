@@ -1,0 +1,122 @@
+import { PrismaService } from '../prisma/prisma.service';
+export declare class MarketingService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    getPosts(tenantId: string, projectId: string, month?: string): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+        updatedAt: Date;
+    }[]>;
+    upsertPost(tenantId: string, projectId: string, data: any, username: string): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+        updatedAt: Date;
+    }>;
+    getPostHistory(tenantId: string, projectId?: string, month?: string): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+    }[]>;
+    getAllPostsByMonth(tenantId: string, month: string): Promise<{
+        comments: string | null;
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        platform: string;
+        postType: string;
+        month: string | null;
+        assignedTo: string | null;
+        dueDate: Date | null;
+        updatedBy: string;
+        updatedAt: Date;
+    }[]>;
+    getTenantUsers(tenantId: string): Promise<{
+        id: string;
+        email: string | null;
+        username: string;
+        role: string;
+    }[]>;
+    getCampaigns(tenantId: string, projectId: string): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        name: string;
+        projectId: string;
+        updatedBy: string;
+        updatedAt: Date;
+        leads: number;
+        startDate: Date;
+        endDate: Date | null;
+        spend: import("@prisma/client-runtime-utils").Decimal;
+    }[]>;
+    createCampaign(tenantId: string, projectId: string, data: any, username: string): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        name: string;
+        projectId: string;
+        updatedBy: string;
+        updatedAt: Date;
+        leads: number;
+        startDate: Date;
+        endDate: Date | null;
+        spend: import("@prisma/client-runtime-utils").Decimal;
+    }>;
+    getSpecialDayPosters(tenantId: string, projectId: string, month: string): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        month: string;
+        updatedBy: string;
+        updatedAt: Date;
+        holidayName: string;
+        scheduledDate: Date;
+        isPlannedOnFirstDay: boolean;
+    }[]>;
+    upsertSpecialDayPoster(tenantId: string, projectId: string, data: any, username: string): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        createdAt: Date;
+        projectId: string;
+        month: string;
+        updatedBy: string;
+        updatedAt: Date;
+        holidayName: string;
+        scheduledDate: Date;
+        isPlannedOnFirstDay: boolean;
+    }>;
+}

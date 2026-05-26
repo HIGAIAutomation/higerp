@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #09090B;
+  --primary: #09090B;
+  --secondary: #F4F4F5;
+  --accent: #2E9EDE;
+  --card: #FFFFFF;
+  --card-foreground: #09090B;
+  --popover: #FFFFFF;
+  --popover-foreground: #09090B;
+  --muted: #FAFAFA;
+  --muted-foreground: #71717A;
+  --border: #E4E4E7;
+  --input: #E4E4E7;
+  --ring: #2E9EDE;
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --radius-xl: var(--radius);
+  --font-sans: var(--font-poppins), system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #09090B;
+    --foreground: #FAFAFA;
+    --card: #18181B;
+    --card-foreground: #FAFAFA;
+    --primary: #FAFAFA;
+    --secondary: #27272A;
+    --border: #27272A;
+    --input: #27272A;
+    --accent: #2E9EDE;
+    --ring: #2E9EDE;
+    --muted: #18181B;
+    --muted-foreground: #A1A1AA;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass {
+    background: rgba(24, 24, 27, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+.dark .glass {
+  background: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Explicit fallback utilities for text-background to avoid Tailwind compilation edge-cases */
+.text-background {
+  color: var(--background);
+}
+.text-background\/70 {
+  color: color-mix(in srgb, var(--background) 70%, transparent);
+}
+.text-background\/50 {
+  color: color-mix(in srgb, var(--background) 50%, transparent);
+}
+
+
