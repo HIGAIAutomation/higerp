@@ -3,7 +3,6 @@ export declare class MarketingController {
     private marketingService;
     constructor(marketingService: MarketingService);
     getAllPostsByMonth(month: string, req: any): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -11,6 +10,7 @@ export declare class MarketingController {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -18,7 +18,6 @@ export declare class MarketingController {
         updatedAt: Date;
     }[]>;
     getAllPostHistory(month: string, req: any): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -26,6 +25,7 @@ export declare class MarketingController {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -38,7 +38,6 @@ export declare class MarketingController {
         role: string;
     }[]>;
     getPosts(projectId: string, month: string, req: any): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -46,6 +45,7 @@ export declare class MarketingController {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -53,7 +53,6 @@ export declare class MarketingController {
         updatedAt: Date;
     }[]>;
     upsertPost(projectId: string, body: any, req: any): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -61,6 +60,7 @@ export declare class MarketingController {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -68,7 +68,6 @@ export declare class MarketingController {
         updatedAt: Date;
     }>;
     getPostHistory(projectId: string, month: string, req: any): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -76,6 +75,7 @@ export declare class MarketingController {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -92,7 +92,7 @@ export declare class MarketingController {
         leads: number;
         startDate: Date;
         endDate: Date | null;
-        spend: import("@prisma/client-runtime-utils").Decimal;
+        spend: number;
     }[]>;
     createCampaign(projectId: string, body: any, req: any): Promise<{
         id: string;
@@ -105,7 +105,7 @@ export declare class MarketingController {
         leads: number;
         startDate: Date;
         endDate: Date | null;
-        spend: import("@prisma/client-runtime-utils").Decimal;
+        spend: number;
     }>;
     getSpecialDayPosters(projectId: string, month: string, req: any): Promise<{
         id: string;

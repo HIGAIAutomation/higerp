@@ -1,16 +1,23 @@
-const { Client } = require('pg');
+const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
+const prisma = new PrismaClient();
+
 async function main() {
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
   try {
-    const res = await client.query('SELECT id, username, role, "tenantId" FROM "User"');
-    console.log("USERS:", res.rows);
+    const res = await prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        tenantId: true,
+      }
+    });
+    console.log("USERS:", res);
   } catch (err) {
     console.error("DB Query error:", err.message);
   } finally {
-    await client.end();
+    await prisma.$disconnect();
   }
 }
 

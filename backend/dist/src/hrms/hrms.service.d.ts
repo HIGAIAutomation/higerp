@@ -13,9 +13,9 @@ export declare class HrmsService {
         designation: string | null;
         firstName: string;
         lastName: string;
-        salaryBasis: import("@prisma/client-runtime-utils").Decimal | null;
+        salaryBasis: number | null;
         joiningDate: Date | null;
-        metadata: import("@prisma/client/runtime/client").JsonValue | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         deptId: string | null;
     }>;
     getEmployees(tenantId: string): Promise<{
@@ -38,9 +38,9 @@ export declare class HrmsService {
         designation: string | null;
         firstName: string;
         lastName: string;
-        salaryBasis: import("@prisma/client-runtime-utils").Decimal | null;
+        salaryBasis: number | null;
         joiningDate: Date | null;
-        metadata: import("@prisma/client/runtime/client").JsonValue | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         deptId: string | null;
     }[]>;
 }

@@ -34,14 +34,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const adapter_pg_1 = require("@prisma/adapter-pg");
-const pg_1 = require("pg");
 const bcrypt = __importStar(require("bcrypt"));
 require("dotenv/config");
-const connectionString = "postgres://postgres:postgres@127.0.0.1:51214/template1?sslmode=disable";
-const pool = new pg_1.Pool({ connectionString });
-const adapter = new adapter_pg_1.PrismaPg(pool);
-const prisma = new client_1.PrismaClient({ adapter });
+const prisma = new client_1.PrismaClient();
 async function main() {
     const tenantId = '00000000-0000-0000-0000-000000000000';
     await prisma.tenant.upsert({

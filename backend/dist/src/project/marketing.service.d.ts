@@ -3,7 +3,6 @@ export declare class MarketingService {
     private prisma;
     constructor(prisma: PrismaService);
     getPosts(tenantId: string, projectId: string, month?: string): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -11,6 +10,7 @@ export declare class MarketingService {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -18,7 +18,6 @@ export declare class MarketingService {
         updatedAt: Date;
     }[]>;
     upsertPost(tenantId: string, projectId: string, data: any, username: string): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -26,6 +25,7 @@ export declare class MarketingService {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -33,7 +33,6 @@ export declare class MarketingService {
         updatedAt: Date;
     }>;
     getPostHistory(tenantId: string, projectId?: string, month?: string): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -41,13 +40,13 @@ export declare class MarketingService {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
         updatedBy: string;
     }[]>;
     getAllPostsByMonth(tenantId: string, month: string): Promise<{
-        comments: string | null;
         id: string;
         tenantId: string;
         status: string;
@@ -55,6 +54,7 @@ export declare class MarketingService {
         projectId: string;
         platform: string;
         postType: string;
+        comments: string | null;
         month: string | null;
         assignedTo: string | null;
         dueDate: Date | null;
@@ -78,7 +78,7 @@ export declare class MarketingService {
         leads: number;
         startDate: Date;
         endDate: Date | null;
-        spend: import("@prisma/client-runtime-utils").Decimal;
+        spend: number;
     }[]>;
     createCampaign(tenantId: string, projectId: string, data: any, username: string): Promise<{
         id: string;
@@ -91,7 +91,7 @@ export declare class MarketingService {
         leads: number;
         startDate: Date;
         endDate: Date | null;
-        spend: import("@prisma/client-runtime-utils").Decimal;
+        spend: number;
     }>;
     getSpecialDayPosters(tenantId: string, projectId: string, month: string): Promise<{
         id: string;

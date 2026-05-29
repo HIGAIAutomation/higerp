@@ -9,7 +9,7 @@ export declare class ProjectController {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -21,6 +21,7 @@ export declare class ProjectController {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }>;
     getProjects(req: any): Promise<{
         id: string;
@@ -29,7 +30,7 @@ export declare class ProjectController {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -41,6 +42,7 @@ export declare class ProjectController {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }[]>;
     updateProject(id: string, body: any, req: any): Promise<{
         id: string;
@@ -49,7 +51,7 @@ export declare class ProjectController {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -61,6 +63,7 @@ export declare class ProjectController {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }>;
     deleteProject(id: string, req: any): Promise<{
         id: string;
@@ -69,7 +72,7 @@ export declare class ProjectController {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -81,5 +84,6 @@ export declare class ProjectController {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }>;
 }

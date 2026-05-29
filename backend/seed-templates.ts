@@ -1,13 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import "dotenv/config";
 
-const connectionString = "postgres://postgres:postgres@127.0.0.1:51214/template1?sslmode=disable";
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
   const tenantId = '00000000-0000-0000-0000-000000000000'; // Default System Tenant for testing

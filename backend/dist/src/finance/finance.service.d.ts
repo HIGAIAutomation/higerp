@@ -8,13 +8,13 @@ export declare class FinanceService {
         status: string;
         createdAt: Date;
         dueDate: Date | null;
-        invoiceNumber: string;
         clientId: string;
-        subtotal: import("@prisma/client-runtime-utils").Decimal;
-        cgst: import("@prisma/client-runtime-utils").Decimal;
-        sgst: import("@prisma/client-runtime-utils").Decimal;
-        igst: import("@prisma/client-runtime-utils").Decimal;
-        total: import("@prisma/client-runtime-utils").Decimal;
+        invoiceNumber: string;
+        subtotal: number;
+        cgst: number;
+        sgst: number;
+        igst: number;
+        total: number;
     }>;
     createExpense(tenantId: string, data: any): Promise<{
         id: string;
@@ -22,7 +22,7 @@ export declare class FinanceService {
         status: string;
         category: string;
         description: string | null;
-        amount: import("@prisma/client-runtime-utils").Decimal;
+        amount: number;
         date: Date;
     }>;
     getFinancialSummary(tenantId: string): Promise<{

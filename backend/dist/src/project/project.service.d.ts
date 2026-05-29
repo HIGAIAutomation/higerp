@@ -11,7 +11,7 @@ export declare class ProjectService {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -23,6 +23,7 @@ export declare class ProjectService {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }>;
     getProjects(tenantId: string): Promise<{
         id: string;
@@ -31,7 +32,7 @@ export declare class ProjectService {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -43,6 +44,7 @@ export declare class ProjectService {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }[]>;
     updateProject(id: string, tenantId: string, data: any): Promise<{
         id: string;
@@ -51,7 +53,7 @@ export declare class ProjectService {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -63,6 +65,7 @@ export declare class ProjectService {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }>;
     deleteProject(id: string, tenantId: string): Promise<{
         id: string;
@@ -71,7 +74,7 @@ export declare class ProjectService {
         name: string;
         category: string;
         description: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: number;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -83,5 +86,6 @@ export declare class ProjectService {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
+        clientId: string | null;
     }>;
 }

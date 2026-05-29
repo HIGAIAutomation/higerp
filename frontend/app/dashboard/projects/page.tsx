@@ -160,7 +160,7 @@ export default function ProjectsPage() {
       container.style.position = 'fixed';
       container.style.left = '0';
       container.style.top = '0';
-      container.style.zIndex = '-9999';
+      container.style.zIndex = '99999';
       container.style.width = '800px';
       container.style.background = '#ffffff';
 

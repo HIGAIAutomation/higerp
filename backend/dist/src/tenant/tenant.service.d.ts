@@ -9,7 +9,7 @@ export declare class TenantService {
         updatedAt: Date;
         slug: string;
         planTier: string;
-        dbConfig: import("@prisma/client/runtime/client").JsonValue | null;
+        dbConfig: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getTenantById(id: string): Promise<{
         id: string;
@@ -18,6 +18,6 @@ export declare class TenantService {
         updatedAt: Date;
         slug: string;
         planTier: string;
-        dbConfig: import("@prisma/client/runtime/client").JsonValue | null;
+        dbConfig: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
 }

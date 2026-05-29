@@ -29,8 +29,8 @@ export declare class AuthService {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getAllUsers(tenantId: string): Promise<{
         id: string;
@@ -41,8 +41,8 @@ export declare class AuthService {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue;
     }[]>;
     updateUserAccess(userId: string, tenantId: string, data: any): Promise<{
         id: string;
@@ -54,8 +54,8 @@ export declare class AuthService {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getUserById(userId: string, tenantId: string): Promise<{
         id: string;
@@ -68,7 +68,7 @@ export declare class AuthService {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
     } | null>;
 }

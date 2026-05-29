@@ -3,11 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model Tenant {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @map("_id")
   name       String
   slug       String   @unique
   planTier   String   @default("free")
@@ -38,7 +39,7 @@ model Tenant {
 }
 
 model User {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   email       String?  @unique
   username    String   @unique
@@ -47,32 +48,33 @@ model User {
   dob         String?
   address     String?
   designation String?
-  salary      Decimal?
+  salary      Float?
   pageAccess  Json?
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  projects    Project[] @relation("ClientProjects")
   createdAt   DateTime @default(now())
 }
 
 model Department {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @map("_id")
   tenantId  String
   name      String
   parentId  String?
-  parent    Department?  @relation("SubDepartments", fields: [parentId], references: [id])
+  parent    Department?  @relation("SubDepartments", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children  Department[] @relation("SubDepartments")
   tenant    Tenant       @relation(fields: [tenantId], references: [id])
   employees Employee[]
 }
 
 model Employee {
-  id           String   @id @default(uuid())
+  id           String   @id @default(uuid()) @map("_id")
   tenantId     String
   firstName    String
   lastName     String
   email        String   @unique
   deptId       String?
   designation  String?
-  salaryBasis  Decimal?
+  salaryBasis  Float?
   joiningDate  DateTime?
   status       String   @default("active")
   metadata     Json?
@@ -83,7 +85,7 @@ model Employee {
 }
 
 model DocumentTemplate {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   name        String
   category    String
@@ -95,7 +97,7 @@ model DocumentTemplate {
 }
 
 model GeneratedDocument {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   templateId  String?
   entityType  String
@@ -107,26 +109,24 @@ model GeneratedDocument {
   
   tenant      Tenant            @relation(fields: [tenantId], references: [id])
   template    DocumentTemplate? @relation(fields: [templateId], references: [id])
-  // Note: entityId is polymorphic, but we can't easily express that in Prisma without separate fields or raw SQL.
-  // We'll manage relations carefully in the application layer.
 }
 
 model Lead {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   companyName String?
   contact     String?
   source      String?
   status      String   @default("new")
   assignedTo  String?
-  valEstimate Decimal?
+  valEstimate Float?
   
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
   opportunities Opportunity[]
 }
 
 model Opportunity {
-  id                String   @id @default(uuid())
+  id                String   @id @default(uuid()) @map("_id")
   tenantId          String
   leadId            String
   stage             String
@@ -136,11 +136,11 @@ model Opportunity {
 }
 
 model Package {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   name        String
   description String?
-  basePrice   Decimal
+  basePrice   Float
   isActive    Boolean  @default(true)
   
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
@@ -148,18 +148,20 @@ model Package {
 }
 
 model PricingTier {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @map("_id")
   packageId String
   name      String
-  price     Decimal
+  price     Float
   features  Json?
   
   package   Package  @relation(fields: [packageId], references: [id])
 }
 
 model Project {
-  id                 String   @id @default(uuid())
+  id                 String   @id @default(uuid()) @map("_id")
   tenantId           String
+  clientId           String?
+  client             User?    @relation("ClientProjects", fields: [clientId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   name               String
   category           String   @default("Web/App Development")
   description        String?
@@ -167,7 +169,7 @@ model Project {
   endDate            DateTime?
   status             String   @default("planned")
   whatsappNumber     String?
-  price              Decimal  @default(0)
+  price              Float    @default(0)
   modules            String?
   deliveryCode       Boolean  @default(false)
   deliveryDocs       Boolean  @default(false)
@@ -186,15 +188,15 @@ model Project {
 }
 
 model Invoice {
-  id            String   @id @default(uuid())
+  id            String   @id @default(uuid()) @map("_id")
   tenantId      String
   invoiceNumber String
   clientId      String
-  subtotal      Decimal
-  cgst          Decimal  @default(0)
-  sgst          Decimal  @default(0)
-  igst          Decimal  @default(0)
-  total         Decimal
+  subtotal      Float
+  cgst          Float    @default(0)
+  sgst          Float    @default(0)
+  igst          Float    @default(0)
+  total         Float
   status        String   @default("draft")
   dueDate       DateTime?
   createdAt     DateTime @default(now())
@@ -203,10 +205,10 @@ model Invoice {
 }
 
 model Expense {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   category    String
-  amount      Decimal
+  amount      Float
   description String?
   date        DateTime @default(now())
   status      String   @default("pending")
@@ -215,10 +217,10 @@ model Expense {
 }
 
 model Transaction {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   type        String   // 'DEBIT', 'CREDIT'
-  amount      Decimal
+  amount      Float
   description String?
   date        DateTime @default(now())
   
@@ -226,7 +228,7 @@ model Transaction {
 }
 
 model Ticket {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   title       String
   description String
@@ -242,7 +244,7 @@ model Ticket {
 }
 
 model Asset {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   name        String
   type        String   // 'hardware', 'software', 'license'
@@ -255,10 +257,10 @@ model Asset {
 }
 
 model KnowledgeBase {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @map("_id")
   tenantId    String
   title       String
-  content     String   @db.Text
+  content     String
   category    String?
   tags        String[]
   authorId    String
@@ -269,7 +271,7 @@ model KnowledgeBase {
 }
 
 model MarketingPost {
-  id         String    @id @default(uuid())
+  id         String    @id @default(uuid()) @map("_id")
   tenantId   String
   projectId  String
   platform   String    // 'instagram', 'fb', 'youtube', 'linkedin'
@@ -288,7 +290,7 @@ model MarketingPost {
 }
 
 model MarketingPostHistory {
-  id         String    @id @default(uuid())
+  id         String    @id @default(uuid()) @map("_id")
   tenantId   String
   projectId  String
   platform   String    // 'instagram', 'fb', 'youtube', 'linkedin'
@@ -306,11 +308,11 @@ model MarketingPostHistory {
 }
 
 model AdCampaign {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @map("_id")
   tenantId   String
   projectId  String
   name       String
-  spend      Decimal
+  spend      Float
   leads      Int
   startDate  DateTime
   endDate    DateTime?
@@ -323,7 +325,7 @@ model AdCampaign {
 }
 
 model SpecialDayPoster {
-  id                  String   @id @default(uuid())
+  id                  String   @id @default(uuid()) @map("_id")
   tenantId            String
   projectId           String
   month               String   // YYYY-MM
@@ -340,11 +342,11 @@ model SpecialDayPoster {
 }
 
 model ProjectPayment {
-  id            String   @id @default(uuid())
+  id            String   @id @default(uuid()) @map("_id")
   tenantId      String
   projectId     String
   invoiceNumber String
-  amount        Decimal
+  amount        Float
   dueDate       DateTime
   status        String   @default("pending") // pending, paid
   whatsappSent  Boolean  @default(false)

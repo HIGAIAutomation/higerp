@@ -16,7 +16,7 @@ export declare class PaymentService {
         updatedBy: string | null;
         updatedAt: Date;
         invoiceNumber: string;
-        amount: import("@prisma/client-runtime-utils").Decimal;
+        amount: number;
         whatsappSent: boolean;
     })[]>;
     generateBill(tenantId: string, data: any): Promise<{
@@ -29,7 +29,7 @@ export declare class PaymentService {
         updatedBy: string | null;
         updatedAt: Date;
         invoiceNumber: string;
-        amount: import("@prisma/client-runtime-utils").Decimal;
+        amount: number;
         whatsappSent: boolean;
     }>;
     markAsPaid(tenantId: string, id: string, username: string): Promise<{
@@ -42,7 +42,7 @@ export declare class PaymentService {
         updatedBy: string | null;
         updatedAt: Date;
         invoiceNumber: string;
-        amount: import("@prisma/client-runtime-utils").Decimal;
+        amount: number;
         whatsappSent: boolean;
     }>;
 }

@@ -26,8 +26,8 @@ export declare class AuthController {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getProfile(req: any): Promise<{
         id: string;
@@ -39,8 +39,8 @@ export declare class AuthController {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getAllUsers(req: any): Promise<{
         id: string;
@@ -51,8 +51,8 @@ export declare class AuthController {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue;
     }[]>;
     updateUserAccess(req: any, userId: string, body: any): Promise<{
         id: string;
@@ -64,7 +64,7 @@ export declare class AuthController {
         dob: string | null;
         address: string | null;
         designation: string | null;
-        salary: import("@prisma/client-runtime-utils").Decimal | null;
-        pageAccess: import("@prisma/client/runtime/client").JsonValue | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
 }

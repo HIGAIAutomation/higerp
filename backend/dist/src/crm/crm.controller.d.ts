@@ -10,7 +10,7 @@ export declare class CrmController {
         companyName: string | null;
         contact: string | null;
         source: string | null;
-        valEstimate: import("@prisma/client-runtime-utils").Decimal | null;
+        valEstimate: number | null;
     }>;
     getLeads(req: any): Promise<({
         opportunities: {
@@ -28,22 +28,22 @@ export declare class CrmController {
         companyName: string | null;
         contact: string | null;
         source: string | null;
-        valEstimate: import("@prisma/client-runtime-utils").Decimal | null;
+        valEstimate: number | null;
     })[]>;
     createPackage(body: any, req: any): Promise<{
         id: string;
         tenantId: string;
         name: string;
         description: string | null;
-        basePrice: import("@prisma/client-runtime-utils").Decimal;
+        basePrice: number;
         isActive: boolean;
     }>;
     getPackages(req: any): Promise<({
         tiers: {
             id: string;
             name: string;
-            price: import("@prisma/client-runtime-utils").Decimal;
-            features: import("@prisma/client/runtime/client").JsonValue | null;
+            price: number;
+            features: import("@prisma/client/runtime/library").JsonValue | null;
             packageId: string;
         }[];
     } & {
@@ -51,7 +51,7 @@ export declare class CrmController {
         tenantId: string;
         name: string;
         description: string | null;
-        basePrice: import("@prisma/client-runtime-utils").Decimal;
+        basePrice: number;
         isActive: boolean;
     })[]>;
     generateQuote(leadId: string, packageId: string, req: any): Promise<{
