@@ -39,6 +39,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [projectsExpanded, setProjectsExpanded] = useState(pathname.startsWith("/dashboard/projects"));
+  const [hrmsExpanded, setHrmsExpanded] = useState(pathname.startsWith("/dashboard/hrms"));
 
   const isSuperAdmin = user?.role === 'superadmin';
   const pageAccessList = user?.pageAccess || [];
@@ -73,6 +74,70 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {visibleNavigation.map((item) => {
+          if (item.href === "/dashboard/hrms") {
+            return (
+              <div key={item.name} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => setHrmsExpanded(!hrmsExpanded)}
+                  className={cn(
+                    "w-full group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 cursor-pointer",
+                    pathname.startsWith("/dashboard/hrms")
+                      ? "bg-accent/10 text-accent shadow-inner"
+                      : "text-foreground/70 hover:bg-accent/5 hover:text-foreground"
+                  )}
+                >
+                  <div className="flex items-center">
+                    <item.icon className="mr-3 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                    {item.name}
+                  </div>
+                  {hrmsExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-foreground/50" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-foreground/50" />
+                  )}
+                </button>
+                {hrmsExpanded && (
+                  <div className="pl-8 space-y-1 pr-2 transition-all duration-200">
+                    <Link
+                      href="/dashboard/hrms"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/hrms"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Employee Directory
+                    </Link>
+                    <Link
+                      href="/dashboard/hrms/offboarding"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/hrms/offboarding"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Offboarding
+                    </Link>
+                    <Link
+                      href="/dashboard/hrms/payroll"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/hrms/payroll"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Payroll Tracking
+                    </Link>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           if (item.href === "/dashboard/projects") {
             return (
               <div key={item.name} className="space-y-1">

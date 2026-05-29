@@ -13,7 +13,9 @@ import {
   Briefcase,
   Mail,
   DollarSign,
-  Calendar
+  Calendar,
+  Download,
+  X
 } from 'lucide-react';
 
 interface Employee {
@@ -25,6 +27,7 @@ interface Employee {
   joiningDate: string;
   status: string;
   salaryBasis: string;
+  documents?: any[];
 }
 
 export default function HRMSPage() {
@@ -32,6 +35,8 @@ export default function HRMSPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEmpDocs, setSelectedEmpDocs] = useState<Employee | null>(null);
+  const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
   
   // Form State
   const [form, setForm] = useState({
@@ -45,6 +50,11 @@ export default function HRMSPage() {
 
   // Success response from creation (contains auto-generated docs)
   const [onboardingDocs, setOnboardingDocs] = useState<any[]>([]);
+
+  const handleDownloadDoc = async (docId: string, docName: string) => {
+    const { downloadPdf } = await import('@/lib/download-pdf');
+    await downloadPdf(docId, docName, setDownloadingDocId);
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -296,6 +306,7 @@ export default function HRMSPage() {
                         <th className="pb-4">Joined</th>
                         <th className="pb-4">Salary</th>
                         <th className="pb-4">Status</th>
+                        <th className="pb-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border text-sm">
@@ -311,6 +322,15 @@ export default function HRMSPage() {
                               {emp.status}
                             </span>
                           </td>
+                          <td className="py-4 text-right">
+                            <button
+                              onClick={() => setSelectedEmpDocs(emp)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                            >
+                              <FileText className="h-3.5 w-3.5" />
+                              Docs
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -321,6 +341,61 @@ export default function HRMSPage() {
           </div>
         </div>
       </div>
+
+      {/* Document Downloader Modal */}
+      {selectedEmpDocs && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-card w-full max-w-lg rounded-3xl p-6 border border-border shadow-2xl relative">
+            <button
+              onClick={() => setSelectedEmpDocs(null)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
+            <h3 className="text-xl font-bold text-primary mb-1">Employee Documents</h3>
+            <p className="text-xs text-muted-foreground mb-4 font-semibold">
+              Manage and download documents for {selectedEmpDocs.firstName} {selectedEmpDocs.lastName}
+            </p>
+            
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              {!selectedEmpDocs.documents || selectedEmpDocs.documents.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic text-center py-4 font-semibold">No documents generated yet.</p>
+              ) : (
+                selectedEmpDocs.documents.map((doc: any) => (
+                  <div key={doc.id} className="p-3 rounded-2xl bg-secondary/50 border border-border flex items-center justify-between font-inter">
+                    <div>
+                      <p className="text-xs font-bold text-foreground">{doc.template?.name || doc.name || 'Document'}</p>
+                      <p className="text-[10px] text-muted-foreground font-semibold">Status: {doc.status}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadDoc(doc.id, doc.template?.name || doc.name || 'document')}
+                      disabled={downloadingDocId === doc.id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary text-background font-bold rounded-xl hover:scale-[1.03] active:scale-[0.97] transition-all text-xs shadow-sm disabled:opacity-75 cursor-pointer"
+                    >
+                      {downloadingDocId === doc.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Download className="h-3.5 w-3.5" />
+                      )}
+                      Download
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setSelectedEmpDocs(null)}
+                className="px-4 py-2 bg-secondary text-primary font-bold rounded-xl border border-border hover:bg-secondary/80 transition-colors text-xs cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

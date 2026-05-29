@@ -384,9 +384,6 @@ export default function DigitalMarketingPage() {
 
     setDownloadingReport(true);
     try {
-      // @ts-ignore
-      const html2pdf = (await import('html2pdf.js')).default;
-
       const campaignsThisMonth = campaigns.filter(c => c.startDate.startsWith(selectedMonth));
       const totalSpend = campaignsThisMonth.reduce((sum, c) => sum + Number(c.spend), 0);
       const totalLeads = campaignsThisMonth.reduce((sum, c) => sum + c.leads, 0);
@@ -639,31 +636,12 @@ export default function DigitalMarketingPage() {
           </div>
         </div>`;
 
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '0';
-      container.style.top = '0';
-      container.style.zIndex = '99999';
-      container.style.width = '800px';
-      container.style.background = '#ffffff';
-      container.innerHTML = htmlContent;
-      document.body.appendChild(container);
-
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await html2pdf().set({
-        margin: [18, 18, 18, 18],
-        filename: `${selectedProject.name.replace(/\s+/g, '_')}_Marketing_Report_${selectedMonth}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css'] }
-      } as any).from(container).save();
-
-      document.body.removeChild(container);
+      const filename = `${selectedProject.name.replace(/\s+/g, '_')}_Marketing_Report_${selectedMonth}`;
+      const { downloadPdfFromHtml } = await import('@/lib/download-pdf');
+      await downloadPdfFromHtml(htmlContent, filename, setDownloadingReport);
     } catch (err) {
       console.error('Failed to compile report:', err);
       alert('Could not generate report. Ensure the backend is online.');
-    } finally {
       setDownloadingReport(false);
     }
   };
