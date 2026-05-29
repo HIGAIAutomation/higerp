@@ -14,6 +14,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;
@@ -23,7 +24,14 @@ export declare class ProjectController {
         videoCount: number;
         clientId: string | null;
     }>;
-    getProjects(req: any): Promise<{
+    getProjects(req: any): Promise<({
+        client: {
+            id: string;
+            email: string | null;
+            username: string;
+            role: string;
+        } | null;
+    } & {
         id: string;
         tenantId: string;
         status: string;
@@ -35,6 +43,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;
@@ -43,7 +52,7 @@ export declare class ProjectController {
         postCount: number;
         videoCount: number;
         clientId: string | null;
-    }[]>;
+    })[]>;
     updateProject(id: string, body: any, req: any): Promise<{
         id: string;
         tenantId: string;
@@ -56,6 +65,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;
@@ -77,6 +87,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;

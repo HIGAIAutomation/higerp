@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentService } from '../document/document.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ProjectService {
@@ -10,9 +11,36 @@ export class ProjectService {
   ) {}
 
   async createProject(tenantId: string, data: any) {
+    let clientId: string | null = null;
+    if (data.clientUsername) {
+      const existingUser = await this.prisma.user.findFirst({
+        where: { username: data.clientUsername, tenantId },
+      });
+      if (existingUser) {
+        throw new BadRequestException('Client username is already taken');
+      }
+      if (!data.clientPassword) {
+        throw new BadRequestException('Password is required for client account');
+      }
+
+      const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
+      const clientUser = await this.prisma.user.create({
+        data: {
+          tenantId,
+          email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
+          username: data.clientUsername,
+          password: hashedPassword,
+          role: 'user',
+          pageAccess: ['/dashboard', '/dashboard/projects'],
+        },
+      });
+      clientId = clientUser.id;
+    }
+
     const project = await this.prisma.project.create({
       data: {
         tenantId,
+        clientId,
         name: data.name,
         category: data.category || 'Web/App Development',
         description: data.description,
@@ -22,6 +50,7 @@ export class ProjectService {
         whatsappNumber: data.whatsappNumber || null,
         price: data.price ? parseFloat(data.price) : 0,
         modules: data.modules || null,
+        platforms: data.platforms || null,
         deliveryCode: !!data.deliveryCode,
         deliveryDocs: !!data.deliveryDocs,
         deliveryDb: !!data.deliveryDb,
@@ -68,6 +97,16 @@ export class ProjectService {
   async getProjects(tenantId: string) {
     return this.prisma.project.findMany({
       where: { tenantId },
+      include: {
+        client: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            role: true,
+          }
+        }
+      }
     });
   }
 
@@ -77,6 +116,50 @@ export class ProjectService {
     });
     if (!currentProject) {
       throw new NotFoundException('Project not found');
+    }
+
+    let clientId = currentProject.clientId;
+    if (data.clientUsername) {
+      if (clientId) {
+        const existingWithUsername = await this.prisma.user.findFirst({
+          where: { username: data.clientUsername, tenantId, NOT: { id: clientId } },
+        });
+        if (existingWithUsername) {
+          throw new BadRequestException('Client username is already taken');
+        }
+
+        const userUpdateData: any = { username: data.clientUsername };
+        if (data.clientPassword) {
+          userUpdateData.password = await bcrypt.hash(data.clientPassword, 10);
+        }
+        await this.prisma.user.update({
+          where: { id: clientId },
+          data: userUpdateData,
+        });
+      } else {
+        const existingUser = await this.prisma.user.findFirst({
+          where: { username: data.clientUsername, tenantId },
+        });
+        if (existingUser) {
+          throw new BadRequestException('Client username is already taken');
+        }
+        if (!data.clientPassword) {
+          throw new BadRequestException('Password is required for a new client account');
+        }
+
+        const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
+        const clientUser = await this.prisma.user.create({
+          data: {
+            tenantId,
+            email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
+            username: data.clientUsername,
+            password: hashedPassword,
+            role: 'user',
+            pageAccess: ['/dashboard', '/dashboard/projects'],
+          },
+        });
+        clientId = clientUser.id;
+      }
     }
 
     // 1. Validation for module count increase
@@ -129,6 +212,7 @@ export class ProjectService {
     return this.prisma.project.update({
       where: { id, tenantId },
       data: {
+        clientId,
         name: data.name,
         category: data.category,
         description: data.description,
@@ -138,6 +222,7 @@ export class ProjectService {
         whatsappNumber: data.whatsappNumber,
         price: data.price !== undefined ? parseFloat(data.price) : undefined,
         modules: data.modules,
+        platforms: data.platforms,
         deliveryCode: data.deliveryCode !== undefined ? !!data.deliveryCode : undefined,
         deliveryDocs: data.deliveryDocs !== undefined ? !!data.deliveryDocs : undefined,
         deliveryDb: data.deliveryDb !== undefined ? !!data.deliveryDb : undefined,

@@ -41,6 +41,7 @@ interface Project {
   status: string;
   postCount?: number | string;
   videoCount?: number | string;
+  platforms?: string;
 }
 
 interface SocialPost {
@@ -391,8 +392,23 @@ export default function DigitalMarketingPage() {
       const totalLeads = campaignsThisMonth.reduce((sum, c) => sum + c.leads, 0);
       const frequencyMet = campaignsThisMonth.length >= 2;
 
-      const platforms = ['instagram', 'fb', 'youtube', 'linkedin'];
-      const platformNames: Record<string, string> = { instagram: 'Instagram', fb: 'Facebook', youtube: 'YouTube', linkedin: 'LinkedIn' };
+      // Parse active platforms from the project or fallback to defaults
+      const rawPlatforms = selectedProject.platforms
+        ? selectedProject.platforms.split(',').map(p => p.trim()).filter(Boolean)
+        : ['Instagram', 'Facebook', 'YouTube', 'LinkedIn'];
+
+      const platforms = rawPlatforms.map(p => {
+        const lower = p.toLowerCase();
+        return lower === 'facebook' ? 'fb' : lower;
+      });
+
+      const platformNames: Record<string, string> = {};
+      rawPlatforms.forEach(p => {
+        const lower = p.toLowerCase();
+        const key = lower === 'facebook' ? 'fb' : lower;
+        platformNames[key] = p;
+      });
+
       const types = ['image', 'video'];
 
       const socialRows = platforms.flatMap(plat =>
@@ -518,10 +534,7 @@ export default function DigitalMarketingPage() {
                   <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">
                     <div>Image Posts</div>
                     <div style="font-size: 8px; color: #64748b; font-weight: 500; margin-top: 2px;">
-                      Instagram: ${isPlatformPostDelivered('instagram', 'image') ? 1 : 0}/${platTargetImage} • 
-                      Facebook: ${isPlatformPostDelivered('fb', 'image') ? 1 : 0}/${platTargetImage} • 
-                      YouTube: ${isPlatformPostDelivered('youtube', 'image') ? 1 : 0}/${platTargetImage} • 
-                      LinkedIn: ${isPlatformPostDelivered('linkedin', 'image') ? 1 : 0}/${platTargetImage}
+                      ${platforms.map(plat => `${platformNames[plat]}: ${isPlatformPostDelivered(plat, 'image') ? 1 : 0}/${platTargetImage}`).join(' • ')}
                     </div>
                   </td>
                   <td style="padding: 8px 12px; color: #475569;">${targetImagePosts}</td>
@@ -538,10 +551,7 @@ export default function DigitalMarketingPage() {
                   <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">
                     <div>Video Posts</div>
                     <div style="font-size: 8px; color: #64748b; font-weight: 500; margin-top: 2px;">
-                      Instagram: ${isPlatformPostDelivered('instagram', 'video') ? 1 : 0}/${platTargetVideo} • 
-                      Facebook: ${isPlatformPostDelivered('fb', 'video') ? 1 : 0}/${platTargetVideo} • 
-                      YouTube: ${isPlatformPostDelivered('youtube', 'video') ? 1 : 0}/${platTargetVideo} • 
-                      LinkedIn: ${isPlatformPostDelivered('linkedin', 'video') ? 1 : 0}/${platTargetVideo}
+                      ${platforms.map(plat => `${platformNames[plat]}: ${isPlatformPostDelivered(plat, 'video') ? 1 : 0}/${platTargetVideo}`).join(' • ')}
                     </div>
                   </td>
                   <td style="padding: 8px 12px; color: #475569;">${targetVideoPosts}</td>
@@ -687,8 +697,28 @@ export default function DigitalMarketingPage() {
   // Targets from project setup
   const targetImagePosts = selectedProject ? Number(selectedProject.postCount || 0) : 0;
   const targetVideoPosts = selectedProject ? Number(selectedProject.videoCount || 0) : 0;
-  const platTargetImage = targetImagePosts > 0 ? Math.ceil(targetImagePosts / 4) : 0;
-  const platTargetVideo = targetVideoPosts > 0 ? Math.ceil(targetVideoPosts / 4) : 0;
+
+  // Dynamically parse platforms from project
+  const parsedPlatforms = React.useMemo(() => {
+    if (!selectedProject || !selectedProject.platforms) {
+      return [
+        { name: 'Instagram', key: 'instagram' },
+        { name: 'Facebook', key: 'fb' },
+        { name: 'YouTube', key: 'youtube' },
+        { name: 'LinkedIn', key: 'linkedin' }
+      ];
+    }
+    return selectedProject.platforms.split(',').map(p => p.trim()).filter(Boolean).map(p => {
+      const lower = p.toLowerCase();
+      const key = lower === 'facebook' ? 'fb' : lower;
+      return { name: p, key };
+    });
+  }, [selectedProject]);
+
+  const activePlatformsCount = parsedPlatforms.length || 4;
+
+  const platTargetImage = targetImagePosts > 0 ? Math.ceil(targetImagePosts / activePlatformsCount) : 0;
+  const platTargetVideo = targetVideoPosts > 0 ? Math.ceil(targetVideoPosts / activePlatformsCount) : 0;
 
   // Helper to check if a post is delivered for a platform
   const isPlatformPostDelivered = (plat: string, type: string) => {
@@ -730,16 +760,33 @@ export default function DigitalMarketingPage() {
   // Compute pending tasks across all projects for the selected month
   const pendingTasks = React.useMemo(() => {
     const tasks: any[] = [];
-    const platforms = ['instagram', 'fb', 'youtube', 'linkedin'];
-    const platformNames: Record<string, string> = { instagram: 'Instagram', fb: 'Facebook', youtube: 'YouTube', linkedin: 'LinkedIn' };
 
     projects.forEach((proj) => {
       const targetImage = Number(proj.postCount || 0);
       const targetVideo = Number(proj.videoCount || 0);
-      const platTargetImage = targetImage > 0 ? Math.ceil(targetImage / 4) : 0;
-      const platTargetVideo = targetVideo > 0 ? Math.ceil(targetVideo / 4) : 0;
 
-      platforms.forEach((plat) => {
+      // Parse active platforms from the project or fallback to defaults
+      const rawPlatforms = proj.platforms
+        ? proj.platforms.split(',').map(p => p.trim()).filter(Boolean)
+        : ['Instagram', 'Facebook', 'YouTube', 'LinkedIn'];
+
+      const projPlatforms = rawPlatforms.map(p => {
+        const lower = p.toLowerCase();
+        return lower === 'facebook' ? 'fb' : lower;
+      });
+
+      const platformNames: Record<string, string> = {};
+      rawPlatforms.forEach(p => {
+        const lower = p.toLowerCase();
+        const key = lower === 'facebook' ? 'fb' : lower;
+        platformNames[key] = p;
+      });
+
+      const activePlatformsCount = projPlatforms.length || 4;
+      const platTargetImage = targetImage > 0 ? Math.ceil(targetImage / activePlatformsCount) : 0;
+      const platTargetVideo = targetVideo > 0 ? Math.ceil(targetVideo / activePlatformsCount) : 0;
+
+      projPlatforms.forEach((plat) => {
         // Check Image
         if (platTargetImage > 0) {
           const completedCount = allProjectsHistory.filter(
@@ -1244,19 +1291,14 @@ export default function DigitalMarketingPage() {
                   {/* Platform breakdown */}
                   <div className="pt-3 border-t border-border mt-4 space-y-2">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Platform Status</span>
-                    <div className="grid grid-cols-4 gap-2 text-center">
-                      {[
-                        { name: 'Instagram', key: 'instagram' },
-                        { name: 'Facebook', key: 'fb' },
-                        { name: 'YouTube', key: 'youtube' },
-                        { name: 'LinkedIn', key: 'linkedin' }
-                      ].map(p => {
+                    <div className="flex flex-wrap gap-2 text-center">
+                      {parsedPlatforms.map(p => {
                         const platPosted = getPlatformPostedCount(p.key, 'image');
                         const platCompleted = getPlatformCompletedCount(p.key, 'image');
                         const platTotal = platPosted + platCompleted;
                         const isActive = platTotal > 0;
                         return (
-                          <div key={p.key} className={`p-2 rounded-xl border text-[9px] font-bold ${isActive ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
+                          <div key={p.key} className={`flex-1 min-w-[80px] p-2 rounded-xl border text-[9px] font-bold ${isActive ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
                             <span className="block text-[8px] opacity-70 truncate mb-1">{p.name}</span>
                             <span className="block text-sky-400">📤 {platPosted} posted</span>
                             <span className="block text-emerald-400">✅ {platCompleted} done</span>
@@ -1306,19 +1348,14 @@ export default function DigitalMarketingPage() {
                   {/* Platform breakdown */}
                   <div className="pt-3 border-t border-border mt-4 space-y-2">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Platform Status</span>
-                    <div className="grid grid-cols-4 gap-2 text-center">
-                      {[
-                        { name: 'Instagram', key: 'instagram' },
-                        { name: 'Facebook', key: 'fb' },
-                        { name: 'YouTube', key: 'youtube' },
-                        { name: 'LinkedIn', key: 'linkedin' }
-                      ].map(p => {
+                    <div className="flex flex-wrap gap-2 text-center">
+                      {parsedPlatforms.map(p => {
                         const platPosted = getPlatformPostedCount(p.key, 'video');
                         const platCompleted = getPlatformCompletedCount(p.key, 'video');
                         const platTotal = platPosted + platCompleted;
                         const isActive = platTotal > 0;
                         return (
-                          <div key={p.key} className={`p-2 rounded-xl border text-[9px] font-bold ${isActive ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
+                          <div key={p.key} className={`flex-1 min-w-[80px] p-2 rounded-xl border text-[9px] font-bold ${isActive ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
                             <span className="block text-[8px] opacity-70 truncate mb-1">{p.name}</span>
                             <span className="block text-rose-400">📤 {platPosted} posted</span>
                             <span className="block text-emerald-400">✅ {platCompleted} done</span>
@@ -1348,15 +1385,12 @@ export default function DigitalMarketingPage() {
                   View History
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground font-medium mb-6 uppercase tracking-wider">TRACK VIDEO & IMAGE CONTENT ACROSS INSTAGRAM, FB, YOUTUBE, AND LINKEDIN</p>
+              <p className="text-xs text-muted-foreground font-medium mb-6 uppercase tracking-wider">
+                TRACK VIDEO & IMAGE CONTENT ACROSS ${parsedPlatforms.map(p => p.name.toUpperCase()).join(', ')}
+              </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { name: 'Instagram', key: 'instagram' },
-                  { name: 'Facebook', key: 'fb' },
-                  { name: 'YouTube', key: 'youtube' },
-                  { name: 'LinkedIn', key: 'linkedin' }
-                ].map((plat) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {parsedPlatforms.map((plat) => (
                   <div key={plat.key} className="bg-secondary/50 rounded-2xl p-5 border border-border space-y-4">
                     <div className="flex items-center justify-between border-b border-border pb-3">
                       <span className="font-bold text-foreground text-base">{plat.name}</span>

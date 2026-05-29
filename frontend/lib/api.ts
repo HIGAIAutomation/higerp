@@ -56,6 +56,7 @@ export async function fetchWithAuth(path: string, options: RequestInit = {}): Pr
   }
 
   const response = await fetch(`${BASE_URL}${path}`, {
+    cache: 'no-store',
     ...options,
     headers,
   });
