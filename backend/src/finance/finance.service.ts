@@ -78,12 +78,12 @@ export class FinanceService {
     });
 
     const totalRevenue = transactions
-      .filter((t) => t.type === 'CREDIT')
-      .reduce((acc, t) => acc + Number(t.amount), 0);
+      .filter((t: any) => t.type === 'CREDIT')
+      .reduce((acc: number, t: any) => acc + Number(t.amount), 0);
 
     const totalExpenses = transactions
-      .filter((t) => t.type === 'DEBIT')
-      .reduce((acc, t) => acc + Number(t.amount), 0);
+      .filter((t: any) => t.type === 'DEBIT')
+      .reduce((acc: number, t: any) => acc + Number(t.amount), 0);
 
     return {
       revenue: totalRevenue,

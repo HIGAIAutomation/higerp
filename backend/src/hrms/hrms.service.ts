@@ -54,7 +54,7 @@ export class HrmsService {
       where: { tenantId },
     });
     return Promise.all(
-      employees.map(async (emp) => {
+      employees.map(async (emp: any) => {
         const documents = await this.prisma.generatedDocument.findMany({
           where: { tenantId, entityId: emp.id, entityType: 'EMPLOYEE' },
         });
