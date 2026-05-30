@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/common';
 import { HrmsService } from './hrms.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -19,5 +19,17 @@ export class HrmsController {
   @Roles('admin', 'hr', 'user')
   async getEmployees(@Request() req: any) {
     return this.hrmsService.getEmployees(req.user.tenantId);
+  }
+
+  @Post('employees/:id/close')
+  @Roles('admin', 'hr')
+  async closeEmployee(@Param('id') id: string, @Body() body: any, @Request() req: any) {
+    return this.hrmsService.closeEmployee(req.user.tenantId, id, body);
+  }
+
+  @Post('employees/:id/payslip')
+  @Roles('admin', 'hr')
+  async generatePayslip(@Param('id') id: string, @Body() body: any, @Request() req: any) {
+    return this.hrmsService.generatePayslip(req.user.tenantId, id, body.month, body);
   }
 }

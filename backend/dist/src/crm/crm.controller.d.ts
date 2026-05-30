@@ -6,10 +6,10 @@ export declare class CrmController {
         id: string;
         tenantId: string;
         status: string;
-        assignedTo: string | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        assignedTo: string | null;
         valEstimate: number | null;
     }>;
     getLeads(req: any): Promise<({
@@ -24,10 +24,10 @@ export declare class CrmController {
         id: string;
         tenantId: string;
         status: string;
-        assignedTo: string | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        assignedTo: string | null;
         valEstimate: number | null;
     })[]>;
     createPackage(body: any, req: any): Promise<{

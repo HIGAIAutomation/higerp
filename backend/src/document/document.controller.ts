@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Request, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, Res } from '@nestjs/common';
 import { DocumentService } from './document.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -31,6 +31,57 @@ export class DocumentController {
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(doc.compiledHtml);
+  }
+
+  @Get('/:id/pdf')
+  async downloadPdf(@Param('id') id: string, @Request() req: any, @Res() res: any) {
+    try {
+      const pdfBuffer = await this.documentService.generatePdf(req.user.tenantId, id);
+      const doc = await this.documentService.getDocument(req.user.tenantId, id);
+      const filename = `${doc?.template?.name || 'document'}.pdf`.replace(/\s+/g, '_');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(pdfBuffer);
+    } catch (error: any) {
+      console.error('Error in downloadPdf:', error);
+      res.status(500).send(`Failed to generate PDF: ${error.message}`);
+    }
+  }
+
+  @Post('/render-pdf')
+  async renderPdf(@Body() body: { htmlContent: string, filename?: string }, @Res() res: any) {
+    try {
+      const puppeteer = require('puppeteer');
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+
+      try {
+        const page = await browser.newPage();
+        await page.setContent(body.htmlContent, { waitUntil: 'networkidle0' });
+        const pdfBuffer = await page.pdf({
+          format: 'Letter',
+          margin: {
+            top: '20mm',
+            bottom: '20mm',
+            left: '20mm',
+            right: '20mm',
+          },
+          printBackground: true,
+        });
+
+        const filename = (body.filename || 'report.pdf').replace(/\s+/g, '_');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(Buffer.from(pdfBuffer));
+      } finally {
+        await browser.close();
+      }
+    } catch (error: any) {
+      console.error('Error in renderPdf:', error);
+      res.status(500).send(`Failed to render PDF: ${error.message}`);
+    }
   }
 
   @Get('/:id')

@@ -12,7 +12,7 @@ import {
   CheckCircle2, 
   User, 
   Mail, 
-  DollarSign, 
+  IndianRupee, 
   Search, 
   FileText,
   MessageSquare,
@@ -303,11 +303,11 @@ export default function ClientsPage() {
 
           <div className="bg-card rounded-3xl p-6 border border-border shadow-sm flex items-center space-x-4">
             <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
-              <DollarSign className="h-6 w-6" />
+              <IndianRupee className="h-6 w-6" />
             </div>
             <div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Contract Value</p>
-              <h3 className="text-2xl font-extrabold text-primary">${totalValue.toLocaleString()}</h3>
+              <h3 className="text-2xl font-extrabold text-primary">₹{totalValue.toLocaleString('en-IN')}</h3>
             </div>
           </div>
 
@@ -395,7 +395,7 @@ export default function ClientsPage() {
                     <div className="border-t border-border pt-4 flex items-center justify-between mt-4">
                       <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Contract Size</p>
-                        <p className="text-base font-extrabold text-primary">${client.valEstimate.toLocaleString()}</p>
+                        <p className="text-base font-extrabold text-primary">₹{client.valEstimate.toLocaleString('en-IN')}</p>
                       </div>
 
                       <div className="flex items-center text-xs font-bold text-accent">
@@ -580,7 +580,7 @@ export default function ClientsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-1">CONTRACT VALUE (USD)</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">CONTRACT VALUE (INR)</label>
                     <input
                       type="number"
                       value={newClient.valEstimate}

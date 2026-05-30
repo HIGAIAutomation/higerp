@@ -4,6 +4,19 @@ export declare class ProjectController {
     constructor(projectService: ProjectService);
     createProject(body: any, req: any): Promise<any>;
     getProjects(req: any): Promise<({
+        adCampaigns: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedAt: Date;
+            leads: number;
+            startDate: Date;
+            endDate: Date | null;
+            projectId: string;
+            spend: number;
+            updatedBy: string;
+        }[];
         client: {
             id: string;
             email: string | null;

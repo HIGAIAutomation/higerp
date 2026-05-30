@@ -7,7 +7,6 @@ export declare class FinanceController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        dueDate: Date | null;
         clientId: string;
         invoiceNumber: string;
         subtotal: number;
@@ -15,6 +14,7 @@ export declare class FinanceController {
         sgst: number;
         igst: number;
         total: number;
+        dueDate: Date | null;
     }>;
     createExpense(body: any, req: any): Promise<{
         id: string;

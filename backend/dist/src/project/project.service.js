@@ -135,6 +135,7 @@ let ProjectService = class ProjectService {
         return this.prisma.project.findMany({
             where: { tenantId },
             include: {
+                adCampaigns: true,
                 client: {
                     select: {
                         id: true,

@@ -12,6 +12,7 @@ export class PaymentService {
         project: {
           select: {
             name: true,
+            whatsappNumber: true,
           },
         },
       },

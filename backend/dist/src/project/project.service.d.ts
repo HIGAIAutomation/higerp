@@ -6,6 +6,19 @@ export declare class ProjectService {
     constructor(prisma: PrismaService, documentService: DocumentService);
     createProject(tenantId: string, data: any): Promise<any>;
     getProjects(tenantId: string): Promise<({
+        adCampaigns: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedAt: Date;
+            leads: number;
+            startDate: Date;
+            endDate: Date | null;
+            projectId: string;
+            spend: number;
+            updatedBy: string;
+        }[];
         client: {
             id: string;
             email: string | null;
