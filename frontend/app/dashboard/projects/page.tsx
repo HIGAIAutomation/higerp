@@ -40,6 +40,12 @@ interface Project {
   deliveryPayment?: boolean;
   postCount?: number | string;
   videoCount?: number | string;
+  platforms?: string;
+  client?: {
+    id?: string;
+    username: string;
+    email?: string;
+  };
 }
 
 interface GeneratedDoc {
@@ -72,6 +78,73 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
+  // Platforms States
+  const [newPlatformText, setNewPlatformText] = useState('');
+  const [newEditPlatformText, setNewEditPlatformText] = useState('');
+
+  // Dynamically extract unique platforms across all projects
+  const availablePlatforms = React.useMemo(() => {
+    const defaultPlats = ['Instagram', 'Facebook', 'YouTube', 'LinkedIn'];
+    const customPlats = new Set<string>();
+    
+    projects.forEach((proj) => {
+      if (proj.platforms) {
+        proj.platforms.split(',').forEach((plat) => {
+          const trimmed = plat.trim();
+          if (trimmed && !defaultPlats.includes(trimmed)) {
+            customPlats.add(trimmed);
+          }
+        });
+      }
+    });
+
+    return [...defaultPlats, ...Array.from(customPlats)];
+  }, [projects]);
+
+  const handleTogglePlatform = (plat: string, isChecked: boolean) => {
+    const current = form.platforms ? form.platforms.split(',').map(p => p.trim()).filter(Boolean) : [];
+    let updated;
+    if (isChecked) {
+      updated = [...current, plat];
+    } else {
+      updated = current.filter(p => p !== plat);
+    }
+    setForm({ ...form, platforms: updated.join(', ') });
+  };
+
+  const handleToggleEditPlatform = (plat: string, isChecked: boolean) => {
+    const current = editForm.platforms ? editForm.platforms.split(',').map(p => p.trim()).filter(Boolean) : [];
+    let updated;
+    if (isChecked) {
+      updated = [...current, plat];
+    } else {
+      updated = current.filter(p => p !== plat);
+    }
+    setEditForm({ ...editForm, platforms: updated.join(', ') });
+  };
+
+  const handleAddCustomPlatform = () => {
+    const trimmed = newPlatformText.trim();
+    if (!trimmed) return;
+    
+    const current = form.platforms ? form.platforms.split(',').map(p => p.trim()).filter(Boolean) : [];
+    if (!current.includes(trimmed)) {
+      setForm({ ...form, platforms: [...current, trimmed].join(', ') });
+    }
+    setNewPlatformText('');
+  };
+
+  const handleAddCustomEditPlatform = () => {
+    const trimmed = newEditPlatformText.trim();
+    if (!trimmed) return;
+    
+    const current = editForm.platforms ? editForm.platforms.split(',').map(p => p.trim()).filter(Boolean) : [];
+    if (!current.includes(trimmed)) {
+      setEditForm({ ...editForm, platforms: [...current, trimmed].join(', ') });
+    }
+    setNewEditPlatformText('');
+  };
+
   // Form state
   const [form, setForm] = useState({
     name: '',
@@ -85,6 +158,9 @@ export default function ProjectsPage() {
     modules: '',
     postCount: '0',
     videoCount: '0',
+    clientUsername: '',
+    clientPassword: '',
+    platforms: 'Instagram, Facebook, YouTube, LinkedIn',
   });
 
   const [editForm, setEditForm] = useState({
@@ -104,6 +180,9 @@ export default function ProjectsPage() {
     deliveryPayment: false,
     postCount: '0',
     videoCount: '0',
+    clientUsername: '',
+    clientPassword: '',
+    platforms: '',
   });
 
   const fetchProjects = async () => {
@@ -169,6 +248,9 @@ export default function ProjectsPage() {
         modules: '',
         postCount: '0',
         videoCount: '0',
+        clientUsername: '',
+        clientPassword: '',
+        platforms: 'Instagram, Facebook, YouTube, LinkedIn',
       });
 
       await fetchProjects();
@@ -199,6 +281,9 @@ export default function ProjectsPage() {
       deliveryPayment: !!proj.deliveryPayment,
       postCount: proj.postCount !== undefined ? String(proj.postCount) : '0',
       videoCount: proj.videoCount !== undefined ? String(proj.videoCount) : '0',
+      clientUsername: proj.client?.username || '',
+      clientPassword: '',
+      platforms: proj.platforms || '',
     });
   };
 
@@ -369,12 +454,43 @@ export default function ProjectsPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT USERNAME (PORTAL ACCESS)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. client123"
+                    value={form.clientUsername}
+                    onChange={(e) => setForm({ ...form, clientUsername: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT PASSWORD (PORTAL ACCESS)</label>
+                  <input
+                    type="password"
+                    placeholder="e.g. password123"
+                    value={form.clientPassword}
+                    onChange={(e) => setForm({ ...form, clientPassword: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">PROJECT CATEGORY</label>
                 <div className="relative">
                   <select
                     value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    onChange={(e) => {
+                      const newCategory = e.target.value;
+                      setForm({
+                        ...form,
+                        category: newCategory,
+                        modules: newCategory === 'Digital Marketing' ? '' : form.modules
+                      });
+                    }}
                     className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold cursor-pointer appearance-none"
                   >
                     <option value="Web/App Development">Web/App Development</option>
@@ -426,16 +542,18 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Auth, Dashboard, API Integration"
-                  value={form.modules}
-                  onChange={(e) => setForm({ ...form, modules: e.target.value })}
-                  className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                />
-              </div>
+              {form.category !== 'Digital Marketing' && (
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Auth, Dashboard, API Integration"
+                    value={form.modules}
+                    onChange={(e) => setForm({ ...form, modules: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -460,6 +578,44 @@ export default function ProjectsPage() {
                   />
                 </div>
               </div>
+
+              {form.category === 'Digital Marketing' && (
+                <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                  <label className="block text-xs font-bold text-accent uppercase tracking-wider">Active Platforms Selection</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {availablePlatforms.map((plat) => {
+                      const isChecked = form.platforms ? form.platforms.split(',').map(p => p.trim()).includes(plat) : false;
+                      return (
+                        <label key={plat} className="flex items-center space-x-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => handleTogglePlatform(plat, e.target.checked)}
+                            className="h-5 w-5 rounded text-accent border-border bg-secondary focus:ring-accent/20 cursor-pointer"
+                          />
+                          <span className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">{plat}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2 pt-2 border-t border-border/40">
+                    <input
+                      type="text"
+                      placeholder="Add custom platform (e.g. TikTok)"
+                      value={newPlatformText}
+                      onChange={(e) => setNewPlatformText(e.target.value)}
+                      className="flex-grow px-3.5 py-2 bg-secondary border border-border rounded-xl text-xs font-semibold focus:outline-none text-foreground placeholder-muted-foreground"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomPlatform}
+                      className="px-4 py-2 bg-accent hover:bg-accent/90 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -786,12 +942,43 @@ export default function ProjectsPage() {
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT USERNAME (PORTAL ACCESS)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. client123"
+                        value={editForm.clientUsername}
+                        onChange={(e) => setEditForm({ ...editForm, clientUsername: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">NEW CLIENT PASSWORD</label>
+                      <input
+                        type="password"
+                        placeholder="Leave blank to keep same"
+                        value={editForm.clientPassword}
+                        onChange={(e) => setEditForm({ ...editForm, clientPassword: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">PROJECT CATEGORY</label>
                     <div className="relative">
                       <select
                         value={editForm.category}
-                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                        onChange={(e) => {
+                          const newCategory = e.target.value;
+                          setEditForm({
+                            ...editForm,
+                            category: newCategory,
+                            modules: newCategory === 'Digital Marketing' ? '' : editForm.modules
+                          });
+                        }}
                         className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold cursor-pointer appearance-none"
                       >
                         <option value="Web/App Development">Web/App Development</option>
@@ -864,16 +1051,18 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Auth, Dashboard, API Integration"
-                      value={editForm.modules}
-                      onChange={(e) => setEditForm({ ...editForm, modules: e.target.value })}
-                      className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                    />
-                  </div>
+                  {editForm.category !== 'Digital Marketing' && (
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Auth, Dashboard, API Integration"
+                        value={editForm.modules}
+                        onChange={(e) => setEditForm({ ...editForm, modules: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  )}
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -898,6 +1087,44 @@ export default function ProjectsPage() {
                         />
                       </div>
                     </div>
+
+                  {editForm.category === 'Digital Marketing' && (
+                    <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                      <label className="block text-xs font-bold text-accent uppercase tracking-wider">Active Platforms Selection</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {availablePlatforms.map((plat) => {
+                          const isChecked = editForm.platforms ? editForm.platforms.split(',').map(p => p.trim()).includes(plat) : false;
+                          return (
+                            <label key={plat} className="flex items-center space-x-3 cursor-pointer group">
+                              <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => handleToggleEditPlatform(plat, e.target.checked)}
+                                  className="h-5 w-5 rounded text-accent border-border bg-secondary focus:ring-accent/20 cursor-pointer"
+                              />
+                              <span className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">{plat}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2 pt-2 border-t border-border/40">
+                        <input
+                          type="text"
+                          placeholder="Add custom platform (e.g. TikTok)"
+                          value={newEditPlatformText}
+                          onChange={(e) => setNewEditPlatformText(e.target.value)}
+                          className="flex-grow px-3.5 py-2 bg-secondary border border-border rounded-xl text-xs font-semibold focus:outline-none text-foreground placeholder-muted-foreground"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddCustomEditPlatform}
+                          className="px-4 py-2 bg-accent hover:bg-accent/90 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Delivery Checklist - Category Specific */}
                   <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">

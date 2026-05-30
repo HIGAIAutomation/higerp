@@ -172,6 +172,7 @@ model Project {
   whatsappNumber     String?
   price              Float    @default(0)
   modules            String?
+  platforms          String?
   deliveryCode       Boolean  @default(false)
   deliveryDocs       Boolean  @default(false)
   deliveryDb         Boolean  @default(false)
