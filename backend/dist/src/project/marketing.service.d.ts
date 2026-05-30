@@ -8,14 +8,14 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }[]>;
     upsertPost(tenantId: string, projectId: string, data: any, username: string): Promise<{
         id: string;
@@ -23,28 +23,28 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }>;
     getPostHistory(tenantId: string, projectId?: string, month?: string): Promise<{
         id: string;
         tenantId: string;
         status: string;
         createdAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }[]>;
     getAllPostsByMonth(tenantId: string, month: string): Promise<{
         id: string;
@@ -52,14 +52,14 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }[]>;
     getTenantUsers(tenantId: string): Promise<{
         id: string;
@@ -77,8 +77,8 @@ export declare class MarketingService {
         startDate: Date;
         endDate: Date | null;
         projectId: string;
-        updatedBy: string;
         spend: number;
+        updatedBy: string;
     }[]>;
     createCampaign(tenantId: string, projectId: string, data: any, username: string): Promise<{
         id: string;
@@ -90,8 +90,8 @@ export declare class MarketingService {
         startDate: Date;
         endDate: Date | null;
         projectId: string;
-        updatedBy: string;
         spend: number;
+        updatedBy: string;
     }>;
     getSpecialDayPosters(tenantId: string, projectId: string, month: string): Promise<{
         id: string;
@@ -100,8 +100,8 @@ export declare class MarketingService {
         createdAt: Date;
         updatedAt: Date;
         projectId: string;
-        month: string;
         updatedBy: string;
+        month: string;
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;
@@ -113,8 +113,8 @@ export declare class MarketingService {
         createdAt: Date;
         updatedAt: Date;
         projectId: string;
-        month: string;
         updatedBy: string;
+        month: string;
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;

@@ -8,28 +8,28 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }[]>;
     getAllPostHistory(month: string, req: any): Promise<{
         id: string;
         tenantId: string;
         status: string;
         createdAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }[]>;
     getTenantUsers(req: any): Promise<{
         id: string;
@@ -43,14 +43,14 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }[]>;
     upsertPost(projectId: string, body: any, req: any): Promise<{
         id: string;
@@ -58,28 +58,28 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }>;
     getPostHistory(projectId: string, month: string, req: any): Promise<{
         id: string;
         tenantId: string;
         status: string;
         createdAt: Date;
+        projectId: string;
+        updatedBy: string;
         assignedTo: string | null;
         dueDate: Date | null;
-        projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        updatedBy: string;
     }[]>;
     getCampaigns(projectId: string, req: any): Promise<{
         id: string;
@@ -91,8 +91,8 @@ export declare class MarketingController {
         startDate: Date;
         endDate: Date | null;
         projectId: string;
-        updatedBy: string;
         spend: number;
+        updatedBy: string;
     }[]>;
     createCampaign(projectId: string, body: any, req: any): Promise<{
         id: string;
@@ -104,8 +104,8 @@ export declare class MarketingController {
         startDate: Date;
         endDate: Date | null;
         projectId: string;
-        updatedBy: string;
         spend: number;
+        updatedBy: string;
     }>;
     getSpecialDayPosters(projectId: string, month: string, req: any): Promise<{
         id: string;
@@ -114,8 +114,8 @@ export declare class MarketingController {
         createdAt: Date;
         updatedAt: Date;
         projectId: string;
-        month: string;
         updatedBy: string;
+        month: string;
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;
@@ -127,8 +127,8 @@ export declare class MarketingController {
         createdAt: Date;
         updatedAt: Date;
         projectId: string;
-        month: string;
         updatedBy: string;
+        month: string;
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;

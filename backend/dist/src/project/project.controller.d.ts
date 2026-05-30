@@ -14,6 +14,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;
@@ -34,9 +35,15 @@ export declare class ProjectController {
             startDate: Date;
             endDate: Date | null;
             projectId: string;
-            updatedBy: string;
             spend: number;
+            updatedBy: string;
         }[];
+        client: {
+            id: string;
+            email: string | null;
+            username: string;
+            role: string;
+        } | null;
     } & {
         id: string;
         tenantId: string;
@@ -49,6 +56,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;
@@ -70,6 +78,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;
@@ -91,6 +100,7 @@ export declare class ProjectController {
         endDate: Date | null;
         whatsappNumber: string | null;
         modules: string | null;
+        platforms: string | null;
         deliveryCode: boolean;
         deliveryDocs: boolean;
         deliveryDb: boolean;

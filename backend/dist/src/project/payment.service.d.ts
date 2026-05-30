@@ -13,11 +13,11 @@ export declare class PaymentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string | null;
         invoiceNumber: string;
         dueDate: Date;
         amount: number;
-        projectId: string;
-        updatedBy: string | null;
         whatsappSent: boolean;
     })[]>;
     generateBill(tenantId: string, data: any): Promise<{
@@ -26,11 +26,11 @@ export declare class PaymentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string | null;
         invoiceNumber: string;
         dueDate: Date;
         amount: number;
-        projectId: string;
-        updatedBy: string | null;
         whatsappSent: boolean;
     }>;
     markAsPaid(tenantId: string, id: string, username: string): Promise<{
@@ -39,11 +39,11 @@ export declare class PaymentService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        projectId: string;
+        updatedBy: string | null;
         invoiceNumber: string;
         dueDate: Date;
         amount: number;
-        projectId: string;
-        updatedBy: string | null;
         whatsappSent: boolean;
     }>;
 }
