@@ -37,7 +37,7 @@ export class ProjectService {
       clientId = clientUser.id;
     }
 
-    const project = await this.prisma.project.create({
+    const project = await (this.prisma.project as any).create({
       data: {
         tenantId,
         clientId,
@@ -58,6 +58,7 @@ export class ProjectService {
         deliveryPayment: !!data.deliveryPayment,
         postCount: data.postCount !== undefined ? parseInt(data.postCount, 10) : 0,
         videoCount: data.videoCount !== undefined ? parseInt(data.videoCount, 10) : 0,
+        socialCredentials: data.socialCredentials || null,
       },
     });
 
@@ -81,7 +82,11 @@ export class ProjectService {
             projectName: project.name, 
             clientName: data.clientName || 'Valued Client',
             companyName: 'HIG AI Automation LLP',
-            startDate: project.startDate?.toLocaleDateString()
+            startDate: project.startDate ? new Date(project.startDate).toLocaleDateString() : '____________',
+            endDate: project.endDate ? new Date(project.endDate).toLocaleDateString() : '____________',
+            price: project.price ? `₹${project.price.toLocaleString('en-IN')}` : '₹6,000.00',
+            postCount: project.postCount || 15,
+            videoCount: project.videoCount || 6,
           },
           'PROJECT',
           project.id,
@@ -110,12 +115,27 @@ export class ProjectService {
     });
   }
 
-  async updateProject(id: string, tenantId: string, data: any) {
+  async updateProject(id: string, tenantId: string, data: any, clientIdFilter?: string) {
     const currentProject = await this.prisma.project.findUnique({
       where: { id, tenantId },
     });
     if (!currentProject) {
       throw new NotFoundException('Project not found');
+    }
+
+    // Security check for client users:
+    if (clientIdFilter) {
+      if (currentProject.clientId !== clientIdFilter) {
+        throw new BadRequestException('Forbidden: You do not own this project');
+      }
+
+      // Restrict the payload to ONLY update socialCredentials
+      return (this.prisma.project as any).update({
+        where: { id, tenantId },
+        data: {
+          socialCredentials: data.socialCredentials !== undefined ? data.socialCredentials : undefined,
+        },
+      });
     }
 
     let clientId = currentProject.clientId;
@@ -209,7 +229,7 @@ export class ProjectService {
       }
     }
 
-    return this.prisma.project.update({
+    return (this.prisma.project as any).update({
       where: { id, tenantId },
       data: {
         clientId,
@@ -230,6 +250,7 @@ export class ProjectService {
         deliveryPayment: data.deliveryPayment !== undefined ? !!data.deliveryPayment : undefined,
         postCount: data.postCount !== undefined ? parseInt(data.postCount, 10) : undefined,
         videoCount: data.videoCount !== undefined ? parseInt(data.videoCount, 10) : undefined,
+        socialCredentials: data.socialCredentials !== undefined ? data.socialCredentials : undefined,
       },
     });
   }

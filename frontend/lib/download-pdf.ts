@@ -6,25 +6,36 @@ export const downloadPdf = async (docId: string, docName: string, setDownloading
     
     const token = getAuthToken();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${apiUrl}/document/${docId}/pdf`, {
+    
+    // Fetch raw compiled HTML layout from the backend
+    const response = await fetch(`${apiUrl}/document/${docId}/download`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
     
     if (!response.ok) {
-      throw new Error('Failed to generate PDF on server.');
+      throw new Error('Failed to fetch document layout.');
     }
     
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${docName.replace(/\s+/g, '_')}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    const htmlContent = await response.text();
+    
+    // Render PDF dynamically client-side
+    // @ts-ignore
+    const html2pdf = (await import('html2pdf.js')).default;
+    const container = document.createElement('div');
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
+    
+    await html2pdf().set({
+      margin: [15, 15, 15, 15],
+      filename: `${docName.replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    } as any).from(container).save();
+    
+    document.body.removeChild(container);
   } catch (err) {
     console.error('Failed to download document:', err);
     alert('Could not download PDF document. Ensure backend service is online.');
@@ -37,36 +48,24 @@ export const downloadPdfFromHtml = async (htmlContent: string, docName: string, 
   try {
     if (setDownloading) setDownloading(true);
     
-    const token = getAuthToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${apiUrl}/document/render-pdf`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        htmlContent,
-        filename: `${docName}.pdf`
-      })
-    });
+    // @ts-ignore
+    const html2pdf = (await import('html2pdf.js')).default;
+    const container = document.createElement('div');
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
     
-    if (!response.ok) {
-      throw new Error('Failed to generate PDF on server.');
-    }
+    await html2pdf().set({
+      margin: [15, 15, 15, 15],
+      filename: `${docName.replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    } as any).from(container).save();
     
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${docName.replace(/\s+/g, '_')}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    document.body.removeChild(container);
   } catch (err) {
     console.error('Failed to download document:', err);
-    alert('Could not download PDF document. Ensure backend service is online.');
+    alert('Could not download PDF document.');
   } finally {
     if (setDownloading) setDownloading(false);
   }

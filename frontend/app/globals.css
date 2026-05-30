@@ -30,22 +30,7 @@
   --font-sans: var(--font-poppins), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090B;
-    --foreground: #FAFAFA;
-    --card: #18181B;
-    --card-foreground: #FAFAFA;
-    --primary: #FAFAFA;
-    --secondary: #27272A;
-    --border: #27272A;
-    --input: #27272A;
-    --accent: #2E9EDE;
-    --ring: #2E9EDE;
-    --muted: #18181B;
-    --muted-foreground: #A1A1AA;
-  }
-}
+
 
 body {
   background: var(--background);
@@ -62,17 +47,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass {
-    background: rgba(24, 24, 27, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-}
 
-.dark .glass {
-  background: rgba(24, 24, 27, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
 
 /* Explicit fallback utilities for text-background to avoid Tailwind compilation edge-cases */
 .text-background {

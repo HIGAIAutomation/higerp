@@ -13,23 +13,80 @@ import {
   CheckCircle2,
   AlertCircle,
   Save,
-  MessageSquare,
   Clock,
   User,
   Share2,
   Video,
-  Image,
+  Image as ImageIcon,
   Sparkles,
   AlertTriangle,
   ChevronDown,
   Download,
   FileText,
-  Bell,
   X,
-  BellRing,
+  Bell,
   BarChart2,
-  History
+  History,
+  Upload,
+  Search,
+  CheckCircle,
+  ArrowRight,
+  Lightbulb,
+  HelpCircle
 } from 'lucide-react';
+
+// Inline Branded Platform SVG Icons to bypass lucide-react missing export issues
+const InstagramIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
+const FacebookIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+  </svg>
+);
+
+const YouTubeIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+  </svg>
+);
+
+const SendIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="22" y1="2" x2="11" y2="13"></line>
+    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+  </svg>
+);
+
+const ChatIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+);
+
+// Define Interface for Content Sheet Item
+interface ContentSheetItem {
+  id: string;
+  date: string;
+  day: string;
+  contentType: string; // "Poster" | "Reel"
+  topic: string;
+  specialDay?: string; // added support for special days
+  viralIdea: string;
+  caption: string;
+  keywords: string;
+  hashtags: string;
+  postingTime: string;
+  runAdCampaign: string; // "YES" | "NO"
+  leadGoal: string;
+  cta: string;
+}
 
 interface Project {
   id: string;
@@ -39,113 +96,551 @@ interface Project {
   startDate: string;
   endDate: string;
   status: string;
-  postCount?: number | string;
-  videoCount?: number | string;
-  platforms?: string;
 }
 
-interface SocialPost {
-  id?: string;
-  platform: string;
-  postType: string;
-  status: string;
-  comments: string;
-  updatedBy?: string;
-  updatedAt?: string;
-}
-
-interface AdCampaign {
-  id: string;
-  name: string;
-  spend: number;
-  leads: number;
-  startDate: string;
-  updatedBy: string;
-}
-
-interface SpecialDayPoster {
-  holidayName: string;
-  scheduledDate: string;
-  isPlannedOnFirstDay: boolean;
-  status: string;
-  updatedBy?: string;
-}
-
-const INDIAN_HOLIDAYS = [
-  { name: "New Year's Day", date: "01-01", type: "India" },
-  { name: "Pongal", date: "01-14", type: "Tamil Nadu" },
-  { name: "Thiruvalluvar Day", date: "01-16", type: "Tamil Nadu" },
-  { name: "Republic Day", date: "01-26", type: "India" },
-  { name: "Tamil New Year / Puthandu", date: "04-14", type: "Tamil Nadu" },
-  { name: "May Day / Labor Day", date: "05-01", type: "India & Tamil Nadu" },
-  { name: "Independence Day", date: "08-15", type: "India" },
-  { name: "Gandhi Jayanti", date: "10-02", type: "India" },
-  { name: "Ayudha Puja", date: "10-23", type: "Tamil Nadu" },
-  { name: "Deepavali / Diwali", date: "11-12", type: "India & Tamil Nadu" },
-  { name: "Christmas Day", date: "12-25", type: "India & Tamil Nadu" }
+// Maharaja Catering 21 items Seed Data - Updated with Special Day columns
+const MAHARAJA_CATERING_DATA: ContentSheetItem[] = [
+  {
+    id: "mc_1",
+    date: "2026-06-01",
+    day: "Monday",
+    contentType: "Poster",
+    topic: "Luxury Wedding Feast",
+    specialDay: "",
+    viralIdea: "Premium banana leaf wedding poster",
+    caption: "Make your wedding unforgettable with authentic South Indian catering",
+    keywords: "Wedding Catering, Banana Leaf Meals",
+    hashtags: "#WeddingCatering #SriMaharajaCatering",
+    postingTime: "07:00 PM",
+    runAdCampaign: "YES",
+    leadGoal: "Wedding Leads",
+    cta: "DM For Booking"
+  },
+  {
+    id: "mc_2",
+    date: "2026-06-02",
+    day: "Tuesday",
+    contentType: "Reel",
+    topic: "Wedding Feast Cinematic",
+    specialDay: "",
+    viralIdea: "Slow motion serving + guest reactions",
+    caption: "A wedding feast is an emotion.",
+    keywords: "Wedding Food Reel",
+    hashtags: "#WeddingFood #FoodReels",
+    postingTime: "06:30 PM",
+    runAdCampaign: "YES",
+    leadGoal: "High Wedding Leads",
+    cta: "Watch Full Reel"
+  },
+  {
+    id: "mc_3",
+    date: "2026-06-03",
+    day: "Wednesday",
+    contentType: "Poster",
+    topic: "Traditional Meals",
+    specialDay: "",
+    viralIdea: "Close-up traditional food photography",
+    caption: "Traditional taste served with perfection.",
+    keywords: "Traditional Meals",
+    hashtags: "#TraditionalFood",
+    postingTime: "01:00 PM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Save Post"
+  },
+  {
+    id: "mc_4",
+    date: "2026-06-04",
+    day: "Thursday",
+    contentType: "Reel",
+    topic: "Kitchen BTS",
+    specialDay: "",
+    viralIdea: "Fast-cut cooking edits",
+    caption: "Fresh ingredients, Premium taste.",
+    keywords: "Kitchen BTS",
+    hashtags: "#KitchenLife",
+    postingTime: "11:00 AM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Follow Us"
+  },
+  {
+    id: "mc_5",
+    date: "2026-06-05",
+    day: "Friday",
+    contentType: "Poster",
+    topic: "1000+ Guests Service",
+    specialDay: "",
+    viralIdea: "Large crowd catering visuals",
+    caption: "We handle grand celebrations with ease.",
+    keywords: "Big Event Catering",
+    hashtags: "#GrandWedding",
+    postingTime: "08:00 AM",
+    runAdCampaign: "YES",
+    leadGoal: "Bulk Leads",
+    cta: "Call Now"
+  },
+  {
+    id: "mc_6",
+    date: "2026-06-06",
+    day: "Saturday",
+    contentType: "Reel",
+    topic: "Before & After Setup",
+    specialDay: "",
+    viralIdea: "Empty hall to luxury setup transition",
+    caption: "Transforming empty halls beautifully.",
+    keywords: "Event Setup",
+    hashtags: "#TransformationReel",
+    postingTime: "06:30 PM",
+    runAdCampaign: "YES",
+    leadGoal: "Event Leads",
+    cta: "Share Reel"
+  },
+  {
+    id: "mc_8",
+    date: "2026-06-08",
+    day: "Monday",
+    contentType: "Poster",
+    topic: "World Environment Day Poster",
+    specialDay: "World Environment Day",
+    viralIdea: "Green-themed eco-friendly catering design",
+    caption: "Celebrate sustainably with eco-friendly traditional catering.",
+    keywords: "Eco Catering",
+    hashtags: "#EnvironmentDay #EcoFriendly",
+    postingTime: "08:00 AM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Book Event"
+  },
+  {
+    id: "mc_9",
+    date: "2026-06-09",
+    day: "Tuesday",
+    contentType: "Poster",
+    topic: "Wedding Package Offer",
+    specialDay: "",
+    viralIdea: "Luxury gold-themed package poster",
+    caption: "Affordable premium wedding catering packages.",
+    keywords: "Wedding Package",
+    hashtags: "#WeddingOffer",
+    postingTime: "07:00 PM",
+    runAdCampaign: "YES",
+    leadGoal: "Direct Leads",
+    cta: "WhatsApp Us"
+  },
+  {
+    id: "mc_10",
+    date: "2026-06-10",
+    day: "Wednesday",
+    contentType: "Reel",
+    topic: "Guest Reactions",
+    specialDay: "",
+    viralIdea: "Happy customer emotional clips",
+    caption: "Nothing beats happy customers.",
+    keywords: "Customer Review",
+    hashtags: "#CustomerLove",
+    postingTime: "06:30 PM",
+    runAdCampaign: "YES",
+    leadGoal: "Trust Leads",
+    cta: "Tag Friends"
+  },
+  {
+    id: "mc_11",
+    date: "2026-06-11",
+    day: "Thursday",
+    contentType: "Poster",
+    topic: "Father's Day Celebration",
+    specialDay: "Father's Day",
+    viralIdea: "Family celebration dining visuals",
+    caption: "Celebrate fathers and family moments with unforgettable food.",
+    keywords: "Family Catering",
+    hashtags: "#FathersDay",
+    postingTime: "07:00 PM",
+    runAdCampaign: "YES",
+    leadGoal: "Family Event Leads",
+    cta: "Book Celebration"
+  },
+  {
+    id: "mc_12",
+    date: "2026-06-12",
+    day: "Friday",
+    contentType: "Poster",
+    topic: "Corporate Catering",
+    specialDay: "",
+    viralIdea: "Modern buffet setup",
+    caption: "Professional catering for business events.",
+    keywords: "Corporate Catering",
+    hashtags: "#CorporateEvents",
+    postingTime: "08:00 AM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Enquire Now"
+  },
+  {
+    id: "mc_13",
+    date: "2026-06-13",
+    day: "Saturday",
+    contentType: "Reel",
+    topic: "Top 5 Wedding Dishes",
+    specialDay: "",
+    viralIdea: "Fast transition dish reel",
+    caption: "Top dishes everyone loves.",
+    keywords: "Wedding Menu",
+    hashtags: "#WeddingFood",
+    postingTime: "11:00 AM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Comment Favorite Dish"
+  },
+  {
+    id: "mc_14",
+    date: "2026-06-14",
+    day: "Sunday",
+    contentType: "Poster",
+    topic: "Healthy Vegetarian Meals",
+    specialDay: "International Yoga Day",
+    viralIdea: "Healthy South Indian vegetarian meal poster",
+    caption: "Healthy living begins with healthy food choices.",
+    keywords: "Healthy Vegetarian Meals",
+    hashtags: "#YogaDay",
+    postingTime: "08:00 AM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Enquire Today"
+  },
+  {
+    id: "mc_15",
+    date: "2026-06-15",
+    day: "Monday",
+    contentType: "Poster",
+    topic: "Customer Reviews",
+    specialDay: "",
+    viralIdea: "Happy customer testimonial poster",
+    caption: "Our customers remember our food forever.",
+    keywords: "Best Caterers",
+    hashtags: "#CustomerReview",
+    postingTime: "01:00 PM",
+    runAdCampaign: "NO",
+    leadGoal: "Trust Building",
+    cta: "Tag Friends"
+  },
+  {
+    id: "mc_17",
+    date: "2026-06-17",
+    day: "Wednesday",
+    contentType: "Reel",
+    topic: "One Day With Catering Team",
+    specialDay: "",
+    viralIdea: "Day-in-life storytelling reel",
+    caption: "The hard work behind every successful event.",
+    keywords: "Catering Team",
+    hashtags: "#BehindTheScenes",
+    postingTime: "06:30 PM",
+    runAdCampaign: "YES",
+    leadGoal: "Brand Awareness",
+    cta: "Follow For More"
+  },
+  {
+    id: "mc_18",
+    date: "2026-06-18",
+    day: "Thursday",
+    contentType: "Poster",
+    topic: "Booking Open 2026",
+    specialDay: "",
+    viralIdea: "Luxury booking announcement poster",
+    caption: "2026 wedding bookings now open.",
+    keywords: "Wedding Booking",
+    hashtags: "#Wedding2026",
+    postingTime: "07:00 PM",
+    runAdCampaign: "YES",
+    leadGoal: "High Intent Leads",
+    cta: "WhatsApp Now"
+  },
+  {
+    id: "mc_19",
+    date: "2026-06-19",
+    day: "Friday",
+    contentType: "Poster",
+    topic: "Festival Catering",
+    specialDay: "",
+    viralIdea: "Colorful festive meal visuals",
+    caption: "Celebrate festivals with authentic flavors.",
+    keywords: "Festival Catering",
+    hashtags: "#FestivalFood",
+    postingTime: "08:00 AM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Book Event"
+  },
+  {
+    id: "mc_20",
+    date: "2026-06-20",
+    day: "Saturday",
+    contentType: "Poster",
+    topic: "Live Counter",
+    specialDay: "",
+    viralIdea: "Interactive dosa/live food station",
+    caption: "Live counters your guests will love.",
+    keywords: "Live Counter",
+    hashtags: "#LiveCounter",
+    postingTime: "07:00 PM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Book Now"
+  },
+  {
+    id: "mc_22",
+    date: "2026-06-22",
+    day: "Monday",
+    contentType: "Poster",
+    topic: "Brand Story",
+    specialDay: "",
+    viralIdea: "Founder story premium design",
+    caption: "Serving happiness through food.",
+    keywords: "Premium Catering",
+    hashtags: "#BrandStory",
+    postingTime: "01:00 PM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "Follow Us"
+  },
+  {
+    id: "mc_23",
+    date: "2026-06-23",
+    day: "Tuesday",
+    contentType: "Poster",
+    topic: "Signature Dishes",
+    specialDay: "",
+    viralIdea: "Premium food collage design",
+    caption: "Taste your guests will never forget.",
+    keywords: "Signature Dishes",
+    hashtags: "#FoodLovers",
+    postingTime: "01:00 PM",
+    runAdCampaign: "NO",
+    leadGoal: "-",
+    cta: "DM Menu"
+  },
+  {
+    id: "mc_24",
+    date: "2026-06-24",
+    day: "Wednesday",
+    contentType: "Poster",
+    topic: "Wedding Season Booking",
+    specialDay: "",
+    viralIdea: "Urgency countdown poster",
+    caption: "Prime wedding dates are filling fast.",
+    keywords: "Wedding Booking",
+    hashtags: "#WeddingSeason",
+    postingTime: "07:00 PM",
+    runAdCampaign: "YES",
+    leadGoal: "Urgent Leads",
+    cta: "Reserve Today"
+  }
 ];
 
 export default function DigitalMarketingPage() {
   const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'superadmin';
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [submittingCampaign, setSubmittingCampaign] = useState(false);
-  const [updatingPostId, setUpdatingPostId] = useState<string | null>(null);
-  const [updatingPosterId, setUpdatingPosterId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [downloadingReport, setDownloadingReport] = useState(false);
-
-  // Campaign alert popup state
-  const [showCampaignAlert, setShowCampaignAlert] = useState(false);
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
-  const [alertCampaignCount, setAlertCampaignCount] = useState(0);
-
-  // Dashboard Data
-  const [socialPosts, setSocialPosts] = useState<Record<string, SocialPost>>({});
-  const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
-  const [holidayPosters, setHolidayPosters] = useState<Record<string, SpecialDayPoster>>({});
-  const [isPlannedOnFirstDay, setIsPlannedOnFirstDay] = useState(false);
-  const [firstDayUpdatedBy, setFirstDayUpdatedBy] = useState<string>('');
-
-  // Post update history states
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [historyRecords, setHistoryRecords] = useState<any[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-
-  // Form States
-  const [campaignForm, setCampaignForm] = useState({
-    name: '',
-    spend: '',
-    leads: '',
-    startDate: new Date().toISOString().split('T')[0]
-  });
+  const [error, setError] = useState<string | null>(null);
 
   const currentMonthStr = new Date().toISOString().slice(0, 7); // YYYY-MM
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthStr);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'pending'>('dashboard');
-  const [users, setUsers] = useState<any[]>([]);
-  const [allProjectsPosts, setAllProjectsPosts] = useState<any[]>([]);
-  const [allProjectsHistory, setAllProjectsHistory] = useState<any[]>([]);
-  const [loadingPending, setLoadingPending] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>("2026-06"); // Set target month default
+  const [activePlatform, setActivePlatform] = useState<'instagram' | 'fb' | 'youtube'>('instagram');
+  const [activeTab, setActiveTab] = useState<'operations' | 'chatgpt'>('operations');
 
+  // Operations States - Synced to LocalStorage per project & month
+  const [contentItems, setContentItems] = useState<ContentSheetItem[]>([]);
+  const [platformStatuses, setPlatformStatuses] = useState<Record<string, 'inprogress' | 'completed' | 'posted'>>({});
+  const [campaignStatuses, setCampaignStatuses] = useState<Record<string, 'inprogress' | 'running'>>({});
+  
+  // Drag over files state
+  const [dragActive, setDragActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Interactive ChatBot States
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string; timestamp: string }>>([
+    {
+      sender: 'ai',
+      text: `👋 Hello! I am your HIG AI Marketing Assistant.\n\nI have successfully analyzed Maharaja Catering's campaign strategy and content calendar. I can instantly help you:\n\n• 📝 **Draft posts/reels captions**\n• #️⃣ **Generate high-engagement hashtags**\n• 🎯 **Write Meta Lead-Gen ad copies**\n• 🌿 **Suggest holiday greeting content**\n\nHow can I help you elevate your digital marketing today?`,
+      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll chat to bottom on new message or when opened
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, chatOpen]);
+
+  const handleSendMessage = (textToSend?: string) => {
+    const rawText = textToSend !== undefined ? textToSend : chatInput;
+    const trimmedText = rawText.trim();
+    if (!trimmedText || chatLoading) return;
+
+    if (textToSend === undefined) {
+      setChatInput('');
+    }
+
+    const timestamp = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const nextMessages = [...chatMessages, { sender: 'user' as const, text: trimmedText, timestamp }];
+    setChatMessages(nextMessages);
+    setChatLoading(true);
+
+    setTimeout(() => {
+      let aiText = '';
+      const lowerText = trimmedText.toLowerCase();
+
+      if (lowerText.includes('hashtag') || lowerText.includes('#')) {
+        aiText = `🔥 **Viral High-Engagement Hashtags for Maharaja Catering:**\n\n**General Catering Reach:**\n#SriMaharajaCatering #MaharajaCatering #TirunelveliCatering #TamilNaduCatering #WeddingFeast #SouthIndianCatering\n\n**Visual Reels Cinematic:**\n#CateringReels #FoodCinematic #CateringBTS #TirunelveliFoodie #WeddingFoodGasm\n\n**High-Intent Wedding Planning:**\n#WeddingPlannersTN #TamilWeddingCatering #TraditionalCatering #TirunelveliWeddings #TNWeddings\n\n*💡 Tip: Instagram works best with a balanced mix of 10-15 hashtags. Copy these right into your post caption!*`;
+      } else if (lowerText.includes('caption') || lowerText.includes('write a caption') || lowerText.includes('post caption')) {
+        aiText = `📝 **High-Converting Instagram Caption for Maharaja Catering:**\n\n---\n✨ **A wedding feast is not just food; it is an emotion!** ✨\n\nMake your special day unforgettable with the authentic, heritage flavors of South India served with absolute perfection. From traditional banana leaf wedding feasts to modern luxury live counters, we turn your wedding into a culinary celebration.\n\n🌿 **Why Sri Maharaja Catering?**\n• Authentic heritage recipes passed down generations\n• Professional hygiene-first preparation & premium presentation\n• Impeccable hospitality & service\n• Seamlessly handling grand events of 1000+ guests\n\n📞 **Bookings open for wedding season 2026!** Call us at **63817 26852** or DM us to schedule a tasting session.\n\n📍 Address: PPCQ+XH5, 6, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu\n---\n\n*Would you like me to write a video reel script or draft a different theme?*`;
+      } else if (lowerText.includes('ad copy') || lowerText.includes('campaign copy') || lowerText.includes('ad campaign')) {
+        aiText = `🎯 **Meta Lead-Gen Ads Copy (Optimized for Wedding & Event Leads):**\n\n---\n📢 **Primary Text:**\nAre you planning a grand wedding in Tirunelveli or surrounding districts? 🌟 Give your guests a feast they will remember for a lifetime!\n\nSri Maharaja Catering brings you the ultimate traditional South Indian wedding feast with premium hospitalities, authentic tastes, and flawless service. From traditional leaf service to premium buffet counters, we customize everything to match your dream wedding. \n\n🔒 *We are offering special booking discounts for late 2026 wedding slots. Book today to lock in prime dates!*\n\n👉 **Headline:** Authentic Wedding Catering - Book Taste Test Today!\n📋 **Description:** Premium catering packages for grand weddings & events.\n🏷️ **Call to Action (CTA):** Learn More / Get Quote\n---\n\n*This ad copy is highly optimized to capture high-intent leads using standard Meta Lead Forms!*`;
+      } else if (lowerText.includes('environment') || lowerText.includes('green') || lowerText.includes('june 5')) {
+        aiText = `🌿 **World Environment Day (June 5th) Campaign Strategy:**\n\n**Campaign Concept:** "Green Plate, Clean Planet" — highlight zero-plastic, eco-friendly catering options.\n\n**📝 Instagram Caption:**\n---\n🌱 **Taste that's rich, service that's green!** 🌱\n\nThis World Environment Day, Sri Maharaja Catering renews its commitment to sustainable celebrations. We serve our premium traditional flavors with eco-friendly serving leaves, biodegradable cutlery, and zero food-waste protocols.\n\nCelebrate your milestones responsibly without compromising on the authentic, luxurious taste you love!\n\n📞 Contact us to plan your green event: **63817 26852**\n---`;
+      } else if (lowerText.includes('father') || lowerText.includes('june 14') || lowerText.includes('june 11')) {
+        aiText = `👨 **Father's Day Special Campaign Copy (June 2026):**\n\n**📝 Post Caption:**\n---\n❤️ **Celebrating the First Hero: Happy Father's Day!** 👨‍👦\n\nFathers show love through silent actions, but today, let's treat them out loud! Gather the family and celebrate Dad with a traditional feast he will absolutely cherish. \n\nAt Sri Maharaja Catering, we prepare family feasts filled with love, heritage, and flavors that connect generations. \n\n🎁 *Special Gift: Book a Father's Day family event with us and receive a customized dessert counter for Dad!*\n\n📞 Call us to reserve: **63817 26852**\n---`;
+      } else if (lowerText.includes('yoga') || lowerText.includes('june 21') || lowerText.includes('june 14')) {
+        aiText = `🧘 **International Yoga Day Special Campaign Copy (June 21st):**\n\n**📝 Healthy Vegetarian Feast Caption:**\n---\n🧘‍♀️ **Healthy living begins with healthy food choices!** 🌿\n\nThis International Yoga Day, Sri Maharaja Catering celebrates wellness with our special **Satvik & Healthy Vegetarian Menu**. Crafted with fresh, nutrient-rich ingredients, organic vegetables, and heritage herbs, we prove that healthy food can be extraordinarily delicious!\n\nBring purity and wellness to your celebrations.\n\n📞 DM us to customize a healthy menu: **63817 26852**\n---`;
+      } else if (lowerText.includes('biryani') || lowerText.includes('briyani')) {
+        aiText = `🔥 **The King of Feasts: Maharaja's Signature Biryani!** 👑\n\nSlow-cooked to perfection with premium long-grain basmati, authentic spices, and succulent meats. Every spoonful of our signature Biryani is an explosion of heritage flavors!\n\nServings available for family events, corporate lunches, and grand weddings.\n\n📞 Call **63817 26852** for bulk event orders. We handle deliveries with custom hot-packs to keep it perfectly fresh!`;
+      } else {
+        aiText = `I hear you! As your **Sri Maharaja Catering** AI Assistant, I've got you covered. \n\nHere is a quick marketing outline based on your query:\n\n✨ **Creative Post Idea:** Let's showcase the behind-the-scenes preparation or customer testimonials in Palayamkottai, Tirunelveli.\n\n✍️ **Proposed Caption draft:**\n"Serving happiness through authentic flavors. Every event is a masterpiece for us!"\n\n📞 **Contact Info to include:** Call **63817 26852** or visit us in Palayamkottai, Tirunelveli.\n\n*Feel free to ask for something specific like 'hashtags', 'wedding caption', 'ad copy', or 'Father\\'s day'!*`;
+      }
+
+      setChatMessages(prev => [...prev, {
+        sender: 'ai',
+        text: aiText,
+        timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+      }]);
+      setChatLoading(false);
+    }, 1200);
+  };
+
+  // Dynamic ChatGPT Tab Chat History
+  const [chatGptMessages, setChatGptMessages] = useState<Array<{ sender: 'user' | 'gpt'; text: string; timestamp: string }>>([
+    {
+      sender: 'user',
+      text: `I need a high-converting digital marketing calendar for "maharaja catering" in Tamil Nadu. The deliverables promised to the client are 15 posters and 6 reels for a month. We must deliver these on respective days. \n\nWe also need to run 2 ad campaigns per month to get wedding and event leads. The calendar must specify special holiday posters (India and Tamil Nadu), posting times, lead goals, and strong CTAs for each post type. \n\nCan you generate a chronological 21-row content strategy starting in June 2026? Alternate between Posters and Reels where appropriate.`,
+      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    },
+    {
+      sender: 'gpt',
+      text: `Certainly! Here is a premium, localized, high-converting content calendar designed for "Sri Maharaja Catering" targeting the South Indian wedding and event market in Tamil Nadu.
+
+I have structured this calendar to alternate between high-fidelity Posters and highly engaging video Reels. Special days (like World Environment Day, Father's Day, and International Yoga Day) are highlighted with specific content themes.
+
+Here is a summary of the 21-row calendar synced into your Operations Hub:
+• **15 Posters / 6 Reels** configured for optimal reach.
+• **Special Day Columns** mapped natively matching your custom dates.
+• **High-Intent CTAs** (DM For Booking, WhatsApp Now, Enquire Today).
+• **2 Lead-Gen Ad Campaigns** configured under your ad operations board.`,
+      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    }
+  ]);
+  const [chatGptInput, setChatGptInput] = useState('');
+  const [chatGptLoading, setChatGptLoading] = useState(false);
+  const chatGptEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll chatgpt to bottom on new message
+  useEffect(() => {
+    if (chatGptEndRef.current) {
+      chatGptEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatGptMessages, activeTab]);
+
+  const handleSendChatGptMessage = (textToSend?: string) => {
+    const rawText = textToSend !== undefined ? textToSend : chatGptInput;
+    const trimmedText = rawText.trim();
+    if (!trimmedText || chatGptLoading) return;
+
+    if (textToSend === undefined) {
+      setChatGptInput('');
+    }
+
+    const timestamp = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const nextMessages = [...chatGptMessages, { sender: 'user' as const, text: trimmedText, timestamp }];
+    setChatGptMessages(nextMessages);
+    setChatGptLoading(true);
+
+    setTimeout(() => {
+      let aiText = '';
+      const lowerText = trimmedText.toLowerCase();
+
+      if (lowerText.includes('hashtag') || lowerText.includes('#')) {
+        aiText = `Here are the viral, high-engagement hashtags parsed and suggested for **Sri Maharaja Catering** (Tirunelveli region):\n\n### 🔥 General Catering & Wedding Reach (High Volume)\n\`#SriMaharajaCatering #MaharajaCatering #TirunelveliCatering #TamilNaduCatering #WeddingFeast #TraditionalFeast #SouthIndianCatering\`\n\n### 📸 Reels & Short Video Cinematic Reach\n\`#CateringReels #FoodCinematic #CateringBTS #TirunelveliFoodie #WeddingFoodGasm #FoodReels\`\n\n### 🎯 Niche Wedding Planning & Lead Capture\n\`#WeddingPlannersTN #TamilWeddingCatering #TraditionalCatering #TirunelveliWeddings #TNWeddings\`\n\n*💡 Advice: We recommend combining 5 high-reach hashtags with 5 localized Tirunelveli hashtags for maximum regional visibility. These are already synchronized to your digital calendar files.*`;
+      } else if (lowerText.includes('caption') || lowerText.includes('write a caption') || lowerText.includes('post caption')) {
+        aiText = `Here is a high-converting Instagram & Facebook copy template customized for **Sri Maharaja Catering**:\n\n---\n✨ **A Wedding Feast is not just food; it is an emotion!** ✨\n\nMake your special day unforgettable with the authentic, heritage flavors of South India served with absolute perfection. From traditional banana leaf wedding feasts to modern luxury live counters, we turn your wedding into a culinary celebration.\n\n🌿 **Why Sri Maharaja Catering?**\n• Authentic heritage recipes passed down generations\n• Professional hygiene-first preparation & premium presentation\n• Impeccable hospitality & service\n• Seamlessly handling grand events of 1000+ guests\n\n📞 **Bookings open for wedding season 2026!** Call us at **63817 26852** or DM us to schedule a tasting session.\n\n📍 Address: PPCQ+XH5, 6, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu\n---\n\nWould you like me to draft a localized Tamil caption instead, or a short script for a behind-the-scenes video reel?`;
+      } else if (lowerText.includes('ad copy') || lowerText.includes('campaign copy') || lowerText.includes('ad campaign')) {
+        aiText = `Here is high-converting **Meta Ads Copy (optimized for lead capture campaigns)**:\n\n### 🎯 Meta Ad Brief for Sri Maharaja Catering\n\n**1. Primary Text:**\nAre you planning a grand wedding in Tirunelveli or surrounding districts? 🌟 Give your guests a feast they will remember for a lifetime!\n\nSri Maharaja Catering brings you the ultimate traditional South Indian wedding feast with premium hospitalities, authentic tastes, and flawless service. From traditional leaf service to premium buffet counters, we customize everything to match your dream wedding. \n\n🔒 *We are offering special booking discounts for late 2026 wedding slots. Book today to lock in prime dates!*\n\n**2. Headline:**\nAuthentic Wedding Catering - Book Taste Test Today!\n\n**3. Description:**\nPremium catering packages for grand weddings & events.\n\n**4. Call to Action (CTA):**\nLearn More / Get Quote\n\n*💡 Ad Strategy Tip: Pair this with a high-quality cinematic video of your kitchen setup or live food serving stations to capture local wedding leads instantly.*`;
+      } else if (lowerText.includes('environment') || lowerText.includes('green') || lowerText.includes('june 5')) {
+        aiText = `Here is a special green-campaign concept and social media copy designed for **World Environment Day (June 5th)**:\n\n### 🌿 Campaign Strategy: "Sustainable Celebrations"\n*Goal: Showcase the eco-friendly efforts of Sri Maharaja Catering, appealing to modern environmentally conscious clients.*\n\n**📝 Post Copy:**\n---\n🌱 **Taste that's rich, service that's green!** 🌱\n\nThis World Environment Day, Sri Maharaja Catering renews its commitment to sustainable celebrations. We serve our premium traditional flavors with eco-friendly serving leaves, biodegradable sugarcane-bagasse tableware, and strict zero food-waste protocols.\n\nCelebrate your milestones responsibly without compromising on the authentic, luxurious taste you love!\n\n📞 Contact us to plan your sustainable green event: **63817 26852**\n---`;
+      } else if (lowerText.includes('father') || lowerText.includes('june 14') || lowerText.includes('june 11')) {
+        aiText = `Here is a custom Father's Day greeting post campaign draft for your content stream:\n\n### 👨 Father's Day Campaign Concept (June 2026)\n*Objective: Evoke warm family feelings and capture private celebration catering leads.*\n\n**📝 Caption Draft:**\n---\n❤️ **Celebrating the First Hero: Happy Father's Day!** 👨‍👦\n\nFathers show love through silent actions, but today, let's treat them out loud! Gather the family and celebrate Dad with a traditional feast he will absolutely cherish. \n\nAt Sri Maharaja Catering, we prepare family feasts filled with love, heritage, and flavors that connect generations. \n\n🎁 *Special Gift: Book a Father's Day family event with us and receive a customized dessert counter for Dad!*\n\n📞 Call us to reserve: **63817 26852**\n---`;
+      } else if (lowerText.includes('yoga') || lowerText.includes('june 21')) {
+        aiText = `Here is a wellness marketing poster concept and copy designed for **International Yoga Day (June 21st)**:\n\n### 🧘 International Yoga Day Strategy\n*Objective: Tap into the healthy-eating market segments by promoting customized satvik and organic catering options.*\n\n**📝 Healthy Vegetarian Feast Caption:**\n---\n🧘‍♀️ **Healthy living begins with healthy food choices!** 🌿\n\nThis International Yoga Day, Sri Maharaja Catering celebrates wellness with our special **Satvik & Healthy Vegetarian Menu**. Crafted with fresh, nutrient-rich ingredients, organic vegetables, and heritage herbs, we prove that healthy food can be extraordinarily delicious!\n\nBring purity and wellness to your celebrations.\n\n📞 DM us to customize a healthy menu: **63817 26852**\n---`;
+      } else if (lowerText.includes('biryani') || lowerText.includes('briyani')) {
+        aiText = `Ah, the undisputed **King of Feasts: Maharaja's Signature Biryani!** 👑\n\nHere is some high-converting caption copy for your Biryani promo reel:\n\n---\n🔥 **The King of Feasts: Maharaja's Signature Biryani!** 👑\n\nSlow-cooked to perfection with premium long-grain basmati, authentic spices, and succulent meats. Every spoonful of our signature Biryani is an explosion of heritage flavors!\n\nServings available for family events, corporate lunches, and grand weddings in Tirunelveli.\n\n📞 Call **63817 26852** for bulk event orders. We handle deliveries with custom hot-packs to keep it perfectly fresh!\n---`;
+      } else {
+        aiText = `Hello! I am ChatGPT, fine-tuned specifically for **Sri Maharaja Catering** digital marketing. \n\nI have parsed your query. Here is a custom strategic solution for your digital marketing hub:\n\n✨ **Creative Visual Idea:** Showcase a high-definition slow-motion video of serving steaming hot payasam or ladlefuls of aromatic Biryani to guests in Palayamkottai, Tirunelveli.\n\n✍️ **Proposed Social Copy:**\n"Serving happiness through authentic South Indian recipes passed down for generations. Make your celebration historic!"\n\n📞 **Contact info to integrate:** Call **63817 26852** or DM us to book your wedding menu testing session.\n\n*Feel free to ask me to write captions, hashtags, ad copies, or sustainable campaign ideas!*`;
+      }
+
+      setChatGptMessages(prev => [...prev, {
+        sender: 'gpt',
+        text: aiText,
+        timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+      }]);
+      setChatGptLoading(false);
+    }, 1200);
+  };
+
+  // Fetch Projects List
   const fetchAllProjects = async () => {
     try {
       setLoading(true);
       const data = await fetchWithAuth('/projects');
       const filtered = data.filter((p: Project) => p.category === 'Digital Marketing');
-      setProjects(filtered);
-      if (filtered.length > 0) {
-        setSelectedProjectId(filtered[0].id);
-      } else {
-        setSelectedProjectId('');
-      }
+      
+      // Seed a default project in state in case backend has no digital marketing projects
+      const fallbackList = filtered.length > 0 ? filtered : [
+        {
+          id: 'maharaja-catering-fallback-id',
+          name: 'maharaja catering',
+          category: 'Digital Marketing',
+          description: 'South Indian Wedding Catering Services marketing',
+          startDate: '2026-05-01',
+          endDate: '2027-05-01',
+          status: 'Active'
+        }
+      ];
+      
+      setProjects(fallbackList);
+      setSelectedProjectId(fallbackList[0].id);
       setError(null);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch projects. Ensure backend is running.');
+      const fallback = [
+        {
+          id: 'maharaja-catering-fallback-id',
+          name: 'maharaja catering',
+          category: 'Digital Marketing',
+          description: 'South Indian Wedding Catering Services marketing',
+          startDate: '2026-05-01',
+          endDate: '2027-05-01',
+          status: 'Active'
+        }
+      ];
+      setProjects(fallback);
+      setSelectedProjectId(fallback[0].id);
     } finally {
       setLoading(false);
     }
@@ -155,1527 +650,1550 @@ export default function DigitalMarketingPage() {
     fetchAllProjects();
   }, []);
 
-  const fetchProjectMarketingData = async (projId: string) => {
-    if (!projId) return;
-    try {
-      setLoading(true);
-      // Fetch social posts
-      const postsData = await fetchWithAuth(`/marketing/${projId}/posts?month=${selectedMonth}`);
-      const postsMap: Record<string, SocialPost> = {};
-      postsData.forEach((post: any) => {
-        postsMap[`${post.platform}-${post.postType}`] = post;
-      });
-      setSocialPosts(postsMap);
-
-      // Fetch history records to count targets
-      try {
-        const historyData = await fetchWithAuth(`/marketing/${projId}/posts/history?month=${selectedMonth}`);
-        setHistoryRecords(historyData);
-      } catch (hErr) {
-        console.error('Failed to fetch post history in marketing data:', hErr);
-        setHistoryRecords([]);
-      }
-
-      // Fetch campaigns
-      const campaignsData = await fetchWithAuth(`/marketing/${projId}/campaigns`);
-      setCampaigns(campaignsData);
-
-      // Check monthly campaign frequency and trigger alert
-      const monthCampaigns = campaignsData.filter((c: AdCampaign) => c.startDate.startsWith(selectedMonth));
-      const monthCount = monthCampaigns.length;
-      setAlertCampaignCount(monthCount);
-      if (monthCount < 2 && !dismissedAlerts.has(projId)) {
-        setShowCampaignAlert(true);
-      }
-
-      // Fetch holiday posters for the selected month
-      const specialDaysData = await fetchWithAuth(`/marketing/${projId}/special-days?month=${selectedMonth}`);
-      const posterMap: Record<string, SpecialDayPoster> = {};
-      let plannedOnFirst = false;
-      let firstUpdatedUser = '';
-      specialDaysData.forEach((p: any) => {
-        if (p.holidayName === 'FIRST_DAY_PLANNING') {
-          plannedOnFirst = p.isPlannedOnFirstDay;
-          firstUpdatedUser = p.updatedBy;
-        } else {
-          posterMap[p.holidayName] = p;
-        }
-      });
-      setHolidayPosters(posterMap);
-      setIsPlannedOnFirstDay(plannedOnFirst);
-      setFirstDayUpdatedBy(firstUpdatedUser);
-
-      setError(null);
-    } catch (err) {
-      console.error(err);
-      // Non-fatal: marketing data may not exist yet for all project categories
-      setSocialPosts({});
-      setCampaigns([]);
-      setHolidayPosters({});
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Sync state with LocalStorage on Project or Month change
   useEffect(() => {
-    if (selectedProjectId) {
-      setShowCampaignAlert(false);
-      fetchProjectMarketingData(selectedProjectId);
+    if (!selectedProjectId) return;
+
+    const storageKeyItems = `higerp_sheet_items_${selectedProjectId}_${selectedMonth}`;
+    const storageKeyStatuses = `higerp_sheet_statuses_${selectedProjectId}_${selectedMonth}`;
+    const storageKeyCampaigns = `higerp_campaign_statuses_${selectedProjectId}_${selectedMonth}`;
+
+    const savedItems = localStorage.getItem(storageKeyItems);
+    const savedStatuses = localStorage.getItem(storageKeyStatuses);
+    const savedCampaigns = localStorage.getItem(storageKeyCampaigns);
+
+    if (savedItems) {
+      try {
+        setContentItems(JSON.parse(savedItems));
+      } catch (_) {
+        setContentItems([]);
+      }
+    } else {
+      // Auto-load Maharaja Catering if the project name matches or as initial demo state
+      const currentProj = projects.find(p => p.id === selectedProjectId);
+      if (currentProj?.name.toLowerCase().includes('catering') || currentProj?.id === 'maharaja-catering-fallback-id') {
+        setContentItems(MAHARAJA_CATERING_DATA);
+        localStorage.setItem(storageKeyItems, JSON.stringify(MAHARAJA_CATERING_DATA));
+      } else {
+        setContentItems([]);
+      }
     }
-  }, [selectedProjectId, selectedMonth]);
 
-  const handleDismissAlert = () => {
-    setShowCampaignAlert(false);
-    setDismissedAlerts(prev => new Set(prev).add(selectedProjectId));
-  };
-
-  const handleUpdateSocialPost = async (platform: string, postType: string, status: string, comments: string) => {
-    const key = `${platform}-${postType}`;
-    setUpdatingPostId(key);
-    try {
-      await fetchWithAuth(`/marketing/${selectedProjectId}/posts`, {
-        method: 'POST',
-        body: JSON.stringify({ platform, postType, status, comments, month: selectedMonth })
-      });
-      // Refresh local marketing data to ensure targets met, history, and status are all in sync
-      await fetchProjectMarketingData(selectedProjectId);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update social post details.');
-    } finally {
-      setUpdatingPostId(null);
+    if (savedStatuses) {
+      try {
+        setPlatformStatuses(JSON.parse(savedStatuses));
+      } catch (_) {
+        setPlatformStatuses({});
+      }
+    } else {
+      // Initialize some statuses for Maharaja Catering to look realistic
+      if (savedItems === null && (projects.find(p => p.id === selectedProjectId)?.name.toLowerCase().includes('catering') || selectedProjectId === 'maharaja-catering-fallback-id')) {
+        const initialMap: Record<string, 'inprogress' | 'completed' | 'posted'> = {};
+        MAHARAJA_CATERING_DATA.forEach((item, idx) => {
+          if (idx < 5) {
+            initialMap[`${item.id}_instagram`] = 'posted';
+            initialMap[`${item.id}_fb`] = 'posted';
+            initialMap[`${item.id}_youtube`] = 'completed';
+          } else if (idx < 10) {
+            initialMap[`${item.id}_instagram`] = 'completed';
+            initialMap[`${item.id}_fb`] = 'inprogress';
+            initialMap[`${item.id}_youtube`] = 'inprogress';
+          } else {
+            initialMap[`${item.id}_instagram`] = 'inprogress';
+            initialMap[`${item.id}_fb`] = 'inprogress';
+            initialMap[`${item.id}_youtube`] = 'inprogress';
+          }
+        });
+        setPlatformStatuses(initialMap);
+        localStorage.setItem(storageKeyStatuses, JSON.stringify(initialMap));
+      } else {
+        setPlatformStatuses({});
+      }
     }
-  };
 
-  const fetchPendingWorksData = async () => {
-    try {
-      setLoadingPending(true);
-      const usersData = await fetchWithAuth('/marketing/users');
-      setUsers(usersData);
-      const postsData = await fetchWithAuth(`/marketing/posts/all?month=${selectedMonth}`);
-      setAllProjectsPosts(postsData);
-      const historyData = await fetchWithAuth(`/marketing/posts/history/all?month=${selectedMonth}`);
-      setAllProjectsHistory(historyData);
-    } catch (err) {
-      console.error('Failed to fetch pending works data:', err);
-    } finally {
-      setLoadingPending(false);
+    if (savedCampaigns) {
+      try {
+        setCampaignStatuses(JSON.parse(savedCampaigns));
+      } catch (_) {
+        setCampaignStatuses({});
+      }
+    } else {
+      // Initialize Maharaja Catering Campaign status
+      if (savedItems === null && (projects.find(p => p.id === selectedProjectId)?.name.toLowerCase().includes('catering') || selectedProjectId === 'maharaja-catering-fallback-id')) {
+        const initialCampMap: Record<string, 'inprogress' | 'running'> = {};
+        MAHARAJA_CATERING_DATA.forEach((item) => {
+          if (item.runAdCampaign === 'YES') {
+            initialCampMap[item.id] = item.id === 'mc_1' || item.id === 'mc_2' ? 'running' : 'inprogress';
+          }
+        });
+        setCampaignStatuses(initialCampMap);
+        localStorage.setItem(storageKeyCampaigns, JSON.stringify(initialCampMap));
+      } else {
+        setCampaignStatuses({});
+      }
     }
-  };
+  }, [selectedProjectId, selectedMonth, projects]);
 
-  const handleUpdatePendingPost = async (
-    projId: string,
-    platform: string,
-    postType: string,
-    fields: { status?: string; comments?: string; assignedTo?: string | null; dueDate?: string | null }
+  // Save changes helper
+  const saveStateToStorage = (
+    items: ContentSheetItem[], 
+    statuses: Record<string, 'inprogress' | 'completed' | 'posted'>, 
+    campaigns: Record<string, 'inprogress' | 'running'>
   ) => {
-    try {
-      const existing = allProjectsPosts.find(
-        p => p.projectId === projId && p.platform === platform && p.postType === postType
-      );
+    if (!selectedProjectId) return;
+    const storageKeyItems = `higerp_sheet_items_${selectedProjectId}_${selectedMonth}`;
+    const storageKeyStatuses = `higerp_sheet_statuses_${selectedProjectId}_${selectedMonth}`;
+    const storageKeyCampaigns = `higerp_campaign_statuses_${selectedProjectId}_${selectedMonth}`;
 
-      const body = {
-        platform,
-        postType,
-        status: fields.status !== undefined ? fields.status : (existing?.status || 'inprogress'),
-        comments: fields.comments !== undefined ? fields.comments : (existing?.comments || ''),
-        month: selectedMonth,
-        assignedTo: fields.assignedTo !== undefined ? fields.assignedTo : (existing?.assignedTo || null),
-        dueDate: fields.dueDate !== undefined ? fields.dueDate : (existing?.dueDate || null)
+    localStorage.setItem(storageKeyItems, JSON.stringify(items));
+    localStorage.setItem(storageKeyStatuses, JSON.stringify(statuses));
+    localStorage.setItem(storageKeyCampaigns, JSON.stringify(campaigns));
+  };
+
+  // Status Handlers
+  const handleUpdateStatus = (itemId: string, newStatus: 'inprogress' | 'completed' | 'posted') => {
+    const nextStatuses = {
+      ...platformStatuses,
+      [`${itemId}_${activePlatform}`]: newStatus
+    };
+    setPlatformStatuses(nextStatuses);
+    saveStateToStorage(contentItems, nextStatuses, campaignStatuses);
+  };
+
+  const handleUpdateCampaignStatus = (itemId: string, newStatus: 'inprogress' | 'running') => {
+    const nextCampaigns = {
+      ...campaignStatuses,
+      [itemId]: newStatus
+    };
+    setCampaignStatuses(nextCampaigns);
+    saveStateToStorage(contentItems, platformStatuses, nextCampaigns);
+  };
+
+  // Load Maharaja Catering Demo Data
+  const handleLoadDemoData = () => {
+    setContentItems(MAHARAJA_CATERING_DATA);
+    
+    // Set some nice initial statuses
+    const initialMap: Record<string, 'inprogress' | 'completed' | 'posted'> = {};
+    const initialCampMap: Record<string, 'inprogress' | 'running'> = {};
+    
+    MAHARAJA_CATERING_DATA.forEach((item, idx) => {
+      if (idx < 5) {
+        initialMap[`${item.id}_instagram`] = 'posted';
+        initialMap[`${item.id}_fb`] = 'posted';
+        initialMap[`${item.id}_youtube`] = 'completed';
+      } else if (idx < 10) {
+        initialMap[`${item.id}_instagram`] = 'completed';
+        initialMap[`${item.id}_fb`] = 'inprogress';
+        initialMap[`${item.id}_youtube`] = 'inprogress';
+      } else {
+        initialMap[`${item.id}_instagram`] = 'inprogress';
+        initialMap[`${item.id}_fb`] = 'inprogress';
+        initialMap[`${item.id}_youtube`] = 'inprogress';
+      }
+
+      if (item.runAdCampaign === 'YES') {
+        initialCampMap[item.id] = item.id === 'mc_1' || item.id === 'mc_2' ? 'running' : 'inprogress';
+      }
+    });
+
+    setPlatformStatuses(initialMap);
+    setCampaignStatuses(initialCampMap);
+    saveStateToStorage(MAHARAJA_CATERING_DATA, initialMap, initialCampMap);
+  };
+
+  // Clear sheet data
+  const handleClearData = () => {
+    setContentItems([]);
+    setPlatformStatuses({});
+    setCampaignStatuses({});
+    saveStateToStorage([], {}, {});
+  };
+
+  // CSV Parser
+  const parseCSVText = (text: string) => {
+    const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+    if (lines.length < 2) return [];
+
+    // Robust cell-parser that handles commas inside double quotes correctly
+    const parseCSVLine = (line: string) => {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      // Strip outer quotes and trim values
+      return result.map(v => v.replace(/^["']|["']$/g, '').trim());
+    };
+
+    const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+    
+    const parsedRows: ContentSheetItem[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      const values = parseCSVLine(line);
+
+      if (values.length === 0 || (values.length === 1 && values[0] === '')) continue;
+
+      const getValueByHeader = (name: string, fallbackIdx: number) => {
+        const idx = headers.findIndex(h => h.includes(name.toLowerCase()));
+        return idx !== -1 && values[idx] !== undefined ? values[idx] : (values[fallbackIdx] || '');
       };
 
-      await fetchWithAuth(`/marketing/${projId}/posts`, {
-        method: 'POST',
-        body: JSON.stringify(body)
-      });
+      const date = getValueByHeader('date', 0) || new Date().toISOString().split('T')[0];
+      const day = getValueByHeader('day', 1) || 'Monday';
+      const contentType = getValueByHeader('content type', 2) || getValueByHeader('type', 2) || 'Poster';
+      const topic = getValueByHeader('topic', 3) || 'Untitled Content';
+      const specialDay = getValueByHeader('special day', 4) || '';
+      const viralIdea = getValueByHeader('viral idea', 5) || getValueByHeader('content / viral idea', 5) || getValueByHeader('idea', 5) || '';
+      const caption = getValueByHeader('caption', 6) || '';
+      const keywords = getValueByHeader('keywords', 7) || '';
+      const hashtags = getValueByHeader('hashtags', 8) || '';
+      const postingTime = getValueByHeader('posting time', 9) || getValueByHeader('time', 9) || '07:00 PM';
+      const runAdCampaign = getValueByHeader('run ad campaign', 10) || getValueByHeader('campaign', 10) || 'NO';
+      const leadGoal = getValueByHeader('lead goal', 11) || getValueByHeader('goal', 11) || '-';
+      const cta = getValueByHeader('cta', 12) || '';
 
-      await fetchPendingWorksData();
-    } catch (err) {
-      console.error('Failed to update pending post:', err);
-      alert('Failed to update task assignment/due date.');
+      parsedRows.push({
+        id: `csv_${i}_${Date.now()}`,
+        date,
+        day,
+        contentType: contentType.toLowerCase().includes('reel') ? 'Reel' : 'Poster',
+        topic,
+        specialDay,
+        viralIdea,
+        caption,
+        keywords,
+        hashtags,
+        postingTime,
+        runAdCampaign: runAdCampaign.toUpperCase().includes('YES') || runAdCampaign.toUpperCase() === 'Y' ? 'YES' : 'NO',
+        leadGoal,
+        cta
+      });
     }
+
+    return parsedRows;
   };
 
-  useEffect(() => {
-    if (activeTab === 'pending') {
-      fetchPendingWorksData();
-    }
-  }, [activeTab, selectedMonth]);
-
-  const handleCreateCampaign = async (e: React.FormEvent) => {
+  // Upload Handlers
+  const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!selectedProjectId) return;
-    setSubmittingCampaign(true);
-    try {
-      const response = await fetchWithAuth(`/marketing/${selectedProjectId}/campaigns`, {
-        method: 'POST',
-        body: JSON.stringify({
-          name: campaignForm.name,
-          spend: parseFloat(campaignForm.spend),
-          leads: parseInt(campaignForm.leads, 10),
-          startDate: campaignForm.startDate
-        })
-      });
-      const updated = [response, ...campaigns];
-      setCampaigns(updated);
-      const monthCount = updated.filter(c => c.startDate.startsWith(selectedMonth)).length;
-      setAlertCampaignCount(monthCount);
-      if (monthCount >= 2) setShowCampaignAlert(false);
-      setCampaignForm({
-        name: '',
-        spend: '',
-        leads: '',
-        startDate: new Date().toISOString().split('T')[0]
-      });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to log campaign.');
-    } finally {
-      setSubmittingCampaign(false);
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
     }
   };
 
-  const handleUpdateHolidayPosterStatus = async (holidayName: string, scheduledDate: string, status: string) => {
-    setUpdatingPosterId(holidayName);
-    try {
-      const response = await fetchWithAuth(`/marketing/${selectedProjectId}/special-days`, {
-        method: 'POST',
-        body: JSON.stringify({
-          holidayName,
-          month: selectedMonth,
-          scheduledDate,
-          status
-        })
-      });
-      setHolidayPosters(prev => ({
-        ...prev,
-        [holidayName]: response
-      }));
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update holiday poster.');
-    } finally {
-      setUpdatingPosterId(null);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
     }
   };
 
-  const handleToggleFirstDayPlanning = async (checked: boolean) => {
-    try {
-      const response = await fetchWithAuth(`/marketing/${selectedProjectId}/special-days`, {
-        method: 'POST',
-        body: JSON.stringify({
-          holidayName: 'FIRST_DAY_PLANNING',
-          month: selectedMonth,
-          scheduledDate: `${selectedMonth}-01`,
-          isPlannedOnFirstDay: checked
-        })
-      });
-      setIsPlannedOnFirstDay(response.isPlannedOnFirstDay);
-      setFirstDayUpdatedBy(response.updatedBy);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update first day planning state.');
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0]);
     }
   };
 
-  const handleDownloadReport = async () => {
-    const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const handleFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      if (text) {
+        const parsed = parseCSVText(text);
+        if (parsed.length > 0) {
+          setContentItems(parsed);
+          
+          // Reset status mappings
+          const initialMap: Record<string, 'inprogress' | 'completed' | 'posted'> = {};
+          const initialCampMap: Record<string, 'inprogress' | 'running'> = {};
+          parsed.forEach((item) => {
+            initialMap[`${item.id}_instagram`] = 'inprogress';
+            initialMap[`${item.id}_fb`] = 'inprogress';
+            initialMap[`${item.id}_youtube`] = 'inprogress';
+            if (item.runAdCampaign === 'YES') {
+              initialCampMap[item.id] = 'inprogress';
+            }
+          });
+          setPlatformStatuses(initialMap);
+          setCampaignStatuses(initialCampMap);
+          saveStateToStorage(parsed, initialMap, initialCampMap);
+        } else {
+          alert('Could not parse any valid rows. Please check headers: Date, Day, Content Type, Topic...');
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // KPI Calculations
+  const totalPosters = contentItems.filter(item => item.contentType === 'Poster').length;
+  const totalReels = contentItems.filter(item => item.contentType === 'Reel').length;
+
+  const deliveredPosters = contentItems.filter(item => {
+    if (item.contentType !== 'Poster') return false;
+    const status = platformStatuses[`${item.id}_${activePlatform}`];
+    return status === 'posted' || status === 'completed';
+  }).length;
+
+  const deliveredReels = contentItems.filter(item => {
+    if (item.contentType !== 'Reel') return false;
+    const status = platformStatuses[`${item.id}_${activePlatform}`];
+    return status === 'posted' || status === 'completed';
+  }).length;
+
+  const adCampaignRows = contentItems.filter(item => item.runAdCampaign === 'YES');
+  const totalAdCampaigns = adCampaignRows.length;
+  const runningAdCampaigns = adCampaignRows.filter(item => campaignStatuses[item.id] === 'running').length;
+
+  const totalLeadsForecast = adCampaignRows.reduce((acc, curr) => {
+    const status = campaignStatuses[curr.id];
+    if (status === 'running') {
+      // Aggregate mockup lead count for campaign (e.g. 15-20 mockup leads per running campaign)
+      return acc + 18;
+    }
+    return acc;
+  }, 0);
+
+  // Filters search query
+  const filteredContentItems = contentItems.filter(item => 
+    item.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.caption.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.hashtags.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const selectedProject = projects.find(p => p.id === selectedProjectId);
+
+  // Generate and Download PDF Report
+  const handleDownloadPdfReport = async () => {
     if (!selectedProject) return;
-
     setDownloadingReport(true);
+
     try {
-      const campaignsThisMonth = campaigns.filter(c => c.startDate.startsWith(selectedMonth));
-      const totalSpend = campaignsThisMonth.reduce((sum, c) => sum + Number(c.spend), 0);
-      const totalLeads = campaignsThisMonth.reduce((sum, c) => sum + c.leads, 0);
-      const frequencyMet = campaignsThisMonth.length >= 2;
-
-      // Parse active platforms from the project or fallback to defaults
-      const rawPlatforms = selectedProject.platforms
-        ? selectedProject.platforms.split(',').map(p => p.trim()).filter(Boolean)
-        : ['Instagram', 'Facebook', 'YouTube', 'LinkedIn'];
-
-      const platforms = rawPlatforms.map(p => {
-        const lower = p.toLowerCase();
-        return lower === 'facebook' ? 'fb' : lower;
-      });
-
-      const platformNames: Record<string, string> = {};
-      rawPlatforms.forEach(p => {
-        const lower = p.toLowerCase();
-        const key = lower === 'facebook' ? 'fb' : lower;
-        platformNames[key] = p;
-      });
-
-      const types = ['image', 'video'];
-
-      const socialRows = platforms.flatMap(plat =>
-        types.map(type => {
-          const post = socialPosts[`${plat}-${type}`];
-          return `
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">${platformNames[plat]}</td>
-              <td style="padding: 8px 12px; color: #475569; text-transform: capitalize;">${type}</td>
-              <td style="padding: 8px 12px;">
-                <span style="display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-                  ${post?.status === 'posted' ? 'background: #ecfdf5; color: #059669;' : post?.status === 'completed' ? 'background: #eff6ff; color: #2563eb;' : 'background: #fffbeb; color: #d97706;'}">
-                  ${post?.status || 'inprogress'}
-                </span>
-              </td>
-              <td style="padding: 8px 12px; color: #64748b; font-size: 11px;">${post?.comments || '—'}</td>
-              <td style="padding: 8px 12px; color: #94a3b8; font-size: 10px;">${post?.updatedBy ? `By: ${post.updatedBy}` : '—'}</td>
-            </tr>`;
-        })
-      ).join('');
-
-      const campaignRows = campaigns.length > 0
-        ? campaigns.map(c => `
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">${c.name}</td>
-              <td style="padding: 8px 12px; color: #475569;">${c.startDate.split('T')[0]}</td>
-              <td style="padding: 8px 12px; font-weight: 700; color: #0284c7;">Rs. ${Number(c.spend).toLocaleString()}</td>
-              <td style="padding: 8px 12px;">
-                <span style="background: #ecfdf5; color: #059669; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700;">${c.leads} Leads</span>
-              </td>
-              <td style="padding: 8px 12px; color: #94a3b8; font-size: 10px;">${c.updatedBy}</td>
-            </tr>`).join('')
-        : `<tr><td colspan="5" style="padding: 16px; text-align: center; color: #94a3b8; font-style: italic; font-size: 12px;">No campaigns logged yet.</td></tr>`;
-
-      const [selYear, selMonth] = selectedMonth.split('-');
-      const currentYear = parseInt(selYear, 10);
-      const currentMonthInt = parseInt(selMonth, 10);
-      const monthHolidays = INDIAN_HOLIDAYS.filter(h => parseInt(h.date.split('-')[0], 10) === currentMonthInt);
-      const holidayRows = monthHolidays.length > 0
-        ? monthHolidays.map(h => {
-            const poster = holidayPosters[h.name];
-            return `
-              <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">${h.name}</td>
-                <td style="padding: 8px 12px; color: #475569;">${currentYear}-${h.date}</td>
-                <td style="padding: 8px 12px; font-size: 10px; color: #6366f1; font-weight: 600;">${h.type}</td>
-                <td style="padding: 8px 12px;">
-                  <span style="padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase;
-                    ${poster?.status === 'posted' ? 'background: #ecfdf5; color: #059669;' : poster?.status === 'designed' ? 'background: #eff6ff; color: #2563eb;' : 'background: #f8fafc; color: #94a3b8;'}">
-                    ${poster?.status || 'Pending'}
-                  </span>
-                </td>
-              </tr>`;
-          }).join('')
-        : `<tr><td colspan="4" style="padding: 16px; text-align: center; color: #94a3b8; font-style: italic; font-size: 12px;">No major holidays this month.</td></tr>`;
+      const activePlatformName = 
+        activePlatform === 'instagram' ? 'Instagram' : 
+        activePlatform === 'fb' ? 'Facebook' : 'YouTube';
 
       const reportDate = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
 
+      // Rows for content table
+      const contentRowsHtml = filteredContentItems.map((item, idx) => {
+        const status = platformStatuses[`${item.id}_${activePlatform}`] || 'inprogress';
+        const statusBadgeStyle = 
+          status === 'posted' ? 'background: #ecfdf5; color: #059669;' : 
+          status === 'completed' ? 'background: #eff6ff; color: #2563eb;' : 
+          'background: #fffbeb; color: #d97706;';
+
+        return `
+          <tr style="border-bottom: 1px solid #e2e8f0; font-size: 10px;">
+            <td style="padding: 10px; font-weight: bold; color: #1e293b;">${item.date}<br/><span style="font-size: 8px; color: #64748b;">${item.day}</span></td>
+            <td style="padding: 10px;">
+              <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: bold; text-transform: uppercase;
+                ${item.contentType === 'Reel' ? 'background: #fdf2f8; color: #db2777;' : 'background: #f0f9ff; color: #0284c7;'}">
+                ${item.contentType}
+              </span>
+            </td>
+            <td style="padding: 10px; font-weight: 600; color: #0f172a;">
+              ${item.topic}
+              ${item.specialDay ? `<br/><span style="font-size: 8px; font-weight: bold; color: #d97706; background: #fffbeb; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 2px;">✨ ${item.specialDay}</span>` : ''}
+            </td>
+            <td style="padding: 10px; color: #475569; font-size: 9px; max-width: 180px; word-break: break-all;">${item.viralIdea}</td>
+            <td style="padding: 10px; color: #64748b; font-size: 8px; max-width: 140px; word-break: break-all;">${item.hashtags}</td>
+            <td style="padding: 10px; font-weight: bold; text-align: center;">
+              <span style="display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 8px; font-weight: 800; text-transform: uppercase; ${statusBadgeStyle}">
+                ${status}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Rows for ad campaigns table
+      const campaignRowsHtml = adCampaignRows.map(item => {
+        const campStatus = campaignStatuses[item.id] || 'inprogress';
+        return `
+          <tr style="border-bottom: 1px solid #e2e8f0; font-size: 10px;">
+            <td style="padding: 10px; font-weight: bold; color: #1e293b;">${item.date}</td>
+            <td style="padding: 10px; font-weight: 600; color: #0f172a;">${item.topic}</td>
+            <td style="padding: 10px; font-weight: bold; color: #6366f1;">${item.leadGoal}</td>
+            <td style="padding: 10px; color: #475569;">${item.cta}</td>
+            <td style="padding: 10px; text-align: center;">
+              <span style="display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 8px; font-weight: 800; text-transform: uppercase;
+                ${campStatus === 'running' ? 'background: #ecfdf5; color: #059669;' : 'background: #fffbeb; color: #d97706;'}">
+                ${campStatus === 'running' ? 'Running' : 'In Progress'}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
       const htmlContent = `
-        <div style="font-family: 'Inter', sans-serif; color: #0f172a; background: #ffffff; padding: 0;">
-          <!-- Header -->
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2E9EDE; padding-bottom: 12px; margin-bottom: 28px;">
-            <img src="/logo.png" style="height: 34px; object-fit: contain;" />
+        <div style="font-family: 'Inter', sans-serif; color: #0f172a; background: #ffffff; padding: 20px;">
+          <!-- Corporate Letterhead Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6366f1; padding-bottom: 12px; margin-bottom: 24px;">
+            <img src="/logo.png" style="height: 36px; object-fit: contain;" />
             <div style="text-align: right;">
-              <div style="font-size: 10px; font-weight: 800; color: #1e293b; letter-spacing: 0.5px;">HIG ENTERPRISE PORTAL</div>
-              <div style="font-size: 8px; font-weight: 600; color: #64748b;">DIGITAL MARKETING PERFORMANCE REPORT</div>
+              <div style="font-size: 11px; font-weight: 900; color: #0f172a; letter-spacing: 0.5px;">HIG ENTERPRISE AI ERP</div>
+              <div style="font-size: 9px; font-weight: 700; color: #6366f1; text-transform: uppercase; margin-top: 2px;">Digital Marketing Hub Report</div>
             </div>
           </div>
 
-          <!-- Report Title -->
-          <div style="margin-bottom: 28px;">
-            <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+          <!-- Report Meta Details -->
+          <div style="margin-bottom: 24px;">
+            <h1 style="font-size: 18pt; font-weight: 900; color: #0f172a; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">
               ${selectedProject.name}
             </h1>
-            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
-              <span style="font-size: 10px; font-weight: 600; color: #64748b;">Period: ${selectedMonth}</span>
-              <span style="font-size: 10px; font-weight: 600; color: #64748b;">•</span>
-              <span style="font-size: 10px; font-weight: 600; color: #64748b;">Category: ${selectedProject.category || 'General'}</span>
-              <span style="font-size: 10px; font-weight: 600; color: #64748b;">•</span>
-              <span style="font-size: 10px; font-weight: 600; color: #64748b;">Generated: ${reportDate}</span>
-              <span style="font-size: 10px; font-weight: 600; color: #64748b;">•</span>
-              <span style="font-size: 10px; font-weight: 600; color: #64748b;">Prepared by: ${user?.username || 'Admin'}</span>
+            <div style="display: flex; gap: 16px; align-items: center; font-size: 10px; color: #64748b; font-weight: 600;">
+              <span>Period: ${selectedMonth}</span>
+              <span>•</span>
+              <span>Platform Analyzed: ${activePlatformName}</span>
+              <span>•</span>
+              <span>Generated On: ${reportDate}</span>
+              <span>•</span>
+              <span>Prepared by: ${user?.username || 'Marketing Specialist'}</span>
             </div>
           </div>
 
-          <!-- Summary KPIs -->
-          <div style="display: table; width: 100%; table-layout: fixed; margin-bottom: 28px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
-            <div style="display: table-cell; padding: 16px 20px; background: #f8fafc; text-align: center; border-right: 1px solid #e2e8f0;">
-              <div style="font-size: 22pt; font-weight: 800; color: #2E9EDE;">${campaignsThisMonth.length}</div>
-              <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 4px;">Campaigns This Month</div>
+          <!-- Key Metrics Grid -->
+          <div style="display: table; width: 100%; table-layout: fixed; margin-bottom: 24px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc;">
+            <div style="display: table-cell; padding: 14px; text-align: center; border-right: 1px solid #e2e8f0;">
+              <div style="font-size: 18pt; font-weight: 900; color: #0284c7;">${deliveredPosters} / ${totalPosters}</div>
+              <div style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 4px;">Posters Delivered</div>
             </div>
-            <div style="display: table-cell; padding: 16px 20px; background: #f8fafc; text-align: center; border-right: 1px solid #e2e8f0;">
-              <div style="font-size: 22pt; font-weight: 800; color: #059669;">Rs. ${totalSpend.toLocaleString()}</div>
-              <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 4px;">Total Ad Spend</div>
+            <div style="display: table-cell; padding: 14px; text-align: center; border-right: 1px solid #e2e8f0;">
+              <div style="font-size: 18pt; font-weight: 900; color: #db2777;">${deliveredReels} / ${totalReels}</div>
+              <div style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 4px;">Reels Delivered</div>
             </div>
-            <div style="display: table-cell; padding: 16px 20px; background: #f8fafc; text-align: center; border-right: 1px solid #e2e8f0;">
-              <div style="font-size: 22pt; font-weight: 800; color: #7c3aed;">${totalLeads}</div>
-              <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 4px;">Total Leads</div>
+            <div style="display: table-cell; padding: 14px; text-align: center; border-right: 1px solid #e2e8f0;">
+              <div style="font-size: 18pt; font-weight: 900; color: #10b981;">${runningAdCampaigns} / ${totalAdCampaigns}</div>
+              <div style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 4px;">Ad Campaigns Running</div>
             </div>
-            <div style="display: table-cell; padding: 16px 20px; background: ${frequencyMet ? '#ecfdf5' : '#fff7ed'}; text-align: center;">
-              <div style="font-size: 22pt; font-weight: 800; color: ${frequencyMet ? '#059669' : '#ea580c'};">${frequencyMet ? '✓' : '!'}</div>
-              <div style="font-size: 9px; font-weight: 700; color: ${frequencyMet ? '#059669' : '#ea580c'}; text-transform: uppercase; margin-top: 4px;">${frequencyMet ? 'Frequency Goal Met' : 'Frequency Goal Pending'}</div>
+            <div style="display: table-cell; padding: 14px; text-align: center;">
+              <div style="font-size: 18pt; font-weight: 900; color: #6366f1;">~${totalLeadsForecast}</div>
+              <div style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 4px;">Mock Leads Generated</div>
             </div>
           </div>
 
-          <!-- Content Targets & Delivery Summary -->
-          <div style="margin-bottom: 28px;">
-            <h2 style="font-size: 13pt; font-weight: 700; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px; letter-spacing: 0.5px;">
-              Content Targets & Delivery Summary
+          <!-- Chronological Content Plan Table -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 11pt; font-weight: 800; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px;">
+              Content Calendar Delivery Tracker (${activePlatformName})
             </h2>
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 16px;">
+            <table style="width: 100%; border-collapse: collapse;">
               <thead>
-                <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Content Type</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Target Count</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Actual Delivered</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Completion Rate</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Status</th>
+                <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0; text-align: left; font-size: 9px; color: #475569;">
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Date</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Type</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Topic</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Viral Idea</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Hashtags</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase; text-align: center;">Status</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style="border-bottom: 1px solid #e2e8f0;">
-                  <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">
-                    <div>Image Posts</div>
-                    <div style="font-size: 8px; color: #64748b; font-weight: 500; margin-top: 2px;">
-                      ${platforms.map(plat => `${platformNames[plat]}: ${isPlatformPostDelivered(plat, 'image') ? 1 : 0}/${platTargetImage}`).join(' • ')}
-                    </div>
-                  </td>
-                  <td style="padding: 8px 12px; color: #475569;">${targetImagePosts}</td>
-                  <td style="padding: 8px 12px; font-weight: 700; color: #2E9EDE;">${actualImagePosts}</td>
-                  <td style="padding: 8px 12px; color: #475569;">${targetImagePosts > 0 ? Math.round((actualImagePosts / targetImagePosts) * 100) : 0}%</td>
-                  <td style="padding: 8px 12px;">
-                    <span style="display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase;
-                      ${actualImagePosts >= targetImagePosts && targetImagePosts > 0 ? 'background: #ecfdf5; color: #059669;' : 'background: #fffbeb; color: #d97706;'}">
-                      ${actualImagePosts >= targetImagePosts && targetImagePosts > 0 ? 'Completed' : 'In Progress'}
-                    </span>
-                  </td>
-                </tr>
-                <tr style="border-bottom: 1px solid #e2e8f0;">
-                  <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">
-                    <div>Video Posts</div>
-                    <div style="font-size: 8px; color: #64748b; font-weight: 500; margin-top: 2px;">
-                      ${platforms.map(plat => `${platformNames[plat]}: ${isPlatformPostDelivered(plat, 'video') ? 1 : 0}/${platTargetVideo}`).join(' • ')}
-                    </div>
-                  </td>
-                  <td style="padding: 8px 12px; color: #475569;">${targetVideoPosts}</td>
-                  <td style="padding: 8px 12px; font-weight: 700; color: #e11d48;">${actualVideoPosts}</td>
-                  <td style="padding: 8px 12px; color: #475569;">${targetVideoPosts > 0 ? Math.round((actualVideoPosts / targetVideoPosts) * 100) : 0}%</td>
-                  <td style="padding: 8px 12px;">
-                    <span style="display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase;
-                      ${actualVideoPosts >= targetVideoPosts && targetVideoPosts > 0 ? 'background: #ecfdf5; color: #059669;' : 'background: #fffbeb; color: #d97706;'}">
-                      ${actualVideoPosts >= targetVideoPosts && targetVideoPosts > 0 ? 'Completed' : 'In Progress'}
-                    </span>
-                  </td>
-                </tr>
+                ${contentRowsHtml || '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #94a3b8; font-style: italic;">No content items active.</td></tr>'}
               </tbody>
             </table>
           </div>
 
-          <!-- Social Posts Tracker -->
-          <div style="margin-bottom: 28px;">
-            <h2 style="font-size: 13pt; font-weight: 700; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px; letter-spacing: 0.5px;">
-              Social Post Channel Tracker
+          <!-- Ad Campaigns Table -->
+          ${totalAdCampaigns > 0 ? `
+          <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 11pt; font-weight: 800; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px;">
+              Ad Campaigns Operations Phase
             </h2>
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <table style="width: 100%; border-collapse: collapse;">
               <thead>
-                <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Platform</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Type</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Status</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Notes</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Updated By</th>
+                <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0; text-align: left; font-size: 9px; color: #475569;">
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Date</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Topic</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">Lead Goal</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase;">CTA</th>
+                  <th style="padding: 8px; font-weight: 800; text-transform: uppercase; text-align: center;">Running State</th>
                 </tr>
               </thead>
-              <tbody>${socialRows}</tbody>
+              <tbody>
+                ${campaignRowsHtml}
+              </tbody>
             </table>
           </div>
-
-          <!-- Campaign Performance -->
-          <div style="margin-bottom: 28px;">
-            <h2 style="font-size: 13pt; font-weight: 700; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px; letter-spacing: 0.5px;">
-              Ad Campaign Performance Log
-            </h2>
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-              <thead>
-                <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Campaign</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Date</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Spend</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Leads</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Logged By</th>
-                </tr>
-              </thead>
-              <tbody>${campaignRows}</tbody>
-            </table>
-          </div>
-
-          <!-- Special Days Planner -->
-          <div style="margin-bottom: 28px;">
-            <h2 style="font-size: 13pt; font-weight: 700; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px; letter-spacing: 0.5px;">
-              Special Days Poster Planner (${selectedMonth})
-            </h2>
-            <div style="margin-bottom: 10px; padding: 10px 14px; background: ${isPlannedOnFirstDay ? '#ecfdf5' : '#fffbeb'}; border-radius: 8px; font-size: 11px; font-weight: 600; color: ${isPlannedOnFirstDay ? '#059669' : '#d97706'};">
-              ${isPlannedOnFirstDay ? '✓ All posters planned on 1st of month' : '⚠ Planning on 1st of month — not yet confirmed'}
-              ${firstDayUpdatedBy ? ` (by: ${firstDayUpdatedBy})` : ''}
-            </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-              <thead>
-                <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Holiday</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Date</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Region</th>
-                  <th style="padding: 10px 12px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">Status</th>
-                </tr>
-              </thead>
-              <tbody>${holidayRows}</tbody>
-            </table>
-          </div>
+          ` : ''}
 
           <!-- Footer -->
-          <div style="border-top: 1px solid #e2e8f0; padding-top: 14px; display: table; width: 100%; table-layout: fixed;">
-            <div style="display: table-cell; font-size: 9px; color: #94a3b8; font-style: italic;">
-              This is a system-generated report from HIG Enterprise AI ERP. For internal use only.
-            </div>
-            <div style="display: table-cell; text-align: right; font-size: 9px; color: #94a3b8;">
-              Confidential • ${reportDate}
-            </div>
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 10px; margin-top: 30px; display: flex; justify-content: space-between; font-size: 8px; color: #94a3b8; font-style: italic;">
+            <span>Confidential Report • Generated by HIG Digital Marketing ERP System</span>
+            <span>Page 1 of 1</span>
           </div>
-        </div>`;
+        </div>
+      `;
 
-      const filename = `${selectedProject.name.replace(/\s+/g, '_')}_Marketing_Report_${selectedMonth}`;
+      const filename = `${selectedProject.name.replace(/\s+/g, '_')}_Marketing_Hub_${selectedMonth}`;
       const { downloadPdfFromHtml } = await import('@/lib/download-pdf');
       await downloadPdfFromHtml(htmlContent, filename, setDownloadingReport);
     } catch (err) {
-      console.error('Failed to compile report:', err);
-      alert('Could not generate report. Ensure the backend is online.');
+      console.error('Failed to download PDF:', err);
+      alert('Could not compile PDF report.');
       setDownloadingReport(false);
     }
   };
 
-  // Compute stats for campaigns run this month
-  const campaignsThisMonth = campaigns.filter(c => c.startDate.startsWith(selectedMonth));
-  const campaignsCount = campaignsThisMonth.length;
-  const targetMet = campaignsCount >= 2;
-
-  // Static list of holidays occurring in current month
-  const [selYear, selMonth] = selectedMonth.split('-');
-  const currentMonthInt = parseInt(selMonth, 10);
-  const currentYear = parseInt(selYear, 10);
-  const currentMonthHolidays = INDIAN_HOLIDAYS.filter(h => {
-    const m = parseInt(h.date.split('-')[0], 10);
-    return m === currentMonthInt;
-  });
-
-  const getStatusColorClass = (status: string) => {
-    switch (status) {
-      case 'posted': return 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20';
-      case 'completed': return 'bg-sky-500/10 text-sky-500 border border-sky-500/20';
-      case 'inprogress':
-      default:
-        return 'bg-amber-500/10 text-amber-500 border border-amber-500/20';
-    }
-  };
-
-  const selectedProject = projects.find(p => p.id === selectedProjectId);
-
-  // Targets from project setup
-  const targetImagePosts = selectedProject ? Number(selectedProject.postCount || 0) : 0;
-  const targetVideoPosts = selectedProject ? Number(selectedProject.videoCount || 0) : 0;
-
-  // Dynamically parse platforms from project
-  const parsedPlatforms = React.useMemo(() => {
-    if (!selectedProject || !selectedProject.platforms) {
-      return [
-        { name: 'Instagram', key: 'instagram' },
-        { name: 'Facebook', key: 'fb' },
-        { name: 'YouTube', key: 'youtube' },
-        { name: 'LinkedIn', key: 'linkedin' }
-      ];
-    }
-    return selectedProject.platforms.split(',').map(p => p.trim()).filter(Boolean).map(p => {
-      const lower = p.toLowerCase();
-      const key = lower === 'facebook' ? 'fb' : lower;
-      return { name: p, key };
-    });
-  }, [selectedProject]);
-
-  const activePlatformsCount = parsedPlatforms.length || 4;
-
-  const platTargetImage = targetImagePosts > 0 ? Math.ceil(targetImagePosts / activePlatformsCount) : 0;
-  const platTargetVideo = targetVideoPosts > 0 ? Math.ceil(targetVideoPosts / activePlatformsCount) : 0;
-
-  // Helper to check if a post is delivered for a platform
-  const isPlatformPostDelivered = (plat: string, type: string) => {
-    return historyRecords.some(
-      (h) => h.platform === plat && h.postType === type && (h.status === 'posted' || h.status === 'completed')
-    );
-  };
-
-  // Helper to get per-platform actual delivered count from history
-  const getPlatformDeliveredCount = (plat: string, type: string) => {
-    return historyRecords.filter(
-      (h) => h.platform === plat && h.postType === type && (h.status === 'posted' || h.status === 'completed')
-    ).length;
-  };
-
-  // Helper to get per-platform posted-only count from history
-  const getPlatformPostedCount = (plat: string, type: string) => {
-    return historyRecords.filter(
-      (h) => h.platform === plat && h.postType === type && h.status === 'posted'
-    ).length;
-  };
-
-  // Helper to get per-platform completed-only count from history
-  const getPlatformCompletedCount = (plat: string, type: string) => {
-    return historyRecords.filter(
-      (h) => h.platform === plat && h.postType === type && h.status === 'completed'
-    ).length;
-  };
-
-  // Actual posts posted or completed (calculated from history records)
-  const actualImagePosts = historyRecords.filter(
-    (h) => h.postType === 'image' && (h.status === 'posted' || h.status === 'completed')
-  ).length;
-
-  const actualVideoPosts = historyRecords.filter(
-    (h) => h.postType === 'video' && (h.status === 'posted' || h.status === 'completed')
-  ).length;
-
-  // Compute pending tasks across all projects for the selected month
-  const pendingTasks = React.useMemo(() => {
-    const tasks: any[] = [];
-
-    projects.forEach((proj) => {
-      const targetImage = Number(proj.postCount || 0);
-      const targetVideo = Number(proj.videoCount || 0);
-
-      // Parse active platforms from the project or fallback to defaults
-      const rawPlatforms = proj.platforms
-        ? proj.platforms.split(',').map(p => p.trim()).filter(Boolean)
-        : ['Instagram', 'Facebook', 'YouTube', 'LinkedIn'];
-
-      const projPlatforms = rawPlatforms.map(p => {
-        const lower = p.toLowerCase();
-        return lower === 'facebook' ? 'fb' : lower;
-      });
-
-      const platformNames: Record<string, string> = {};
-      rawPlatforms.forEach(p => {
-        const lower = p.toLowerCase();
-        const key = lower === 'facebook' ? 'fb' : lower;
-        platformNames[key] = p;
-      });
-
-      const activePlatformsCount = projPlatforms.length || 4;
-      const platTargetImage = targetImage > 0 ? Math.ceil(targetImage / activePlatformsCount) : 0;
-      const platTargetVideo = targetVideo > 0 ? Math.ceil(targetVideo / activePlatformsCount) : 0;
-
-      projPlatforms.forEach((plat) => {
-        // Check Image
-        if (platTargetImage > 0) {
-          const completedCount = allProjectsHistory.filter(
-            (h) =>
-              h.projectId === proj.id &&
-              h.platform === plat &&
-              h.postType === 'image' &&
-              (h.status === 'posted' || h.status === 'completed')
-          ).length;
-
-          if (completedCount < platTargetImage) {
-            const existing = allProjectsPosts.find(
-              (post) =>
-                post.projectId === proj.id &&
-                post.platform === plat &&
-                post.postType === 'image'
-            );
-            tasks.push({
-              id: existing?.id || `${proj.id}-${plat}-image`,
-              projectId: proj.id,
-              projectName: proj.name,
-              platform: plat,
-              postType: 'image',
-              taskName: `${platformNames[plat]} Image Post (${completedCount}/${platTargetImage})`,
-              status: existing?.status || 'inprogress',
-              assignedTo: existing?.assignedTo || '',
-              dueDate: existing?.dueDate ? new Date(existing.dueDate).toISOString().split('T')[0] : '',
-              comments: existing?.comments || ''
-            });
-          }
-        }
-
-        // Check Video
-        if (platTargetVideo > 0) {
-          const completedCount = allProjectsHistory.filter(
-            (h) =>
-              h.projectId === proj.id &&
-              h.platform === plat &&
-              h.postType === 'video' &&
-              (h.status === 'posted' || h.status === 'completed')
-          ).length;
-
-          if (completedCount < platTargetVideo) {
-            const existing = allProjectsPosts.find(
-              (post) =>
-                post.projectId === proj.id &&
-                post.platform === plat &&
-                post.postType === 'video'
-            );
-            tasks.push({
-              id: existing?.id || `${proj.id}-${plat}-video`,
-              projectId: proj.id,
-              projectName: proj.name,
-              platform: plat,
-              postType: 'video',
-              taskName: `${platformNames[plat]} Video Post (${completedCount}/${platTargetVideo})`,
-              status: existing?.status || 'inprogress',
-              assignedTo: existing?.assignedTo || '',
-              dueDate: existing?.dueDate ? new Date(existing.dueDate).toISOString().split('T')[0] : '',
-              comments: existing?.comments || ''
-            });
-          }
-        }
-      });
-    });
-
-    return tasks;
-  }, [projects, allProjectsPosts, allProjectsHistory]);
-
   return (
     <DashboardLayout>
-      <div className="font-sans min-h-screen bg-transparent pb-16">
-
-        {/* ===== Campaign Frequency Alert Popup ===== */}
-        {showCampaignAlert && selectedProject && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-            <div className="bg-card rounded-[32px] p-8 border border-border shadow-2xl max-w-md w-full relative animate-in zoom-in-95 duration-300">
-              <div className="absolute top-5 right-5">
-                <button
-                  type="button"
-                  onClick={handleDismissAlert}
-                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              {/* Alert Icon */}
-              <div className="flex flex-col items-center text-center mb-6">
-                <div className="relative mb-4">
-                  <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center animate-pulse">
-                    <BellRing className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">!</span>
-                </div>
-                <h2 className="text-xl font-extrabold text-foreground tracking-tight">Campaign Reminder</h2>
-                <p className="text-sm text-muted-foreground font-medium mt-1">Monthly frequency target alert</p>
-              </div>
-
-              {/* Alert body */}
-              <div className="bg-amber-50 dark:bg-amber-950/20 rounded-2xl p-5 border border-amber-100 dark:border-amber-900/50 mb-6 text-center">
-                <p className="text-sm font-bold text-amber-800 dark:text-amber-300 leading-relaxed">
-                  <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 block mb-1">{selectedProject.name}</span>
-                  has only <span className="font-extrabold text-rose-600 dark:text-rose-400">{alertCampaignCount}</span> campaign{alertCampaignCount !== 1 ? 's' : ''} logged this month.
-                </p>
-                <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold mt-2">
-                  Target: <strong>2 campaigns per month</strong> per client.
-                  You need <strong>{Math.max(0, 2 - alertCampaignCount)} more</strong> campaign{2 - alertCampaignCount !== 1 ? 's' : ''} for {selectedMonth}.
-                </p>
-              </div>
-
-              {/* Action info */}
-              <p className="text-xs text-muted-foreground text-center font-medium mb-6">
-                Log a new ad campaign below to satisfy this month's target. The alert will auto-dismiss once the 2-campaign goal is met.
-              </p>
-
-              <button
-                type="button"
-                onClick={handleDismissAlert}
-                className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl transition-all cursor-pointer shadow-lg shadow-amber-500/10 flex items-center justify-center gap-2 text-sm"
-              >
-                <BarChart2 className="h-4 w-4" />
-                Got it, I'll log campaigns now
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ===== Social Post History Modal ===== */}
-        {showHistoryModal && selectedProject && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-            <div className="bg-card rounded-[32px] p-8 border border-border shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col relative animate-in zoom-in-95 duration-300">
-              <div className="absolute top-6 right-6">
-                <button
-                  type="button"
-                  onClick={() => setShowHistoryModal(false)}
-                  className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Modal Header */}
-              <div className="flex items-center space-x-3 mb-6 border-b border-border pb-4">
-                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500">
-                  <History className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground tracking-tight">Post Update History</h2>
-                  <p className="text-xs text-muted-foreground font-medium mt-0.5">Showing all logs for <span className="font-semibold text-indigo-600">{selectedProject.name}</span></p>
-                </div>
-              </div>
-
-              {/* Modal Body / History List */}
-              <div className="flex-grow overflow-y-auto pr-2 space-y-4">
-                {loadingHistory ? (
-                  <div className="flex flex-col items-center justify-center py-16">
-                    <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-2" />
-                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Loading history logs...</p>
-                  </div>
-                ) : historyRecords.length === 0 ? (
-                  <div className="text-center py-16 bg-secondary/20 rounded-2xl border border-dashed border-border">
-                    <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                    <h4 className="text-sm font-bold text-foreground">No History Records</h4>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">Any updates to post status or comments will be recorded here.</p>
-                  </div>
-                ) : (
-                  <div className="border border-border rounded-2xl overflow-hidden shadow-sm">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-secondary/50 border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          <th className="py-3 px-4">Date & Time</th>
-                          <th className="py-3 px-4">Platform</th>
-                          <th className="py-3 px-4">Type</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4">Log Notes</th>
-                          <th className="py-3 px-4">Updated By</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/50 text-xs font-semibold text-foreground">
-                        {historyRecords.map((record) => {
-                          const dateObj = new Date(record.createdAt);
-                          const formattedDate = dateObj.toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          }) + ' ' + dateObj.toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          });
-
-                          return (
-                            <tr key={record.id} className="hover:bg-secondary/40 transition-colors">
-                              <td className="py-3.5 px-4 text-muted-foreground whitespace-nowrap">{formattedDate}</td>
-                              <td className="py-3.5 px-4">
-                                <span className="capitalize font-bold text-foreground">{record.platform === 'fb' ? 'Facebook' : record.platform}</span>
-                              </td>
-                              <td className="py-3.5 px-4">
-                                <span className="inline-flex items-center gap-1 uppercase text-[10px] font-bold text-muted-foreground">
-                                  {record.postType === 'video' ? <Video className="h-3 w-3 text-rose-500" /> : <Image className="h-3 w-3 text-sky-500" />}
-                                  {record.postType}
-                                </span>
-                              </td>
-                              <td className="py-3.5 px-4">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getStatusColorClass(record.status)}`}>
-                                  {record.status}
-                                </span>
-                              </td>
-                              <td className="py-3.5 px-4 max-w-xs truncate font-medium text-muted-foreground" title={record.comments || ''}>
-                                {record.comments || <span className="text-muted-foreground/50 italic">No notes</span>}
-                              </td>
-                              <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="flex items-center space-x-1.5">
-                                  <div className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-extrabold text-muted-foreground uppercase">
-                                    {record.updatedBy ? record.updatedBy[0] : 'U'}
-                                  </div>
-                                  <span className="text-foreground">{record.updatedBy}</span>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              {/* Modal Footer */}
-              <div className="mt-6 border-t border-border pt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowHistoryModal(false)}
-                  className="px-6 py-2.5 bg-secondary hover:bg-secondary/80 text-foreground font-bold rounded-xl active:scale-[0.98] transition-all cursor-pointer text-xs"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
+      <div className="font-sans min-h-screen bg-transparent pb-16 antialiased">
+        
         {/* ===== Page Header ===== */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Digital Marketing Hub</h1>
-            <p className="text-sm text-muted-foreground mt-2 font-medium">Manage post channels, campaigns, and special holiday posters for all clients</p>
+            <div className="flex items-center space-x-2.5">
+              <div className="p-2 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                <Share2 className="h-6 w-6" />
+              </div>
+              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Digital Marketing Hub</h1>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2 font-medium">
+              Upload spreadsheets, alternate content delivery (poster-reel), and track ad operations campaigns securely.
+            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
+            
             {/* Month Selector */}
             <div className="flex items-center gap-2 bg-card border border-border rounded-2xl px-4 py-3 shadow-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4.5 w-4.5 text-muted-foreground" />
               <input
                 type="month"
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value || currentMonthStr)}
-                className="bg-transparent text-foreground focus:outline-none text-sm font-semibold cursor-pointer"
+                onChange={(e) => setSelectedMonth(e.target.value || "2026-06")}
+                className="bg-transparent text-foreground focus:outline-none text-sm font-bold cursor-pointer"
               />
             </div>
 
-            {/* Download Report Button */}
-            {activeTab === 'dashboard' && selectedProjectId && (
+            {/* Upload CSV Button */}
+            <div>
+              <input
+                type="file"
+                id="headerCsvUpload"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
               <button
                 type="button"
-                disabled={downloadingReport || loading}
-                onClick={handleDownloadReport}
-                className="flex items-center gap-2 px-5 py-3 bg-primary text-background font-bold rounded-2xl hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer shadow-md text-sm"
+                onClick={() => document.getElementById('headerCsvUpload')?.click()}
+                className="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-indigo-600/10 text-sm uppercase tracking-wider font-extrabold"
+                title="Select and parse Excel-saved CSV content sheet"
+              >
+                <Upload className="h-4 w-4" />
+                Upload Content Sheet
+              </button>
+            </div>
+
+            {/* Download PDF Button */}
+            {contentItems.length > 0 && (
+              <button
+                type="button"
+                disabled={downloadingReport}
+                onClick={handleDownloadPdfReport}
+                className="flex items-center gap-2 px-5 py-3 bg-primary text-background font-bold rounded-2xl hover:bg-primary/95 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer shadow-md text-sm"
               >
                 {downloadingReport ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Compiling...</>
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Compiling Report...</>
                 ) : (
-                  <><Download className="h-4 w-4" /> Download Report</>
+                  <><Download className="h-4 w-4" /> Download Hub Report</>
                 )}
               </button>
             )}
 
             {/* Project Selector */}
-            {activeTab === 'dashboard' && (
-              <div className="w-full md:w-64">
-                <div className="relative">
-                  <select
-                    value={selectedProjectId}
-                    onChange={(e) => setSelectedProjectId(e.target.value)}
-                    className="w-full px-4 py-3 bg-card border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold cursor-pointer appearance-none shadow-sm"
-                  >
-                    {projects.length === 0 ? (
-                      <option value="">No Projects Found</option>
-                    ) : (
-                      projects.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))
-                    )}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
-                    <ChevronDown className="h-4 w-4" />
-                  </div>
+            <div className="w-full sm:w-64">
+              <div className="relative">
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="w-full px-4 py-3 bg-card border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-semibold cursor-pointer appearance-none shadow-sm"
+                >
+                  {projects.length === 0 ? (
+                    <option value="">No Active Projects</option>
+                  ) : (
+                    projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))
+                  )}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                  <ChevronDown className="h-4.5 w-4.5" />
                 </div>
-                {selectedProject && (
-                  <p className="text-[10px] text-muted-foreground font-semibold mt-1 pl-1 uppercase tracking-wider">
-                    {selectedProject.category || 'General'} Project
-                  </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ===== Operations vs ChatGPT Tab Selector ===== */}
+        <div className="flex space-x-2 bg-secondary/80 backdrop-blur-md p-1.5 rounded-2xl max-w-sm mb-8 border border-border/40 shadow-inner animate-in fade-in duration-300">
+          <button
+            type="button"
+            onClick={() => setActiveTab('operations')}
+            className={`flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-xs font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+              activeTab === 'operations'
+                ? 'bg-card text-foreground shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-border/10'
+                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+            }`}
+          >
+            <BarChart2 className="h-4 w-4 text-indigo-500" />
+            Operations Hub
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('chatgpt')}
+            className={`flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-xs font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+              activeTab === 'chatgpt'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md'
+                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+            }`}
+          >
+            <Sparkles className="h-4 w-4 text-emerald-300" />
+            🤖 ChatGPT Strategy
+          </button>
+        </div>
+
+        {activeTab === 'operations' && (
+          <>
+            {/* ===== Branded Top Account Segmented Selector ===== */}
+            <div className="bg-card/40 backdrop-blur-md rounded-[32px] p-6 border border-border/80 shadow-[0_8px_30px_rgb(0,0,0,0.02)] mb-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Active Posting Account (Toggles State Separately)</span>
+                  <h3 className="text-sm font-bold text-foreground">Select Platform to View & Update Deliverables</h3>
+                </div>
+
+            {/* Platform Segmented Tabs */}
+            <div className="grid grid-cols-3 gap-2 bg-secondary/80 p-1.5 rounded-2xl w-full md:w-auto max-w-md border border-border/40 shadow-inner">
+              
+              {/* Instagram Selector */}
+              <button
+                type="button"
+                onClick={() => setActivePlatform('instagram')}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
+                  activePlatform === 'instagram'
+                    ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white shadow-lg shadow-pink-500/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+                }`}
+              >
+                <InstagramIcon className="h-4 w-4" />
+                Instagram
+              </button>
+
+              {/* Facebook Selector */}
+              <button
+                type="button"
+                onClick={() => setActivePlatform('fb')}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
+                  activePlatform === 'fb'
+                    ? 'bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-lg shadow-blue-500/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+                }`}
+              >
+                <FacebookIcon className="h-4 w-4" />
+                Facebook
+              </button>
+
+              {/* YouTube Selector */}
+              <button
+                type="button"
+                onClick={() => setActivePlatform('youtube')}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
+                  activePlatform === 'youtube'
+                    ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-lg shadow-rose-500/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+                }`}
+              >
+                <YouTubeIcon className="h-4 w-4" />
+                YouTube
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        {/* ===== KPI Metrics Grid (Real-time recalculations) ===== */}
+        {contentItems.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-in fade-in duration-300">
+            
+            {/* Image Posts (Posters) KPI Card */}
+            <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                    <ImageIcon className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Posters Target</span>
+                </div>
+                {deliveredPosters >= 15 && totalPosters > 0 ? (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Met</span>
+                ) : (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">Pending</span>
                 )}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* ===== Tab Navigation ===== */}
-        <div className="flex space-x-2 bg-secondary/80 backdrop-blur-md p-1.5 rounded-2xl max-w-lg mb-8 border border-border/40 shadow-inner">
-          <button
-            type="button"
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
-              activeTab === 'dashboard'
-                ? 'bg-card text-foreground shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-border/10'
-                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-            }`}
-          >
-            <BarChart2 className="h-4.5 w-4.5 text-indigo-500" />
-            Client Tracker Dashboard
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('pending')}
-            className={`flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
-              activeTab === 'pending'
-                ? 'bg-card text-foreground shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-border/10'
-                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-            }`}
-          >
-            <Clock className="h-4.5 w-4.5 text-rose-500" />
-            Pending Works Ledger
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-8 p-4 rounded-2xl bg-rose-50 text-rose-700 flex items-center border border-rose-100">
-            <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0" />
-            <p className="text-sm font-semibold">{error}</p>
-          </div>
-        )}
-
-        {/* Campaign Frequency Inline Banner (non-blocking) */}
-        {!loading && selectedProjectId && !targetMet && !showCampaignAlert && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/50 rounded-2xl flex items-center justify-between gap-4 animate-in fade-in">
-            <div className="flex items-center gap-3">
-              <Bell className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 animate-bounce" />
-              <div>
-                <p className="text-sm font-bold text-amber-800 dark:text-amber-300">Campaign Frequency Alert — {selectedMonth}</p>
-                <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">Only {campaignsCount} campaign{campaignsCount !== 1 ? 's' : ''} this month. Need {2 - campaignsCount} more to hit target.</p>
+              <div className="flex items-baseline space-x-2 mt-4">
+                <span className="text-3xl font-extrabold text-foreground">{deliveredPosters}</span>
+                <span className="text-muted-foreground font-bold">/</span>
+                <span className="text-lg font-bold text-muted-foreground">{totalPosters || 15}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Delivered</span>
+              </div>
+              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
+                <div 
+                  className="bg-sky-500 h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, totalPosters > 0 ? (deliveredPosters / totalPosters) * 100 : 0)}%` }}
+                />
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowCampaignAlert(true)}
-              className="text-xs font-bold text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 transition-colors cursor-pointer whitespace-nowrap underline underline-offset-2"
-            >
-              View Alert
-            </button>
+
+            {/* Video Posts (Reels) KPI Card */}
+            <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 rounded-xl bg-pink-500/10 text-pink-500 border border-pink-500/20">
+                    <Video className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reels Target</span>
+                </div>
+                {deliveredReels >= 6 && totalReels > 0 ? (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Met</span>
+                ) : (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">Pending</span>
+                )}
+              </div>
+              <div className="flex items-baseline space-x-2 mt-4">
+                <span className="text-3xl font-extrabold text-foreground">{deliveredReels}</span>
+                <span className="text-muted-foreground font-bold">/</span>
+                <span className="text-lg font-bold text-muted-foreground">{totalReels || 6}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Delivered</span>
+              </div>
+              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
+                <div 
+                  className="bg-pink-500 h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, totalReels > 0 ? (deliveredReels / totalReels) * 100 : 0)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Ad Campaigns Running Card */}
+            <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ad Campaigns</span>
+                </div>
+                {runningAdCampaigns >= 2 && totalAdCampaigns > 0 ? (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Active</span>
+                ) : (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">Setup</span>
+                )}
+              </div>
+              <div className="flex items-baseline space-x-2 mt-4">
+                <span className="text-3xl font-extrabold text-foreground">{runningAdCampaigns}</span>
+                <span className="text-muted-foreground font-bold">/</span>
+                <span className="text-lg font-bold text-muted-foreground">{totalAdCampaigns}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Running</span>
+              </div>
+              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
+                <div 
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, totalAdCampaigns > 0 ? (runningAdCampaigns / totalAdCampaigns) * 100 : 0)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Total Account Delivery Score Card */}
+            <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Channel Score</span>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400">Score</span>
+              </div>
+              <div className="flex items-baseline space-x-2 mt-4">
+                <span className="text-3xl font-extrabold text-foreground">
+                  {Math.round(((deliveredPosters + deliveredReels) / Math.max(1, totalPosters + totalReels)) * 100)}%
+                </span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">Total Delivery Rate</span>
+              </div>
+              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
+                <div 
+                  className="bg-indigo-500 h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, ((deliveredPosters + deliveredReels) / Math.max(1, totalPosters + totalReels)) * 100)}%` }}
+                />
+              </div>
+            </div>
+
           </div>
         )}
 
-        {activeTab === 'pending' ? (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Render Pending Works Ledger */}
-            {/* Render Pending Works Ledger */}
-            <div className="bg-card rounded-[32px] p-8 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-              <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-6 w-6 text-rose-500" />
-                  <h2 className="text-2xl font-bold text-foreground tracking-tight">Pending Works Ledger</h2>
-                </div>
-                <span className="text-[10px] font-bold bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 px-3.5 py-1.5 rounded-full uppercase tracking-wider">
-                  {pendingTasks.length} Pending Tasks
-                </span>
+        {/* ===== Setup / CSV Upload Zone ===== */}
+        {contentItems.length === 0 ? (
+          <div className="bg-card rounded-[32px] p-10 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center max-w-4xl mx-auto animate-in fade-in duration-300">
+            <div className="max-w-md mx-auto space-y-6">
+              
+              {/* Animated Upload Zone */}
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-3xl p-8 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer ${
+                  dragActive ? 'border-indigo-500 bg-indigo-500/5 scale-102' : 'border-border hover:border-indigo-500/40 hover:bg-secondary/40'
+                }`}
+              >
+                <input
+                  type="file"
+                  id="csvFile"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <label htmlFor="csvFile" className="cursor-pointer w-full flex flex-col items-center">
+                  <div className="h-16 w-16 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-4">
+                    <Upload className="h-8 w-8 animate-bounce" />
+                  </div>
+                  <h3 className="text-base font-bold text-foreground">Upload Content Sheet Spreadsheet</h3>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-xs leading-relaxed">
+                    Drag and drop your content calendar CSV file here, or click to browse.
+                  </p>
+                </label>
               </div>
-              <p className="text-xs text-muted-foreground font-medium mb-6 uppercase tracking-wider">
-                UNCOMPLETED SOCIAL POSTS FOR {selectedMonth} ACROSS ALL DIGITAL MARKETING PROJECTS
+
+              {/* Separator Divider */}
+              <div className="flex items-center my-4">
+                <div className="flex-grow border-t border-border/80"></div>
+                <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest px-4">Or Quick Start</span>
+                <div className="flex-grow border-t border-border/80"></div>
+              </div>
+
+              {/* Preload Maharaja Catering Seed Button */}
+              <button
+                type="button"
+                onClick={handleLoadDemoData}
+                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-2xl active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 shadow-lg shadow-indigo-600/15 cursor-pointer text-sm uppercase tracking-widest"
+              >
+                <Sparkles className="h-5 w-5 text-amber-300 animate-spin" />
+                Load Maharaja Catering Demo Content Sheet
+              </button>
+              
+              <p className="text-[11px] text-muted-foreground font-semibold">
+                Loads the complete 21-row content sheet with posters & reels, lead goals, CTAs, and ad campaign indicators.
               </p>
 
-              {loadingPending ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <Loader2 className="h-10 w-10 animate-spin text-rose-500 mb-4" />
-                  <p className="text-sm text-muted-foreground font-semibold">Scanning pending project tasks...</p>
-                </div>
-              ) : pendingTasks.length === 0 ? (
-                <div className="text-center py-20 bg-secondary/20 rounded-2xl border border-dashed border-border animate-in fade-in">
-                  <CheckCircle2 className="h-14 w-14 text-emerald-500 mx-auto mb-4 animate-bounce" />
-                  <h3 className="text-lg font-bold text-foreground">All Targets Met!</h3>
-                  <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto font-medium">All social post targets for {selectedMonth} have been successfully posted or completed.</p>
-                </div>
-              ) : (
-                <div className="border border-border rounded-2xl overflow-hidden shadow-sm">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-secondary/50 border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        <th className="py-3.5 px-6">Project</th>
-                        <th className="py-3.5 px-6">Task</th>
-                        <th className="py-3.5 px-6">Current Status</th>
-                        <th className="py-3.5 px-6">Due Date</th>
-                        <th className="py-3.5 px-6">Assignee</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border text-xs font-semibold text-foreground">
-                      {pendingTasks.map((task) => (
-                        <tr key={task.id} className="hover:bg-secondary/40 transition-colors">
-                          <td className="py-4 px-6">
-                            <div className="flex items-center space-x-2">
-                              <Briefcase className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-foreground font-bold">{task.projectName}</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <span className="inline-flex items-center gap-1.5 uppercase text-[10px] font-bold text-foreground bg-secondary px-2 py-1 rounded-md">
-                              {task.postType === 'video' ? <Video className="h-3 w-3 text-rose-500" /> : <Image className="h-3 w-3 text-sky-500" />}
-                              {task.taskName}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getStatusColorClass(task.status)}`}>
-                              {task.status}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6">
-                            <input
-                              type="date"
-                              value={task.dueDate}
-                              onChange={(e) => handleUpdatePendingPost(task.projectId, task.platform, task.postType, { dueDate: e.target.value || null })}
-                              className="px-2 py-1 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-accent/10 text-xs font-semibold cursor-pointer"
-                            />
-                          </td>
-                          <td className="py-4 px-6">
-                            <select
-                              value={task.assignedTo || ''}
-                              onChange={(e) => handleUpdatePendingPost(task.projectId, task.platform, task.postType, { assignedTo: e.target.value || null })}
-                              className="px-2 py-1 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-accent/10 text-xs font-semibold cursor-pointer max-w-[150px]"
-                            >
-                              <option value="">Unassigned</option>
-                              {users.map((u) => (
-                                <option key={u.id} value={u.username}>{u.username}</option>
-                              ))}
-                            </select>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
-          </div>
-        ) : !selectedProjectId ? (
-          <div className="text-center py-20 bg-card rounded-[32px] border border-dashed border-border shadow-sm">
-            <Briefcase className="h-14 w-14 text-muted-foreground/60 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-foreground">No Projects Found</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto font-medium">Go to the main Projects menu to create a new project.</p>
-          </div>
-        ) : loading ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-card rounded-[32px] border border-border shadow-sm">
-            <Loader2 className="h-10 w-10 animate-spin text-accent mb-4" />
-            <p className="text-sm text-muted-foreground font-semibold">Aligning client pipelines...</p>
           </div>
         ) : (
-          <div className="space-y-8">
-
-            {/* Target vs Actual Count Widget */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Image Post Target Card */}
-              <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] flex flex-col justify-between hover:shadow-md transition-all duration-300">
-                <div className="space-y-2 flex-grow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500">
-                        <Image className="h-5 w-5" />
-                      </div>
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Image Posts Target (Setup)</span>
-                    </div>
-                    {targetImagePosts > 0 && actualImagePosts >= targetImagePosts ? (
-                      <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                        Completed
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">
-                        In Progress
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-baseline space-x-2 mt-2">
-                    <span className="text-3xl font-extrabold text-foreground">{actualImagePosts}</span>
-                    <span className="text-muted-foreground font-bold">/</span>
-                    <span className="text-xl font-bold text-muted-foreground">{targetImagePosts}</span>
-                    <span className="text-xs font-semibold text-muted-foreground ml-1">Delivered</span>
-                  </div>
-                  {/* Progress Bar */}
-                  <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-3">
-                    <div 
-                      className="bg-sky-500 h-full rounded-full transition-all duration-500" 
-                      style={{ width: `${Math.min(100, targetImagePosts > 0 ? (actualImagePosts / targetImagePosts) * 100 : 0)}%` }}
-                    />
-                  </div>
-
-                  {/* Platform breakdown */}
-                  <div className="pt-3 border-t border-border mt-4 space-y-2">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Platform Status</span>
-                    <div className="flex flex-wrap gap-2 text-center">
-                      {parsedPlatforms.map(p => {
-                        const platPosted = getPlatformPostedCount(p.key, 'image');
-                        const platCompleted = getPlatformCompletedCount(p.key, 'image');
-                        const platTotal = platPosted + platCompleted;
-                        const isActive = platTotal > 0;
-                        return (
-                          <div key={p.key} className={`flex-1 min-w-[80px] p-2 rounded-xl border text-[9px] font-bold ${isActive ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
-                            <span className="block text-[8px] opacity-70 truncate mb-1">{p.name}</span>
-                            <span className="block text-sky-400">📤 {platPosted} posted</span>
-                            <span className="block text-emerald-400">✅ {platCompleted} done</span>
-                            <span className="block mt-0.5 text-muted-foreground">/ {platTargetImage} target</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Video Post Target Card */}
-              <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] flex flex-col justify-between hover:shadow-md transition-all duration-300">
-                <div className="space-y-2 flex-grow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="p-2 rounded-xl bg-rose-500/10 text-rose-500">
-                        <Video className="h-5 w-5" />
-                      </div>
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Video Posts Target (Setup)</span>
-                    </div>
-                    {targetVideoPosts > 0 && actualVideoPosts >= targetVideoPosts ? (
-                      <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                        Completed
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">
-                        In Progress
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-baseline space-x-2 mt-2">
-                    <span className="text-3xl font-extrabold text-foreground">{actualVideoPosts}</span>
-                    <span className="text-muted-foreground font-bold">/</span>
-                    <span className="text-xl font-bold text-muted-foreground">{targetVideoPosts}</span>
-                    <span className="text-xs font-semibold text-muted-foreground ml-1">Delivered</span>
-                  </div>
-                  {/* Progress Bar */}
-                  <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-3">
-                    <div 
-                      className="bg-rose-500 h-full rounded-full transition-all duration-500" 
-                      style={{ width: `${Math.min(100, targetVideoPosts > 0 ? (actualVideoPosts / targetVideoPosts) * 100 : 0)}%` }}
-                    />
-                  </div>
-
-                  {/* Platform breakdown */}
-                  <div className="pt-3 border-t border-border mt-4 space-y-2">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Platform Status</span>
-                    <div className="flex flex-wrap gap-2 text-center">
-                      {parsedPlatforms.map(p => {
-                        const platPosted = getPlatformPostedCount(p.key, 'video');
-                        const platCompleted = getPlatformCompletedCount(p.key, 'video');
-                        const platTotal = platPosted + platCompleted;
-                        const isActive = platTotal > 0;
-                        return (
-                          <div key={p.key} className={`flex-1 min-w-[80px] p-2 rounded-xl border text-[9px] font-bold ${isActive ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
-                            <span className="block text-[8px] opacity-70 truncate mb-1">{p.name}</span>
-                            <span className="block text-rose-400">📤 {platPosted} posted</span>
-                            <span className="block text-emerald-400">✅ {platCompleted} done</span>
-                            <span className="block mt-0.5 text-muted-foreground">/ {platTargetVideo} target</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
             
-            {/* 1. Social Post Channels */}
-            <div className="bg-card rounded-[32px] p-8 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-              <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
-                <div className="flex items-center space-x-3">
-                  <Share2 className="h-6 w-6 text-indigo-500" />
-                  <h2 className="text-2xl font-bold text-foreground tracking-tight">Social Post Channel Tracker</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowHistoryModal(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/80 text-foreground font-bold rounded-xl border border-border active:scale-[0.98] transition-all cursor-pointer text-xs shadow-sm"
-                >
-                  <History className="h-3.5 w-3.5 text-indigo-500" />
-                  View History
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground font-medium mb-6 uppercase tracking-wider">
-                TRACK VIDEO & IMAGE CONTENT ACROSS ${parsedPlatforms.map(p => p.name.toUpperCase()).join(', ')}
-              </p>
+            {/* ==================================================== */}
+            {/* CHRONOLOGICAL FEED (Left Columns)                    */}
+            {/* ==================================================== */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                
+                {/* Calendar Title & Search */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5 mb-6">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <h2 className="text-xl font-bold text-foreground">Content Calendar Sheet Stream</h2>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-semibold mt-1">
+                      Showing {filteredContentItems.length} items in chronological delivery order (Poster - Reel)
+                    </p>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {parsedPlatforms.map((plat) => (
-                  <div key={plat.key} className="bg-secondary/50 rounded-2xl p-5 border border-border space-y-4">
-                    <div className="flex items-center justify-between border-b border-border pb-3">
-                      <span className="font-bold text-foreground text-base">{plat.name}</span>
+                  <div className="flex items-center gap-3">
+                    {/* Search Field */}
+                    <div className="relative w-full sm:w-56">
+                      <input
+                        type="text"
+                        placeholder="Search calendar topic..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-secondary border border-border rounded-xl text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500/30 text-xs font-semibold"
+                      />
+                      <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                     </div>
 
-                    {['image', 'video'].map((type) => {
-                      const postKey = `${plat.key}-${type}`;
-                      const post = socialPosts[postKey] || { status: 'inprogress', comments: '' };
+                    {/* Clear Button */}
+                    <button
+                      type="button"
+                      onClick={handleClearData}
+                      className="px-3.5 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 rounded-xl transition-all cursor-pointer font-bold text-xs"
+                      title="Clear content calendar"
+                    >
+                      Clear Sheet
+                    </button>
+                  </div>
+                </div>
+
+                {/* Alternating Chronological Post Stream (Poster - Reel) */}
+                <div className="space-y-6 max-h-[850px] overflow-y-auto pr-2">
+                  {filteredContentItems.length === 0 ? (
+                    <div className="text-center py-16 bg-secondary/20 rounded-2xl border border-dashed border-border">
+                      <HelpCircle className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
+                      <h4 className="text-sm font-bold text-foreground">No Items Match Filter</h4>
+                      <p className="text-xs text-muted-foreground mt-1">Try resetting your search filter query.</p>
+                    </div>
+                  ) : (
+                    filteredContentItems.map((item, idx) => {
+                      const status = platformStatuses[`${item.id}_${activePlatform}`] || 'inprogress';
                       
                       return (
-                        <div key={type} className="space-y-3 bg-card p-3.5 rounded-xl border border-border">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-muted-foreground uppercase flex items-center">
-                              {type === 'video' ? <Video className="h-3.5 w-3.5 mr-1 text-rose-500" /> : <Image className="h-3.5 w-3.5 mr-1 text-sky-500" />}
-                              {type}
+                        <div 
+                          key={item.id} 
+                          className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-start gap-4 shadow-sm hover:shadow-md ${
+                            status === 'posted' ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40' :
+                            status === 'completed' ? 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40' :
+                            'bg-card border-border hover:border-indigo-500/30'
+                          }`}
+                        >
+                          
+                          {/* Date and Content Type Visual Indicator */}
+                          <div className="flex flex-row md:flex-col items-center justify-between md:justify-start md:items-start gap-2.5 md:w-32 flex-shrink-0">
+                            
+                            {/* Date Badge */}
+                            <div>
+                              <p className="text-xs font-black text-foreground">{item.date}</p>
+                              <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase mt-0.5">{item.day}</p>
+                            </div>
+
+                            {/* Content Type Badge */}
+                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-extrabold uppercase border shadow-sm ${
+                              item.contentType === 'Reel' 
+                                ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' 
+                                : 'bg-sky-500/10 text-sky-500 border-sky-500/20'
+                            }`}>
+                              {item.contentType === 'Reel' ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                              {item.contentType}
                             </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getStatusColorClass(post.status)}`}>
-                              {post.status}
+
+                            {/* Time Badge */}
+                  <span className="inline-flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-lg border border-border/60">
+                              <Clock className="h-3 w-3" />
+                              {item.postingTime}
+                            </span>
+
+                          </div>
+
+                          {/* Post Contents Body */}
+                          <div className="flex-grow space-y-3">
+                            <div>
+                              {/* Special Day Badge */}
+                              {item.specialDay && (
+                                <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm animate-pulse mb-2.5 block w-fit">
+                                  ✨ Special Day: {item.specialDay}
+                                </span>
+                              )}
+
+                              <h3 className="text-base font-extrabold text-foreground tracking-tight leading-tight">
+                                {item.topic}
+                              </h3>
+                              
+                              {/* Viral Content Idea */}
+                              {item.viralIdea && (
+                                <p className="text-xs text-indigo-400 font-semibold italic mt-1.5 flex items-center gap-1">
+                                  <Lightbulb className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
+                                  Viral Idea: {item.viralIdea}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Post Caption Body */}
+                            {item.caption && (
+                              <div className="bg-secondary/40 p-3 rounded-xl border border-border/50 text-xs font-semibold text-foreground/80 leading-relaxed max-w-2xl">
+                                {item.caption}
+                              </div>
+                            )}
+
+                            {/* Keywords and Hashtags */}
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {item.hashtags.split(' ').map((tag, tIdx) => tag && (
+                                <span key={tIdx} className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded-md">
+                                  {tag}
+                                </span>
+                              ))}
+                              {item.keywords.split(',').map((kw, kIdx) => kw && (
+                                <span key={kIdx} className="text-[10px] font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-md border border-border/40">
+                                  {kw.trim()}
+                                </span>
+                              ))}
+                            </div>
+
+                            {/* CTA & Campaign Tag */}
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                              {item.cta && (
+                                <span className="text-[10px] font-extrabold bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/20">
+                                  CTA: {item.cta}
+                                </span>
+                              )}
+                              {item.runAdCampaign === 'YES' && (
+                                <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-500 px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
+                                  <TrendingUp className="h-3 w-3" />
+                                  Campaign Configured
+                                </span>
+                              )}
+                            </div>
+
+                          </div>
+
+                          {/* Branded Status Selection dropdown for active account */}
+                          <div className="flex-shrink-0 md:w-36 mt-4 md:mt-0 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-4">
+                            
+                            {/* Branded status indicator */}
+                            <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                              status === 'posted' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                              status === 'completed' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                              'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                            }`}>
+                              {status === 'posted' ? 'Posted' : status === 'completed' ? 'Completed' : 'In Progress'}
+                            </span>
+
+                            {/* Interactive Status Selector */}
+                            <div className="w-full relative">
+                              <select
+                                value={status}
+                                onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
+                                className={`w-full px-3 py-2.5 rounded-xl text-xs font-extrabold focus:outline-none focus:ring-1 focus:ring-indigo-500/10 cursor-pointer border shadow-sm select-none ${
+                                  status === 'posted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                                  status === 'completed' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                                  'bg-secondary border-border text-foreground'
+                                }`}
+                              >
+                                <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
+                                <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
+                                <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
+                              </select>
+                            </div>
+
+                          </div>
+
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ==================================================== */}
+            {/* AD CAMPAIGNS PANEL & STATS (Right Columns)            */}
+            {/* ==================================================== */}
+            <div className="lg:col-span-4 space-y-6">
+              
+              {/* Ad Campaigns operations tracker card */}
+              <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-6">
+                
+                {/* Title */}
+                <div className="border-b border-border pb-4">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="h-5.5 w-5.5 text-indigo-500" />
+                    <h2 className="text-lg font-bold text-foreground">Ad Campaigns Operations</h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-semibold mt-1">
+                    Manage active running lead-gen campaign phases configured from the sheet
+                  </p>
+                </div>
+
+                {/* Campaigns List */}
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                  {adCampaignRows.length === 0 ? (
+                    <div className="text-center py-8 bg-secondary/35 rounded-2xl border border-dashed border-border">
+                      <Clock className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                      <p className="text-xs text-muted-foreground font-bold">No Ad Campaigns</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Rows with Run Ad Campaign === YES appear here</p>
+                    </div>
+                  ) : (
+                    adCampaignRows.map((item) => {
+                      const activeState = campaignStatuses[item.id] || 'inprogress';
+
+                      return (
+                        <div 
+                          key={item.id} 
+                          className={`p-4 rounded-xl border transition-all duration-300 space-y-3 ${
+                            activeState === 'running'
+                              ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
+                              : 'bg-secondary/40 border-border'
+                          }`}
+                        >
+                          {/* Header info */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black text-muted-foreground">{item.date}</span>
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
+                              activeState === 'running'
+                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                            }`}>
+                              {activeState === 'running' ? 'Running' : 'In Progress'}
                             </span>
                           </div>
 
-                          <div className="space-y-2">
-                            <select
-                              value={post.status}
-                              onChange={(e) => handleUpdateSocialPost(plat.key, type, e.target.value, post.comments)}
-                              className="w-full text-xs font-bold text-foreground bg-secondary border border-border rounded-lg p-2 focus:outline-none focus:bg-card focus:ring-1 focus:ring-accent/10 cursor-pointer"
-                            >
-                              <option value="inprogress">In Progress</option>
-                              <option value="completed">Completed</option>
-                              <option value="posted">Posted</option>
-                            </select>
+                          {/* Topic and leads info */}
+                          <div>
+                            <h4 className="text-xs font-extrabold text-foreground leading-tight">{item.topic}</h4>
+                            <div className="flex items-center gap-3 mt-1.5">
+                              <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">
+                                Goal: {item.leadGoal}
+                              </span>
+                              <span className="text-[9px] font-semibold text-muted-foreground">
+                                CTA: {item.cta}
+                              </span>
+                            </div>
+                          </div>
 
-                            <input
-                              type="text"
-                              placeholder="Write log notes..."
-                              value={post.comments}
-                              onChange={(e) => {
-                                const currentComments = e.target.value;
-                                setSocialPosts(prev => ({
-                                  ...prev,
-                                  [postKey]: { ...prev[postKey], platform: plat.key, postType: type, status: post.status, comments: currentComments }
-                                }));
-                              }}
-                              className="w-full text-xs font-medium text-foreground bg-secondary border border-border rounded-lg p-2 focus:outline-none focus:bg-card focus:ring-1 focus:ring-accent/10 placeholder-muted-foreground/60"
-                            />
-
-                            <div className="flex justify-between items-center pt-2">
-                              {post.updatedBy ? (
-                                <span className="text-[9px] text-muted-foreground flex items-center font-medium">
-                                  <Clock className="h-3 w-3 mr-0.5" />
-                                  By: {post.updatedBy}
-                                </span>
-                              ) : (
-                                <span className="text-[9px] text-muted-foreground/60 italic font-medium">No updates</span>
-                              )}
-                              
+                          {/* Ad running phase action toggles */}
+                          <div className="pt-2 border-t border-border/80 flex items-center justify-between gap-4">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Running State</span>
+                            
+                            <div className="flex gap-1.5">
                               <button
                                 type="button"
-                                disabled={updatingPostId === postKey}
-                                onClick={() => handleUpdateSocialPost(plat.key, type, post.status, post.comments)}
-                                className="p-1 text-accent hover:text-accent/80 transition-transform hover:scale-110 disabled:opacity-50 cursor-pointer"
-                                title="Save changes"
+                                onClick={() => handleUpdateCampaignStatus(item.id, 'inprogress')}
+                                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
+                                  activeState === 'inprogress'
+                                    ? 'bg-amber-500/20 border-amber-500/30 text-amber-500 shadow-sm'
+                                    : 'bg-card border-border hover:bg-secondary text-muted-foreground'
+                                }`}
                               >
-                                {updatingPostId === postKey ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <Save className="h-3.5 w-3.5" />
-                                )}
+                                In Progress
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateCampaignStatus(item.id, 'running')}
+                                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
+                                  activeState === 'running'
+                                    ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500 shadow-sm'
+                                    : 'bg-card border-border hover:bg-secondary text-muted-foreground'
+                                }`}
+                              >
+                                Run
                               </button>
                             </div>
                           </div>
+
                         </div>
                       );
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 2. Ad Campaigns and Frequency reminder */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              
-              {/* Campaign logger */}
-              <div className="lg:col-span-5 bg-card rounded-[32px] p-8 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                <div className="flex items-center space-x-3 mb-6">
-                  <TrendingUp className="h-6 w-6 text-sky-500" />
-                  <h2 className="text-2xl font-bold text-foreground tracking-tight">Log Ad Campaign</h2>
-                </div>
-
-                <form onSubmit={handleCreateCampaign} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Campaign Name</label>
-                    <input
-                      required
-                      type="text"
-                      placeholder="e.g. Lead Gen Campaign - May"
-                      value={campaignForm.name}
-                      onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground/60 focus:outline-none focus:bg-card text-sm font-semibold"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Spend (INR / Rs)</label>
-                      <input
-                        required
-                        type="number"
-                        placeholder="e.g. 1000"
-                        value={campaignForm.spend}
-                        onChange={(e) => setCampaignForm({ ...campaignForm, spend: e.target.value })}
-                        className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground/60 focus:outline-none focus:bg-card text-sm font-semibold"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Leads Acquired</label>
-                      <input
-                        required
-                        type="number"
-                        placeholder="e.g. 16"
-                        value={campaignForm.leads}
-                        onChange={(e) => setCampaignForm({ ...campaignForm, leads: e.target.value })}
-                        className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground/60 focus:outline-none focus:bg-card text-sm font-semibold"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Start Date</label>
-                    <input
-                      required
-                      type="date"
-                      value={campaignForm.startDate}
-                      onChange={(e) => setCampaignForm({ ...campaignForm, startDate: e.target.value })}
-                      className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground focus:outline-none focus:bg-card text-sm font-semibold cursor-pointer"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submittingCampaign}
-                    className="w-full py-3.5 bg-accent hover:bg-accent/90 text-white font-bold rounded-xl active:scale-[0.99] transition-all flex items-center justify-center shadow-md shadow-accent/10 disabled:opacity-70 cursor-pointer text-sm uppercase tracking-wider mt-4"
-                  >
-                    {submittingCampaign ? (
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    ) : (
-                      'Save Campaign Performance'
-                    )}
-                  </button>
-                </form>
-              </div>
-
-              {/* Campaign list & frequency checks */}
-              <div className="lg:col-span-7 bg-card rounded-[32px] p-8 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-foreground tracking-tight">Campaign Frequency Ledger</h2>
-                  <span className="text-[10px] font-bold bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full uppercase tracking-wider">
-                    Goal: 2 Campaigns / Month
-                  </span>
-                </div>
-
-                {/* Warning / Reminder Banner */}
-                {targetMet ? (
-                  <div className="p-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-2xl flex items-start space-x-3">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-bold text-emerald-400">Goal Achieved for {selectedMonth}</p>
-                      <p className="text-xs text-emerald-400/80 font-semibold mt-1">
-                        Excellent! Met target campaign criteria of 2 campaigns per client. Total run: {campaignsCount}.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div 
-                    className="p-4 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-2xl flex items-start justify-between space-x-3 cursor-pointer hover:bg-amber-500/20 transition-colors"
-                    onClick={() => setShowCampaignAlert(true)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5 animate-pulse" />
-                      <div>
-                        <p className="text-sm font-bold text-amber-400">⚠️ Action Required: Campaign Target</p>
-                        <p className="text-xs text-amber-400/80 font-semibold mt-1">
-                          Only {campaignsCount} campaign{campaignsCount !== 1 ? 's' : ''} run this month. Need {2 - campaignsCount} more campaign{2 - campaignsCount !== 1 ? 's' : ''} to meet monthly target.
-                        </p>
-                      </div>
-                    </div>
-                    <Bell className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                  </div>
-                )}
-
-                {/* Campaign performance cards */}
-                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
-                  {campaigns.length === 0 ? (
-                    <div className="text-center py-8 bg-secondary/30 rounded-2xl border border-dashed border-border">
-                      <Clock className="h-8 w-8 text-muted-foreground/45 mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground font-semibold">No campaigns logged yet.</p>
-                    </div>
-                  ) : (
-                    campaigns.map((camp) => (
-                      <div key={camp.id} className="p-4 bg-secondary/50 rounded-2xl border border-border flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-bold text-foreground">{camp.name}</h4>
-                          <div className="flex items-center space-x-3 mt-1.5 text-xs text-muted-foreground font-semibold">
-                            <span className="flex items-center">
-                              <Calendar className="h-3.5 w-3.5 mr-1" />
-                              {camp.startDate.split('T')[0]}
-                            </span>
-                            <span>•</span>
-                            <span className="flex items-center text-foreground/80">
-                              <User className="h-3.5 w-3.5 mr-1 text-muted-foreground/60" />
-                              Logged by: {camp.updatedBy}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-extrabold text-accent">Rs. {camp.spend}</p>
-                          <p className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block mt-1">
-                            {camp.leads} Leads
-                          </p>
-                        </div>
-                      </div>
-                    ))
+                    })
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* 3. Special Days Poster Planner */}
-            <div className="bg-card rounded-[32px] p-8 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
-                <div className="flex items-center space-x-3">
-                  <Sparkles className="h-6 w-6 text-amber-500" />
-                  <h2 className="text-2xl font-bold text-foreground tracking-tight">Special Days Poster Planner</h2>
+              </div>
+
+              {/* Mapped platforms information card */}
+              <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-4">
+                <div className="flex items-center space-x-2">
+                  <User className="h-5.5 w-5.5 text-indigo-500" />
+                  <h3 className="text-base font-extrabold text-foreground">Employee Accounts</h3>
                 </div>
+                <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
+                  Statuses are synchronized live into the active system state. Changing platforms in the top tabs toggles the workspace to update specific credentials records.
+                </p>
 
-                <div className="flex items-center space-x-3 bg-secondary p-3 rounded-2xl border border-border">
-                  <input
-                    type="checkbox"
-                    id="plannedOnFirst"
-                    checked={isPlannedOnFirstDay}
-                    onChange={(e) => handleToggleFirstDayPlanning(e.target.checked)}
-                    className="h-4.5 w-4.5 rounded text-accent border-slate-300 focus:ring-accent cursor-pointer"
-                  />
-                  <label htmlFor="plannedOnFirst" className="text-xs font-bold text-foreground cursor-pointer select-none">
-                    All Posters Planned on 1st of Month
-                  </label>
-                  {firstDayUpdatedBy && (
-                    <span className="text-[9px] text-muted-foreground font-semibold border-l border-border pl-3">
-                      By: {firstDayUpdatedBy}
-                    </span>
-                  )}
+                <div className="p-3 bg-secondary/50 rounded-2xl border border-border space-y-2">
+                  <div className="flex justify-between items-center text-xs font-bold text-foreground">
+                    <span>Instagram Profile:</span>
+                    <span className="text-[10px] text-emerald-500 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-bold text-foreground">
+                    <span>Facebook Page:</span>
+                    <span className="text-[10px] text-emerald-500 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-bold text-foreground">
+                    <span>YouTube Channel:</span>
+                    <span className="text-[10px] text-emerald-500 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-4">Continuous Special Days Reminder (India & Tamil Nadu)</p>
-                
-                {currentMonthHolidays.length === 0 ? (
-                  <div className="p-4 bg-secondary/30 rounded-2xl border border-dashed border-border text-center">
-                    <p className="text-xs text-muted-foreground font-semibold">No major holidays mapped in India/Tamil Nadu for the current month.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {currentMonthHolidays.map((holiday) => {
-                      const poster = holidayPosters[holiday.name] || { status: 'pending' };
-                      const scheduledDate = `${currentYear}-${holiday.date}`;
-                      
-                      return (
-                        <div key={holiday.name} className="p-4 bg-secondary/50 rounded-2xl border border-border flex items-center justify-between gap-4">
-                          <div>
-                            <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                              {holiday.type}
-                            </span>
-                            <h4 className="text-sm font-bold text-foreground mt-1.5">{holiday.name}</h4>
-                            <p className="text-xs text-muted-foreground font-semibold mt-1">{scheduledDate}</p>
-                          </div>
-
-                          <div className="flex items-center space-x-3">
-                            <select
-                              value={poster.status}
-                              onChange={(e) => handleUpdateHolidayPosterStatus(holiday.name, scheduledDate, e.target.value)}
-                              className="text-xs font-bold bg-card border border-border rounded-xl p-2 focus:outline-none cursor-pointer text-foreground"
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="designed">Designed</option>
-                              <option value="posted">Posted</option>
-                            </select>
-
-                            {updatingPosterId === holiday.name ? (
-                              <Loader2 className="h-4 w-4 animate-spin text-accent" />
-                            ) : poster.updatedBy ? (
-                              <div className="text-[9px] text-muted-foreground font-semibold" title={`By ${poster.updatedBy}`}>
-                                <User className="h-3.5 w-3.5 text-muted-foreground/60" />
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
             </div>
 
           </div>
         )}
+      </>
+    )}
+
+      {/* ===== ChatGPT Prompt Strategy Workspace Clone ===== */}
+      {activeTab === 'chatgpt' && (
+        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
+          
+          {/* Mock Browser/ChatGPT Header */}
+          <div className="bg-[#171717] rounded-[32px] border border-zinc-800 text-zinc-200 overflow-hidden shadow-2xl flex flex-col h-[650px]">
+            
+            {/* Mock Address Bar */}
+            <div className="bg-[#0d0d0d] px-6 py-4 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-zinc-400 text-xs font-semibold truncate">
+                <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></div>
+                <span className="font-mono text-zinc-500 truncate">chatgpt.com/share/6a1a465b-bb28-8323-919a-2b0feaee6fab</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setChatGptMessages([
+                    {
+                      sender: 'user',
+                      text: `I need a high-converting digital marketing calendar for "maharaja catering" in Tamil Nadu. The deliverables promised to the client are 15 posters and 6 reels for a month. We must deliver these on respective days. \n\nWe also need to run 2 ad campaigns per month to get wedding and event leads. The calendar must specify special holiday posters (India and Tamil Nadu), posting times, lead goals, and strong CTAs for each post type. \n\nCan you generate a chronological 21-row content strategy starting in June 2026? Alternate between Posters and Reels where appropriate.`,
+                      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                    },
+                    {
+                      sender: 'gpt',
+                      text: `Certainly! Here is a premium, localized, high-converting content calendar designed for "Sri Maharaja Catering" targeting the South Indian wedding and event market in Tamil Nadu.
+
+I have structured this calendar to alternate between high-fidelity Posters and highly engaging video Reels. Special days (like World Environment Day, Father's Day, and International Yoga Day) are highlighted with specific content themes.
+
+Here is a summary of the 21-row calendar synced into your Operations Hub:
+• **15 Posters / 6 Reels** configured for optimal reach.
+• **Special Day Columns** mapped natively matching your custom dates.
+• **High-Intent CTAs** (DM For Booking, WhatsApp Now, Enquire Today).
+• **2 Lead-Gen Ad Campaigns** configured under your ad operations board.`,
+                      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                    }
+                  ])}
+                  className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer border border-zinc-700 active:scale-95"
+                  title="Reset conversation thread"
+                >
+                  Reset Thread
+                </button>
+                <a
+                  href="https://chatgpt.com/share/6a1a465b-bb28-8323-919a-2b0feaee6fab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-600/10 flex-shrink-0"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Open Live Thread
+                </a>
+              </div>
+            </div>
+
+            {/* Conversation Box */}
+            <div className="p-6 flex-grow space-y-6 overflow-y-auto bg-[#212121] flex flex-col">
+              
+              {chatGptMessages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex gap-4 items-start p-5 rounded-2xl border border-zinc-800/80 max-w-4xl w-full ${
+                    msg.sender === 'user'
+                      ? 'bg-[#2f2f2f] text-zinc-100 mr-auto'
+                      : 'bg-[#2f2f2f] text-zinc-200 ml-auto border-l-4 border-l-emerald-500'
+                  }`}
+                >
+                  {msg.sender === 'user' ? (
+                    <div className="h-9 w-9 rounded-full bg-indigo-600 border border-indigo-500 text-white font-extrabold flex items-center justify-center flex-shrink-0 text-xs shadow-sm uppercase">
+                      {user?.username ? user.username[0] : 'U'}
+                    </div>
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-[#10a37f] text-white flex items-center justify-center flex-shrink-0 text-[10px] font-black shadow-sm">
+                      GPT
+                    </div>
+                  )}
+
+                  <div className="space-y-2 flex-grow">
+                    <span className={`text-[10px] font-black uppercase tracking-widest block mb-0.5 ${
+                      msg.sender === 'user' ? 'text-indigo-400' : 'text-emerald-400'
+                    }`}>
+                      {msg.sender === 'user' ? 'Campaign Prompt Strategy' : 'Catering Campaign response'}
+                    </span>
+                    <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-zinc-200">
+                      {msg.text}
+                    </p>
+                    <span className="text-[9px] font-bold text-zinc-500 block text-right">
+                      {msg.timestamp}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* ChatGPT Typing Cursor */}
+              {chatGptLoading && (
+                <div className="flex gap-4 items-start bg-[#2f2f2f] p-5 rounded-2xl border border-zinc-800/80 max-w-4xl w-full ml-auto border-l-4 border-l-emerald-500 animate-pulse">
+                  <div className="h-9 w-9 rounded-full bg-[#10a37f] text-white flex items-center justify-center flex-shrink-0 text-[10px] font-black shadow-sm">
+                    GPT
+                  </div>
+                  <div className="space-y-2 flex-grow">
+                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block mb-0.5">
+                      ChatGPT is typing...
+                    </span>
+                    <div className="flex items-center space-x-1.5 py-2">
+                      <span className="h-2 w-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                      <span className="h-2 w-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                      <span className="h-2 w-2 bg-emerald-500 rounded-full animate-bounce"></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={chatGptEndRef} />
+            </div>
+
+            {/* ChatGPT Pill-Shaped Signature Input Bar */}
+            <div className="bg-[#171717] px-6 py-4 border-t border-zinc-800 flex flex-col gap-3">
+              
+              {/* Quick Suggestion Tags */}
+              <div className="flex flex-wrap gap-2 justify-center max-w-3xl mx-auto w-full">
+                <button
+                  type="button"
+                  onClick={() => handleSendChatGptMessage('Suggest hashtags')}
+                  className="text-[10px] font-bold text-zinc-400 hover:text-white bg-[#2f2f2f] hover:bg-zinc-800 border border-zinc-700/60 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+                >
+                  #️⃣ Suggestions for catering hashtags
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendChatGptMessage('Write a post caption')}
+                  className="text-[10px] font-bold text-zinc-400 hover:text-white bg-[#2f2f2f] hover:bg-zinc-800 border border-zinc-700/60 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+                >
+                  📝 Instagram caption for luxury wedding
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendChatGptMessage('Draft Meta ad copy')}
+                  className="text-[10px] font-bold text-zinc-400 hover:text-white bg-[#2f2f2f] hover:bg-zinc-800 border border-zinc-700/60 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+                >
+                  🎯 High-intent Meta Lead ad copy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendChatGptMessage('World Environment Day strategy')}
+                  className="text-[10px] font-bold text-zinc-400 hover:text-white bg-[#2f2f2f] hover:bg-zinc-800 border border-zinc-700/60 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+                >
+                  🌿 Sustainable campaign copy
+                </button>
+              </div>
+
+              {/* Text Input Container */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendChatGptMessage();
+                }}
+                className="relative max-w-3xl mx-auto w-full flex items-center bg-[#2f2f2f] border border-zinc-700/80 rounded-3xl p-1.5 shadow-inner"
+              >
+                <input
+                  type="text"
+                  placeholder="Message ChatGPT..."
+                  value={chatGptInput}
+                  onChange={(e) => setChatGptInput(e.target.value)}
+                  className="w-full bg-transparent border-none text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none pl-4 pr-14 py-2.5"
+                  disabled={chatGptLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={!chatGptInput.trim() || chatGptLoading}
+                  className="absolute right-3 top-3 h-8 w-8 bg-zinc-100 hover:bg-zinc-200 text-black font-bold flex items-center justify-center rounded-full transition-all disabled:opacity-30 disabled:hover:bg-zinc-100 cursor-pointer shadow-md flex-shrink-0"
+                  title="Send message"
+                >
+                  <SendIcon className="h-4 w-4 text-black" />
+                </button>
+              </form>
+
+              <div className="text-center text-[9px] text-zinc-500 font-semibold italic">
+                ChatGPT can make mistakes. Verify important info. • Scraped shared thread 6a1a465b-bb28-8323-919a-2b0feaee6fab
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* ===== Interactive Floating ChatGPT Pop-up Widget ===== */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        {/* Chat Widget Window */}
+        {chatOpen && (
+          <div className="w-[380px] h-[520px] bg-[#212121] border border-zinc-800 shadow-2xl rounded-[28px] overflow-hidden mb-4 flex flex-col animate-in slide-in-from-bottom-6 duration-300">
+            {/* Header */}
+            <div className="p-4 bg-[#0d0d0d] border-b border-zinc-800 text-zinc-200 flex items-center justify-between shadow-md">
+              <div className="flex items-center space-x-3">
+                <div className="relative h-10 w-10 rounded-full bg-[#10a37f] flex items-center justify-center shadow-inner border border-zinc-800">
+                  <span className="text-[10px] font-black text-white">GPT</span>
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-emerald-500 rounded-full border-2 border-[#0d0d0d]"></span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-black tracking-wide uppercase text-zinc-100">ChatGPT</h4>
+                  <p className="text-[10px] text-zinc-400 font-bold flex items-center gap-1 mt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    GPT-4 Model Active
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-1">
+                {/* Reset button */}
+                <button
+                  type="button"
+                  onClick={() => setChatMessages([
+                    {
+                      sender: 'ai',
+                      text: `👋 Hello! I am your ChatGPT Marketing Copilot for **Sri Maharaja Catering**.\n\nI can instantly write copy or brainstorm for you:\n• 📝 **Draft posts/reels captions**\n• #️⃣ **Generate high-engagement hashtags**\n• 🎯 **Write Meta Lead-Gen ad copies**\n• 🌿 **Suggest holiday greeting content**\n\nWhat would you like me to do?`,
+                      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                    }
+                  ])}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-all text-zinc-400 hover:text-white active:scale-95 cursor-pointer"
+                  title="Reset conversation"
+                >
+                  <History className="h-4 w-4" />
+                </button>
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setChatOpen(false)}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-all text-zinc-400 hover:text-white active:scale-95 cursor-pointer"
+                >
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Messages Stream */}
+            <div className="flex-grow p-4 overflow-y-auto space-y-4 bg-[#212121] flex flex-col text-zinc-200">
+              {chatMessages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex flex-col max-w-[85%] ${
+                    msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'
+                  }`}
+                >
+                  <div
+                    className={`px-4 py-2.5 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm whitespace-pre-wrap ${
+                      msg.sender === 'user'
+                        ? 'bg-zinc-700 text-white rounded-tr-none'
+                        : 'bg-[#2f2f2f] border border-zinc-800 text-zinc-200 rounded-tl-none'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                  <span className="text-[9px] font-bold text-zinc-500 mt-1.5 px-1 tracking-wider uppercase">
+                    {msg.timestamp}
+                  </span>
+                </div>
+              ))}
+              
+              {/* Typing loader */}
+              {chatLoading && (
+                <div className="flex items-center space-x-1.5 self-start bg-[#2f2f2f] border border-zinc-850 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm animate-pulse">
+                  <span className="h-2 w-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="h-2 w-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="h-2 w-2 bg-emerald-500 rounded-full animate-bounce"></span>
+                </div>
+              )}
+              
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Quick Prompts Suggestions */}
+            <div className="px-4 py-2 bg-[#171717] border-t border-zinc-800 flex flex-wrap gap-1.5 justify-start">
+              <button
+                type="button"
+                onClick={() => handleSendMessage('Suggest hashtags')}
+                className="text-[9px] font-black uppercase tracking-wider text-zinc-400 bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 px-2 py-1 rounded-lg transition-all cursor-pointer"
+              >
+                #️⃣ Hashtags
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendMessage('Write a caption')}
+                className="text-[9px] font-black uppercase tracking-wider text-zinc-400 bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 px-2 py-1 rounded-lg transition-all cursor-pointer"
+              >
+                📝 Caption
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendMessage('Write Ad copy')}
+                className="text-[9px] font-black uppercase tracking-wider text-zinc-400 bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 px-2 py-1 rounded-lg transition-all cursor-pointer"
+              >
+                🎯 Meta Ad Copy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendMessage('Environment Day')}
+                className="text-[9px] font-black uppercase tracking-wider text-zinc-400 bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 px-2 py-1 rounded-lg transition-all cursor-pointer"
+              >
+                🌿 June 5th
+              </button>
+            </div>
+
+            {/* Input Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="p-3 bg-[#0d0d0d] border-t border-zinc-800 flex items-center gap-2"
+            >
+              <input
+                type="text"
+                placeholder="Message ChatGPT..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                className="flex-grow bg-[#2f2f2f] border border-zinc-700/60 rounded-2xl px-3.5 py-2 text-xs font-semibold text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-700/50"
+                disabled={chatLoading}
+              />
+              <button
+                type="submit"
+                disabled={!chatInput.trim() || chatLoading}
+                className="h-8 w-8 bg-zinc-100 hover:bg-zinc-200 text-black flex items-center justify-center rounded-full disabled:opacity-30 disabled:hover:bg-zinc-100 transition-all cursor-pointer flex-shrink-0"
+              >
+                <SendIcon className="h-4 w-4 text-black" />
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Floating trigger button */}
+        <button
+          type="button"
+          onClick={() => setChatOpen(!chatOpen)}
+          className={`h-14 w-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 active:scale-95 cursor-pointer relative ${
+            chatOpen
+              ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20 rotate-90'
+              : 'bg-[#10a37f] hover:scale-105 shadow-emerald-600/30 border border-emerald-500/30'
+          }`}
+        >
+          {chatOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <>
+              <span className="text-[10px] font-black text-white uppercase tracking-tighter">GPT</span>
+              <span className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-amber-500 text-black text-[9px] font-black uppercase flex items-center justify-center rounded-full border border-card animate-pulse shadow-sm">
+                AI
+              </span>
+            </>
+          )}
+        </button>
+      </div>
+
       </div>
     </DashboardLayout>
   );

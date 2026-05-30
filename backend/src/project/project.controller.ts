@@ -22,8 +22,11 @@ export class ProjectController {
   }
 
   @Put(':id')
-  @Roles('superadmin')
+  @Roles('superadmin', 'user')
   async updateProject(@Param('id') id: string, @Body() body: any, @Request() req: any) {
+    if (req.user.role === 'user') {
+      return this.projectService.updateProject(id, req.user.tenantId, body, req.user.userId);
+    }
     return this.projectService.updateProject(id, req.user.tenantId, body);
   }
 

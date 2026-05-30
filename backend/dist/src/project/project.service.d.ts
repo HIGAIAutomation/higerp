@@ -4,28 +4,7 @@ export declare class ProjectService {
     private prisma;
     private documentService;
     constructor(prisma: PrismaService, documentService: DocumentService);
-    createProject(tenantId: string, data: any): Promise<{
-        id: string;
-        tenantId: string;
-        status: string;
-        name: string;
-        category: string;
-        description: string | null;
-        price: number;
-        startDate: Date | null;
-        endDate: Date | null;
-        whatsappNumber: string | null;
-        modules: string | null;
-        platforms: string | null;
-        deliveryCode: boolean;
-        deliveryDocs: boolean;
-        deliveryDb: boolean;
-        deliveryQa: boolean;
-        deliveryPayment: boolean;
-        postCount: number;
-        videoCount: number;
-        clientId: string | null;
-    }>;
+    createProject(tenantId: string, data: any): Promise<any>;
     getProjects(tenantId: string): Promise<({
         client: {
             id: string;
@@ -41,6 +20,7 @@ export declare class ProjectService {
         category: string;
         description: string | null;
         price: number;
+        clientId: string | null;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -53,30 +33,9 @@ export declare class ProjectService {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
-        clientId: string | null;
+        socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;
-    updateProject(id: string, tenantId: string, data: any): Promise<{
-        id: string;
-        tenantId: string;
-        status: string;
-        name: string;
-        category: string;
-        description: string | null;
-        price: number;
-        startDate: Date | null;
-        endDate: Date | null;
-        whatsappNumber: string | null;
-        modules: string | null;
-        platforms: string | null;
-        deliveryCode: boolean;
-        deliveryDocs: boolean;
-        deliveryDb: boolean;
-        deliveryQa: boolean;
-        deliveryPayment: boolean;
-        postCount: number;
-        videoCount: number;
-        clientId: string | null;
-    }>;
+    updateProject(id: string, tenantId: string, data: any, clientIdFilter?: string): Promise<any>;
     deleteProject(id: string, tenantId: string): Promise<{
         id: string;
         tenantId: string;
@@ -85,6 +44,7 @@ export declare class ProjectService {
         category: string;
         description: string | null;
         price: number;
+        clientId: string | null;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
@@ -97,6 +57,6 @@ export declare class ProjectService {
         deliveryPayment: boolean;
         postCount: number;
         videoCount: number;
-        clientId: string | null;
+        socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
 }

@@ -100,6 +100,7 @@ let ProjectService = class ProjectService {
                 deliveryPayment: !!data.deliveryPayment,
                 postCount: data.postCount !== undefined ? parseInt(data.postCount, 10) : 0,
                 videoCount: data.videoCount !== undefined ? parseInt(data.videoCount, 10) : 0,
+                socialCredentials: data.socialCredentials || null,
             },
         });
         const lifecycleDocs = [
@@ -117,7 +118,11 @@ let ProjectService = class ProjectService {
                     projectName: project.name,
                     clientName: data.clientName || 'Valued Client',
                     companyName: 'HIG AI Automation LLP',
-                    startDate: project.startDate?.toLocaleDateString()
+                    startDate: project.startDate ? new Date(project.startDate).toLocaleDateString() : '____________',
+                    endDate: project.endDate ? new Date(project.endDate).toLocaleDateString() : '____________',
+                    price: project.price ? `₹${project.price.toLocaleString('en-IN')}` : '₹6,000.00',
+                    postCount: project.postCount || 15,
+                    videoCount: project.videoCount || 6,
                 }, 'PROJECT', project.id);
             }
             catch (error) {
@@ -141,12 +146,23 @@ let ProjectService = class ProjectService {
             }
         });
     }
-    async updateProject(id, tenantId, data) {
+    async updateProject(id, tenantId, data, clientIdFilter) {
         const currentProject = await this.prisma.project.findUnique({
             where: { id, tenantId },
         });
         if (!currentProject) {
             throw new common_1.NotFoundException('Project not found');
+        }
+        if (clientIdFilter) {
+            if (currentProject.clientId !== clientIdFilter) {
+                throw new common_1.BadRequestException('Forbidden: You do not own this project');
+            }
+            return this.prisma.project.update({
+                where: { id, tenantId },
+                data: {
+                    socialCredentials: data.socialCredentials !== undefined ? data.socialCredentials : undefined,
+                },
+            });
         }
         let clientId = currentProject.clientId;
         if (data.clientUsername) {
@@ -243,6 +259,7 @@ let ProjectService = class ProjectService {
                 deliveryPayment: data.deliveryPayment !== undefined ? !!data.deliveryPayment : undefined,
                 postCount: data.postCount !== undefined ? parseInt(data.postCount, 10) : undefined,
                 videoCount: data.videoCount !== undefined ? parseInt(data.videoCount, 10) : undefined,
+                socialCredentials: data.socialCredentials !== undefined ? data.socialCredentials : undefined,
             },
         });
     }

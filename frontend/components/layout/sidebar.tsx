@@ -45,11 +45,19 @@ export function Sidebar() {
   const pageAccessList = user?.pageAccess || [];
 
   // Filter navigation links
-  const visibleNavigation = navigation.filter((item) => {
-    if (item.href === "/dashboard") return true; // Everyone sees Dashboard home
-    if (isSuperAdmin) return true; // Super Admin sees everything
-    return pageAccessList.includes(item.href); // Normal users see what they are allowed
-  });
+  const visibleNavigation = navigation
+    .map((item) => {
+      if (item.href === "/dashboard" && user?.role === "user") {
+        return { ...item, name: "Project Track" };
+      }
+      return item;
+    })
+    .filter((item) => {
+      if (item.href === "/dashboard") return true; // Everyone sees Dashboard home
+      if (user?.role === "user") return false; // Clients should not see any other sidebar tabs!
+      if (isSuperAdmin) return true; // Super Admin sees everything
+      return pageAccessList.includes(item.href); // Normal users see what they are allowed
+    });
 
   // If superadmin, add Access Control to the menu list
   if (isSuperAdmin) {
@@ -226,7 +234,7 @@ export function Sidebar() {
                             "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                             pathname === "/dashboard/projects/payments"
                               ? "text-accent bg-accent/5"
-                              : "text-amber-600 dark:text-amber-400 hover:text-amber-500 hover:bg-accent/5"
+                              : "text-amber-600 hover:text-amber-500 hover:bg-accent/5"
                           )}
                         >
                           Payment Tracking

@@ -71,7 +71,7 @@ async function main() {
     }
     const documentStyles = `
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
   
   .contract-container {
     font-family: 'Inter', sans-serif;
@@ -83,25 +83,66 @@ async function main() {
     background: #ffffff;
   }
   
-  .header {
-    text-align: center;
-    margin-bottom: 40px;
-    border-bottom: 2px solid #0f172a;
-    padding-bottom: 24px;
+  .document-header {
+    margin-bottom: 24px;
   }
   
-  .header h1 {
+  .header-branding {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 12px;
+  }
+  
+  .company-logo {
+    max-height: 48px;
+    max-width: 140px;
+    object-fit: contain;
+  }
+  
+  .company-details {
+    text-align: right;
+  }
+  
+  .company-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 3px;
+    letter-spacing: 0.25px;
+  }
+  
+  .company-meta {
+    font-size: 9.5px;
+    color: #64748b;
+    line-height: 1.4;
+  }
+  
+  .divider {
+    border-bottom: 1.5px solid #e2e8f0;
+    width: 100%;
+  }
+
+  .header-title-block {
+    text-align: center;
+    margin-top: 25px;
+    margin-bottom: 35px;
+  }
+
+  .header-title-block h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     color: #0f172a;
     text-transform: uppercase;
-    margin: 0 0 8px 0;
+    margin: 0 0 6px 0;
     letter-spacing: 0.5px;
   }
-  
-  .header p {
-    font-size: 13px;
+
+  .header-title-block p {
+    font-size: 11.5px;
     font-style: italic;
     color: #64748b;
     margin: 0;
@@ -165,6 +206,7 @@ async function main() {
     letter-spacing: 0.5px;
   }
 </style>
+
 `;
     const templates = [
         {
@@ -187,26 +229,51 @@ async function main() {
             category: 'PROJECT',
             contentHtml: documentStyles + `
 <div class="contract-container">
-  <div class="header">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
     <h1>Mutual Non-Disclosure Agreement</h1>
-    <p>Effective Date: {{startDate}}</p>
+    <p>Effective Date: {{startDate}} | Associated Project: {{projectName}}</p>
   </div>
+  
   <div class="section">
-    <h2>1. Parties and Purpose</h2>
-    <p>This Mutual Non-Disclosure Agreement ("Agreement") is entered into by and between <strong>{{companyName}}</strong> and <strong>{{clientName}}</strong> (each a "Party", and collectively the "Parties") in connection with the evaluation of a potential business relationship concerning project: <strong>{{projectName}}</strong> (the "Purpose").</p>
+    <h2>1. Purpose of Agreement</h2>
+    <p>This Mutual Non-Disclosure Agreement ("Agreement") is entered into between <strong>{{companyName}}</strong> ("Agency") and <strong>{{clientName}}</strong> ("Client") to protect sensitive business, technical, and marketing information shared in connection with the digital marketing, ad optimization, content management, and brand growth campaign: <strong>{{projectName}}</strong>.</p>
   </div>
+
   <div class="section">
-    <h2>2. Confidential Information</h2>
-    <p>"Confidential Information" refers to any proprietary, non-public data, trade secrets, software code, AI model designs, financial statements, or commercial strategies disclosed by one party to the other, whether marked confidential or not.</p>
+    <h2>2. Definition of Confidential Information</h2>
+    <p>"Confidential Information" refers to any proprietary information disclosed by either party, including but not limited to:</p>
+    <ul>
+      <li>Social media account credentials, logins, admin tokens, passwords, and access protocols.</li>
+      <li>Customer lead lists, email registers, phone numbers, and leads generated via digital promotional campaigns.</li>
+      <li>Raw videography footage, unedited reel files, brand assets, aesthetic guides, and designs.</li>
+      <li>Marketing calendars, content sheets, campaign ad configurations, and custom target audience structures.</li>
+      <li>Financial strategies, pricing catalogs, business indicators, and metrics.</li>
+    </ul>
   </div>
+
   <div class="section">
     <h2>3. Obligations of Confidentiality</h2>
-    <p>The receiving Party agrees to: (a) keep the disclosing Party's Confidential Information strictly confidential; (b) use it solely for the Purpose; and (c) restrict access to employees or representatives who have signed written obligations of confidentiality at least as restrictive as those contained herein.</p>
+    <p>The receiving Party agrees to: (a) keep the disclosing Party's Confidential Information strictly confidential; (b) use it solely for executing the marketing scope; and (c) restrict access to employees or representatives who have signed written obligations of confidentiality at least as restrictive as those contained herein. The Agency will implement secure, encrypted password-vault practices for all client-provided administrative social logins.</p>
   </div>
+
   <div class="section">
-    <h2>4. Term and Governing Law</h2>
-    <p>This Agreement and the obligations hereunder will remain in effect for a period of five (5) years from the Effective Date. This Agreement shall be governed by and construed in accordance with the laws of the jurisdiction of incorporation of the disclosing party.</p>
+    <h2>4. Term and Returns</h2>
+    <p>This Agreement and the obligations hereunder will remain in effect for a period of five (5) years from the Effective Date. Upon termination of the marketing project, the Agency agrees to securely delete and purge all client social login tokens, passwords, and administrative access records from its systems, unless otherwise mandated by legal compliance.</p>
   </div>
+
   <div class="signatures">
     <div class="sig-col">
       <p>For: <strong>{{companyName}}</strong></p>
@@ -229,37 +296,65 @@ async function main() {
             category: 'PROJECT',
             contentHtml: documentStyles + `
 <div class="contract-container">
-  <div class="header">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
     <h1>Master Service Agreement</h1>
-    <p>Effective Date: {{startDate}}</p>
+    <p>Effective Date: {{startDate}} | Term: 1-Year Agreement</p>
   </div>
+  
   <div class="section">
-    <h2>1. Scope of Services</h2>
-    <p>This Master Service Agreement ("Agreement") establishes the terms under which <strong>{{companyName}}</strong> will perform AI development, consulting, and automation services for <strong>{{clientName}}</strong>. Individual projects will be executed under separate Statements of Work (SOWs).</p>
+    <h2>1. Engagement & 1-Year Term</h2>
+    <p>This Master Service Agreement ("Agreement") establishes the legal and commercial terms under which <strong>{{companyName}}</strong> ("Agency") will perform digital marketing, lead generation, and social media brand development services for <strong>{{clientName}}</strong> ("Client"). The term of this Agreement is exactly one (1) year (12 calendar months) starting from the Effective Date of {{startDate}}.</p>
   </div>
+
   <div class="section">
-    <h2>2. Fees and Payments</h2>
-    <p>The Client shall pay {{companyName}} the fees specified in each applicable SOW. Payments are due within thirty (30) days of the invoice date. Late payments may accrue interest at a rate of 1.5% per month.</p>
+    <h2>2. Fixed Service Fees & Month-End Billing</h2>
+    <p>The Client shall pay the Agency a monthly service fee of <strong>{{price}}</strong> (six thousand standard currency units). Invoicing and payments are structured as follows:</p>
+    <ul>
+      <li><strong>Month-End Payments</strong>: The invoice will be generated and shared at the end of each billing month. Payment is due strictly on the last day of the active service month.</li>
+      <li><strong>Ad Campaign Budgets</strong>: The monthly service fee of {{price}} covers campaign management only. All respective direct ad spends (e.g., Meta/Google ad budgets) will be funded directly by the Client based on client opinion, preferences, and approval.</li>
+      <li><strong>Late Payments</strong>: Delay in monthly payments may lead to immediate suspension of posting and ad campaign moderation.</li>
+    </ul>
   </div>
+
   <div class="section">
-    <h2>3. Warranty and Indemnity</h2>
-    <p>{{companyName}} warrants that all services will be performed in a professional manner in accordance with industry standards. Except as explicitly stated, all deliverables are provided "as-is" without warranty of any kind.</p>
+    <h2>3. 3-Month Performance Trial (Exit Clause)</h2>
+    <p>Both Parties agree to an initial trial and evaluation phase. If the promotion and ad running campaigns do not generate any active customer leads for the Client’s business within three (3) consecutive months from the setup completion, either Party has the absolute right to discontinue services and terminate this Agreement after the third month, with no early termination penalties or ongoing 1-year contract liabilities. The monthly service fee for the three active months remains due and non-refundable.</p>
   </div>
+
   <div class="section">
-    <h2>4. Dispute Resolution</h2>
-    <p>Any dispute arising out of this Agreement shall be resolved through binding arbitration in accordance with standard arbitration rules before recourse to courts.</p>
+    <h2>4. Out-of-Scope Additional Services</h2>
+    <p>Services not explicitly detailed in the active SOW are considered Out-of-Scope and will be billed separately. These extra works include, but are not limited to, specialized offline/print banner designs, corporate catalogs, certificate designs, custom corporate graphic kits, and on-site media shoots. Extra works will be invoiced separately in the active billing month based on agreed prices or hourly charges.</p>
   </div>
+
+  <div class="section">
+    <h2>5. Social Media Prerequisites</h2>
+    <p>As a condition precedent to starting any design or ad campaigns, the Client promises and agrees to provide the Agency complete administrative access, logins, credentials, and page manager permissions for all requested social media accounts. The Agency is not liable for project startup delays caused by the Client's failure to provision these permissions.</p>
+  </div>
+
   <div class="signatures">
     <div class="sig-col">
       <p>For: <strong>{{companyName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Authorized Signature</p>
+      <p class="sig-label">Agency Director</p>
       <p>Date: ______________</p>
     </div>
     <div class="sig-col">
       <p>For: <strong>{{clientName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Authorized Signature</p>
+      <p class="sig-label">Client Representative</p>
       <p>Date: ______________</p>
     </div>
   </div>
@@ -271,37 +366,70 @@ async function main() {
             category: 'PROJECT',
             contentHtml: documentStyles + `
 <div class="contract-container">
-  <div class="header">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
     <h1>Statement of Work (SOW)</h1>
-    <p>Project: {{projectName}} | Date: {{startDate}}</p>
+    <p>Project: {{projectName}} | Parent Agreement: MSA</p>
   </div>
+  
   <div class="section">
-    <h2>1. Executive Summary</h2>
-    <p>This SOW is issued pursuant to the MSA between <strong>{{companyName}}</strong> and <strong>{{clientName}}</strong>. It defines the specific objectives, milestones, and payment schedule for project: <strong>{{projectName}}</strong>.</p>
+    <h2>1. Executive Summary & Scope of Services</h2>
+    <p>This Statement of Work (SOW) details the deliverables, campaigns, and creative workflows for project: <strong>{{projectName}}</strong>. The Agency shall execute the following recurring monthly campaign assets:</p>
+    <ul>
+      <li><strong>{{postCount}} Customized Brand Posters</strong>: Standard graphic designs delivered per month, highlighting offers, testimonials, and features.</li>
+      <li><strong>{{videoCount}} Professionally Edited Reels / Short Videos</strong>: Engaging, trend-conscious, vertical video edits per month.</li>
+      <li><strong>Special Day Holiday Promotion Posters</strong>: Complementary graphic assets delivered for every nationally recognized or industry-relevant special holiday falling in the calendar month.</li>
+      <li><strong>2 Active Ad Campaigns</strong>: Run and optimized per month on Meta Platforms to acquire active, qualified leads.</li>
+    </ul>
   </div>
+
   <div class="section">
-    <h2>2. Deliverables and Timeline</h2>
+    <h2>2. Creative Production & Editorial Pipelines</h2>
+    <p>To maintain high consistency and optimal brand tone, both parties agree to follow this strict monthly planning schedule:</p>
     <ol>
-      <li><strong>Milestone 1: Architectural Draft</strong> - System diagram, database schema, and API specifications. (Target: 4 weeks)</li>
-      <li><strong>Milestone 2: Core AI Engines</strong> - LLM fine-tuning pipelines, orchestration agents, and retrieval gateways. (Target: 8 weeks)</li>
-      <li><strong>Milestone 3: Dashboard & Staging</strong> - Responsive telemetry workspace integration and staging rollout. (Target: 12 weeks)</li>
+      <li><strong>Content Calendar Delivery</strong>: The Agency will share the comprehensive content sheet for the upcoming month on the <strong>30th of the previous month</strong> to the Client for verification.</li>
+      <li><strong>Revision & Approval Phase</strong>: Before the client approves, the Agency will accept feedback and change the content accordingly. The client agrees to complete the verification and provide final sign-off within <strong>two (2) days</strong> of receiving the sheet.</li>
+      <li><strong>Content Freeze</strong>: Once the content sheet is approved by the Client, no further design plans or calendar revisions will be made for that month, ensuring the scheduling remains uninterrupted.</li>
+      <li><strong>Respective Delivery Approval</strong>: Posters are scheduled for specific calendar days. To guarantee daily publications, individual poster files shared for daily review must be verified and approved by the Client within approximately <strong>three (3) hours</strong> of submission.</li>
     </ol>
   </div>
+
   <div class="section">
-    <h2>3. Payment Schedule</h2>
-    <p>Invoicing will be triggered upon the successful delivery of each Milestone. Payment for Milestone 1 is 30% of total contract value, Milestone 2 is 40%, and Milestone 3 is 30%.</p>
+    <h2>3. Video Shoots & Meta Account Setup Details</h2>
+    <ul>
+      <li><strong>Reel Shoots & Videography Billing</strong>: Standard editing is included in the base fee for client-supplied clips. If the Client requests the Agency to physically shoot video footage at their retail shop, workplace, or event space, the shoot will be billed separately as extra work based on the actual hours spent.</li>
+      <li><strong>Meta Ads Setup Timeframe</strong>: If a new Meta Business Manager or Ad account setup is required, a dedicated <strong>two (2) day setup timeframe</strong> is designated at start-up to establish tracking pixels, catalog integrations, and verification before running active ads.</li>
+    </ul>
   </div>
+
+  <div class="section">
+    <h2>4. Posting Schedules</h2>
+    <p>The Agency will schedule and publish all posters, reels, and video assets strictly during proven <strong>high-traffic peak times</strong>. The Agency will not post at any low-traffic hours to protect brand visibility and optimization metrics.</p>
+  </div>
+
   <div class="signatures">
     <div class="sig-col">
       <p>For: <strong>{{companyName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Authorized Signature</p>
+      <p class="sig-label">Creative Director</p>
       <p>Date: ______________</p>
     </div>
     <div class="sig-col">
       <p>For: <strong>{{clientName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Authorized Signature</p>
+      <p class="sig-label">Marketing Lead</p>
       <p>Date: ______________</p>
     </div>
   </div>
@@ -313,33 +441,54 @@ async function main() {
             category: 'PROJECT',
             contentHtml: documentStyles + `
 <div class="contract-container">
-  <div class="header">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
     <h1>Service Level Agreement (SLA)</h1>
-    <p>Effective Date: {{startDate}}</p>
+    <p>Effective Date: {{startDate}} | Associated Project: {{projectName}}</p>
   </div>
+  
   <div class="section">
-    <h2>1. Service Scope and Uptime</h2>
-    <p>This SLA outlines the support parameters and system uptime guarantees provided by <strong>{{companyName}}</strong> to <strong>{{clientName}}</strong> for the production deployment of project: <strong>{{projectName}}</strong>. We guarantee a 99.9% monthly uptime ratio, excluding scheduled maintenance windows.</p>
-  </div>
-  <div class="section">
-    <h2>2. Support Severity and Response SLA</h2>
+    <h2>1. Creative Asset Approval SLAs</h2>
+    <p>This SLA outlines critical turnaround and response rules. Compliance with these SLAs is mandatory to preserve the daily marketing calendar:</p>
     <ul>
-      <li><strong>Severity 1 (Critical)</strong>: Core system down, operations halted. Response: &lt; 1 Hour. Resolution: &lt; 4 Hours.</li>
-      <li><strong>Severity 2 (High)</strong>: Major functionality disabled, operations degraded. Response: &lt; 4 Hours. Resolution: &lt; 24 Hours.</li>
-      <li><strong>Severity 3 (Medium/Low)</strong>: Minor issues, feature requests. Response: &lt; 24 Hours. Resolution: Next Scheduled Release.</li>
+      <li><strong>Monthly Content Calendar SLA</strong>: The Agency delivers the calendar sheet on the 30th of the previous month. The Client must provide review notes or approval within <strong>2 days (48 Hours)</strong>.</li>
+      <li><strong>Daily Poster Approval SLA</strong>: For scheduled daily posters, the Client agrees to review and approve shared drafts within <strong>three (3) hours</strong> of delivery. Delay in approvals will push the release to the next peak high-traffic window.</li>
+      <li><strong>New Meta Account Setup SLA</strong>: Setup, tracking configuration, and payment mapping for newly registered Meta Ads accounts shall be completed by the Agency within exactly <strong>2 days (48 Hours)</strong>.</li>
     </ul>
   </div>
+
+  <div class="section">
+    <h2>2. Publishing Optimization & Posting Windows</h2>
+    <p>To maximize engagement, publishing occurs strictly in certified high-traffic slots. The active windows are scheduled based on platform data:</p>
+    <ul>
+      <li><strong>Primary Peak Slots (High-Traffic)</strong>: Noon slot (12:00 PM - 2:00 PM) and Evening slot (6:30 PM - 9:00 PM).</li>
+      <li><strong>Off-Peak Standard</strong>: No assets will be published during off-peak times. If approvals are delayed by the client, publishing will automatically be rescheduled to the next day's primary peak slot.</li>
+    </ul>
+  </div>
+
   <div class="signatures">
     <div class="sig-col">
       <p>For: <strong>{{companyName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Service Director</p>
+      <p class="sig-label">Operations Lead</p>
       <p>Date: ______________</p>
     </div>
     <div class="sig-col">
       <p>For: <strong>{{clientName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">IT Operations Director</p>
+      <p class="sig-label">Client Liaison</p>
       <p>Date: ______________</p>
     </div>
   </div>
@@ -351,33 +500,60 @@ async function main() {
             category: 'PROJECT',
             contentHtml: documentStyles + `
 <div class="contract-container">
-  <div class="header">
-    <h1>Enterprise AI Solution Proposal</h1>
-    <p>Prepared for: {{clientName}} | Project: {{projectName}}</p>
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
   </div>
+
+  <div class="header-title-block">
+    <h1>Digital Marketing Strategy Proposal</h1>
+    <p>Prepared for: {{clientName}} | Associated Project: {{projectName}}</p>
+  </div>
+  
   <div class="section">
-    <h2>1. Objective</h2>
-    <p>To design and implement a bespoke cognitive retrieval framework and workflow pipeline for <strong>{{clientName}}</strong> to automate internal operations, reduce compliance friction, and streamline delivery for project: <strong>{{projectName}}</strong>.</p>
+    <h2>1. Campaign Objective</h2>
+    <p>To execute a premium brand promotion and active lead-generation campaign for <strong>{{clientName}}</strong>. By developing high-impact vertical videos, modern poster designs, and optimizing target-oriented Meta ad campaigns, the Agency will establish digital authority and acquire customer leads for the client's business: <strong>{{projectName}}</strong>.</p>
   </div>
+
   <div class="section">
-    <h2>2. Proposed Architecture</h2>
-    <p>We propose a decoupled Next.js & NestJS framework featuring a pgvector-enabled PostgreSQL engine. This guarantees responsive vector searches, secure JWT-based access controls, and dynamic real-time telemetry panels.</p>
+    <h2>2. Campaign Deliverables Package</h2>
+    <p>The package contains the following high-value assets and execution strategies:</p>
+    <ul>
+      <li><strong>Organic Branding</strong>: {{postCount}} customized graphic posters + {{videoCount}} custom-edited vertical reels per month.</li>
+      <li><strong>Holiday Reach</strong>: Promo graphics for every calendar special day and holiday.</li>
+      <li><strong>Paid Leads</strong>: Setup and optimization of two (2) targeted ad campaigns per month on Instagram & Facebook.</li>
+      <li><strong>Peak Hour Publishing</strong>: All postings scheduled during high-traffic times to maximize viral reach.</li>
+    </ul>
   </div>
+
   <div class="section">
-    <h2>3. Commercial Quote</h2>
-    <p>The estimated investment for the implementation of the proposed AI Suite is outlined in the SOW. Maintenance and continuous model validation are estimated at $2,500/month after rollout.</p>
+    <h2>3. Commercial Commitment & Trial Phase</h2>
+    <ul>
+      <li><strong>Monthly Management Charge</strong>: Fixed service charge of <strong>{{price}}</strong> per month, billed at the month-end.</li>
+      <li><strong>Direct Ad Spend</strong>: Directed based on client opinion, billed directly to the client's credit card.</li>
+      <li><strong>Performance Trial Guarantee</strong>: A 3-month trial period is offered. If zero leads are generated by the 3rd month, the contract can be terminated immediately with no ongoing commitment.</li>
+    </ul>
   </div>
+
   <div class="signatures">
     <div class="sig-col">
       <p>Prepared by: <strong>{{companyName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Lead AI Architect</p>
+      <p class="sig-label">Digital Strategy Director</p>
       <p>Date: ______________</p>
     </div>
     <div class="sig-col">
       <p>Accepted by: <strong>{{clientName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Authorized Signatory</p>
+      <p class="sig-label">Authorized Representative</p>
       <p>Date: ______________</p>
     </div>
   </div>
@@ -389,29 +565,50 @@ async function main() {
             category: 'PROJECT',
             contentHtml: documentStyles + `
 <div class="contract-container">
-  <div class="header">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
     <h1>Intellectual Property Rights Agreement</h1>
-    <p>Date: {{startDate}}</p>
+    <p>Associated Project: {{projectName}} | Effective Date: {{startDate}}</p>
   </div>
+  
   <div class="section">
-    <h2>1. Ownership of Deliverables</h2>
-    <p>Upon final settlement of all invoices due under the SOW, <strong>{{companyName}}</strong> hereby assigns to <strong>{{clientName}}</strong> all right, title, and interest in the software code, database schemas, custom model parameters, and assets created specifically for project: <strong>{{projectName}}</strong>.</p>
+    <h2>1. Ownership of Campaign Deliverables</h2>
+    <p>All finished promotional posters ({{postCount}} per month), custom reels ({{videoCount}} per month), special day graphics, and custom campaign ad structures created specifically for <strong>{{projectName}}</strong> will belong to <strong>{{clientName}}</strong>. The transfer of copyright and intellectual property rights for each month's creative assets takes place <strong>only upon receipt of the monthly service fee of {{price}} at the month-end</strong>.</p>
   </div>
+
   <div class="section">
-    <h2>2. Background IP Retained</h2>
-    <p>Notwithstanding Section 1, {{companyName}} retains all rights, titles, and interests in its pre-existing components, core utility scripts, and generic AI prompt orchestration libraries. The Client is granted a non-exclusive, worldwide, royalty-free, perpetual license to use such background IP as embedded in the final deliverables.</p>
+    <h2>2. Social Media Pages & Admin Rights</h2>
+    <p>All login permissions, admin authorizations, and user accesses to the requested social media accounts provided by the Client will remain the sole, exclusive property of the Client. The Agency does not acquire any ownership interest, rights, or claims over the Client's social accounts, channels, or platform handles.</p>
   </div>
+
+  <div class="section">
+    <h2>3. Pre-Existing Agency Assets</h2>
+    <p>The Agency retains full ownership and intellectual rights over its core pre-existing assets, design source files, master Photoshop/Illustrator layout templates, editing presets, stock footage licenses, and proprietary strategies. The Client is granted a non-exclusive license to publish the finalized assets globally.</p>
+  </div>
+
   <div class="signatures">
     <div class="sig-col">
-      <p>Assignor: <strong>{{companyName}}</strong></p>
+      <p>For: <strong>{{companyName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Authorized Signature</p>
+      <p class="sig-label">Creative Assignor</p>
       <p>Date: ______________</p>
     </div>
     <div class="sig-col">
-      <p>Assignee: <strong>{{clientName}}</strong></p>
+      <p>For: <strong>{{clientName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Authorized Signature</p>
+      <p class="sig-label">Intellectual Assignee</p>
       <p>Date: ______________</p>
     </div>
   </div>
@@ -423,29 +620,50 @@ async function main() {
             category: 'PROJECT',
             contentHtml: documentStyles + `
 <div class="contract-container">
-  <div class="header">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
     <h1>Data Processing Addendum (DPA)</h1>
-    <p>Effective Date: {{startDate}}</p>
+    <p>Effective Date: {{startDate}} | Associated Project: {{projectName}}</p>
   </div>
+  
   <div class="section">
-    <h2>1. Scope and Compliance</h2>
-    <p>This DPA is entered into by <strong>{{companyName}}</strong> (acting as the "Processor") and <strong>{{clientName}}</strong> (acting as the "Controller") to regulate the handling of personal data in compliance with GDPR and relevant data privacy laws during the execution of project: <strong>{{projectName}}</strong>.</p>
+    <h2>1. Scope and Processing Roles</h2>
+    <p>This Data Processing Addendum regulates the secure handling and retrieval of personal data in connection with the campaign <strong>{{projectName}}</strong>. During the course of running two (2) targeted ad campaigns per month, the Agency will collect customer leads on behalf of the Client. Under applicable privacy laws, <strong>{{clientName}}</strong> is the Data Controller, and <strong>{{companyName}}</strong> is the Data Processor.</p>
   </div>
+
   <div class="section">
-    <h2>2. Processing Instructions and Security</h2>
-    <p>The Processor shall process personal data solely on the documented instructions of the Controller. The Processor agrees to implement state-of-the-art technical and organizational security measures (including data sanitization and encryption-at-rest) to prevent unauthorized disclosures or breaches.</p>
+    <h2>2. Categories of Processed Data</h2>
+    <p>Processing will strictly cover standard customer leads generated through Meta Lead-Generation Forms and landing pages. This includes: Customer names, telephone numbers, emails, physical location details, and service inquiry options.</p>
   </div>
+
+  <div class="section">
+    <h2>3. Data Protection & Leads Security</h2>
+    <p>The Processor (Agency) agrees to: (a) process leads data solely to deliver, download, and sync them to the Controller's verified database or CRM; (b) restrict internal lead access to campaign managers; and (c) never sell, share, or store leads data for any third-party marketing purposes. The Processor will maintain robust access controls to prevent data breaches.</p>
+  </div>
+
   <div class="signatures">
     <div class="sig-col">
-      <p>Processor: <strong>{{companyName}}</strong></p>
+      <p>For: <strong>{{companyName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Data Privacy Officer</p>
+      <p class="sig-label">Data Privacy Representative</p>
       <p>Date: ______________</p>
     </div>
     <div class="sig-col">
-      <p>Controller: <strong>{{clientName}}</strong></p>
+      <p>For: <strong>{{clientName}}</strong></p>
       <div class="sig-line"></div>
-      <p class="sig-label">Chief Information Security Officer</p>
+      <p class="sig-label">Chief Information Officer</p>
       <p>Date: ______________</p>
     </div>
   </div>

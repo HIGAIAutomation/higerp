@@ -179,6 +179,7 @@ model Project {
   deliveryPayment    Boolean  @default(false)
   postCount          Int      @default(0)
   videoCount         Int      @default(0)
+  socialCredentials  Json?
   
   tenant             Tenant   @relation(fields: [tenantId], references: [id])
   marketingPosts     MarketingPost[]

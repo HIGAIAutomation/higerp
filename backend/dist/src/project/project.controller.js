@@ -30,6 +30,9 @@ let ProjectController = class ProjectController {
         return this.projectService.getProjects(req.user.tenantId);
     }
     async updateProject(id, body, req) {
+        if (req.user.role === 'user') {
+            return this.projectService.updateProject(id, req.user.tenantId, body, req.user.userId);
+        }
         return this.projectService.updateProject(id, req.user.tenantId, body);
     }
     async deleteProject(id, req) {
@@ -56,7 +59,7 @@ __decorate([
 ], ProjectController.prototype, "getProjects", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, roles_decorator_1.Roles)('superadmin'),
+    (0, roles_decorator_1.Roles)('superadmin', 'user'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
