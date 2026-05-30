@@ -68,6 +68,9 @@ export class ProjectService {
   async getProjects(tenantId: string) {
     return this.prisma.project.findMany({
       where: { tenantId },
+      include: {
+        adCampaigns: true,
+      },
     });
   }
 

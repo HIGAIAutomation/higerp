@@ -23,6 +23,11 @@ export declare class DocumentController {
         createdAt: Date;
     })[]>;
     downloadDocument(id: string, req: any, res: any): Promise<void>;
+    downloadPdf(id: string, req: any, res: any): Promise<void>;
+    renderPdf(body: {
+        htmlContent: string;
+        filename?: string;
+    }, res: any): Promise<void>;
     getDocument(id: string, req: any): Promise<({
         template: {
             id: string;

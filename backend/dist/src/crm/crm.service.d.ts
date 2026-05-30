@@ -8,10 +8,10 @@ export declare class CrmService {
         id: string;
         tenantId: string;
         status: string;
-        assignedTo: string | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        assignedTo: string | null;
         valEstimate: number | null;
     }>;
     createPackage(tenantId: string, data: any): Promise<{
@@ -45,10 +45,10 @@ export declare class CrmService {
         id: string;
         tenantId: string;
         status: string;
-        assignedTo: string | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        assignedTo: string | null;
         valEstimate: number | null;
     })[]>;
     getPackages(tenantId: string): Promise<({

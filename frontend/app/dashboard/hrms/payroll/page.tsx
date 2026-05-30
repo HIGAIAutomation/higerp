@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/dashboard-layout';
 import { fetchWithAuth } from '@/lib/api';
 import { 
   Users, 
-  DollarSign, 
+  IndianRupee, 
   FileText, 
   CheckCircle2, 
   Loader2, 
@@ -32,6 +32,35 @@ export default function PayrollPage() {
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Adjustment Modal state
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [modalIsPrint, setModalIsPrint] = useState(false);
+  const [adjustForm, setAdjustForm] = useState({
+    bonus: 0,
+    incentive: 0,
+    pf: 0,
+    esi: 0,
+    otherDeductions: 0
+  });
+
+  const openAdjustModal = (emp: Employee, isPrint: boolean) => {
+    const basic = Number(emp.salaryBasis || 0);
+    const defaultPf = Math.round(basic * 0.12);
+    const defaultEsi = Math.round(basic * 0.0075);
+    
+    setSelectedEmployee(emp);
+    setModalIsPrint(isPrint);
+    setAdjustForm({
+      bonus: 0,
+      incentive: 0,
+      pf: defaultPf,
+      esi: defaultEsi,
+      otherDeductions: 0
+    });
+    setShowAdjustModal(true);
+  };
 
   // Month selector - Default to current month/year
   const defaultMonth = (() => {
@@ -147,7 +176,11 @@ export default function PayrollPage() {
     }, 1000);
   };
 
-  const handleGeneratePayslip = async (emp: Employee, isPrint = false) => {
+  const handleGeneratePayslip = async (
+    emp: Employee,
+    isPrint = false,
+    adjustments?: { bonus: number; incentive: number; pf: number; esi: number; otherDeductions: number }
+  ) => {
     try {
       setGeneratingId(emp.id);
       setError(null);
@@ -156,7 +189,10 @@ export default function PayrollPage() {
       // Trigger backend compilation
       const generatedDoc = await fetchWithAuth(`/hrms/employees/${emp.id}/payslip`, {
         method: 'POST',
-        body: JSON.stringify({ month: selectedMonth }),
+        body: JSON.stringify({
+          month: selectedMonth,
+          ...adjustments
+        }),
       });
 
       if (!generatedDoc || !generatedDoc.id) {
@@ -225,7 +261,7 @@ export default function PayrollPage() {
         <div className="bg-card rounded-3xl p-8 border border-border shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <DollarSign className="h-6 w-6 text-primary" />
+              <IndianRupee className="h-6 w-6 text-primary" />
               <h2 className="text-xl font-bold text-primary">Employee Payroll Console</h2>
             </div>
           </div>
@@ -259,7 +295,7 @@ export default function PayrollPage() {
                       <tr key={emp.id} className="hover:bg-secondary/20 transition-colors">
                         <td className="py-4 font-bold text-primary">{emp.firstName} {emp.lastName}</td>
                         <td className="py-4 font-medium text-foreground/80">{emp.designation}</td>
-                        <td className="py-4 font-bold text-primary">${Number(emp.salaryBasis).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-4 font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         <td className="py-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                             emp.status === 'active' 
@@ -272,7 +308,7 @@ export default function PayrollPage() {
                         <td className="py-4 text-right">
                           <div className="inline-flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleGeneratePayslip(emp)}
+                              onClick={() => openAdjustModal(emp, false)}
                               disabled={generatingId === emp.id}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-background font-bold rounded-xl hover:scale-105 active:scale-95 transition-all text-xs cursor-pointer shadow-sm disabled:opacity-75"
                             >
@@ -289,7 +325,7 @@ export default function PayrollPage() {
                               )}
                             </button>
                             <button
-                              onClick={() => handleGeneratePayslip(emp, true)}
+                              onClick={() => openAdjustModal(emp, true)}
                               disabled={generatingId === emp.id}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-primary font-bold rounded-xl border border-border hover:bg-accent/10 hover:text-accent transition-all text-xs cursor-pointer shadow-sm disabled:opacity-75"
                             >
@@ -307,6 +343,106 @@ export default function PayrollPage() {
           )}
         </div>
       </div>
+
+      {showAdjustModal && selectedEmployee && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card w-full max-w-lg rounded-3xl p-8 border border-border shadow-2xl animate-in zoom-in-95 duration-200 text-foreground font-inter">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-primary flex items-center gap-2">
+                <IndianRupee className="h-6 w-6 text-accent" />
+                Adjust Payslip Components
+              </h3>
+              <button 
+                onClick={() => setShowAdjustModal(false)}
+                className="text-muted-foreground hover:text-primary transition-colors text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-muted-foreground">
+                Adjust earnings and deductions for <strong className="text-primary">{selectedEmployee.firstName} {selectedEmployee.lastName}</strong> ({selectedEmployee.designation}) for <strong className="text-primary">{selectedMonth}</strong>.
+              </p>
+              <div className="mt-3 p-3 bg-secondary/30 rounded-2xl border border-border flex justify-between items-center text-xs font-semibold">
+                <span className="text-muted-foreground">Base Salary Basis:</span>
+                <span className="text-primary font-bold">₹{Number(selectedEmployee.salaryBasis).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Bonus</label>
+                  <input 
+                    type="number" 
+                    value={adjustForm.bonus}
+                    onChange={(e) => setAdjustForm({ ...adjustForm, bonus: Number(e.target.value) })}
+                    className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Incentive</label>
+                  <input 
+                    type="number" 
+                    value={adjustForm.incentive}
+                    onChange={(e) => setAdjustForm({ ...adjustForm, incentive: Number(e.target.value) })}
+                    className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">PF (Deduction)</label>
+                  <input 
+                    type="number" 
+                    value={adjustForm.pf}
+                    onChange={(e) => setAdjustForm({ ...adjustForm, pf: Number(e.target.value) })}
+                    className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">ESI (Deduction)</label>
+                  <input 
+                    type="number" 
+                    value={adjustForm.esi}
+                    onChange={(e) => setAdjustForm({ ...adjustForm, esi: Number(e.target.value) })}
+                    className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Other Deduct.</label>
+                  <input 
+                    type="number" 
+                    value={adjustForm.otherDeductions}
+                    onChange={(e) => setAdjustForm({ ...adjustForm, otherDeductions: Number(e.target.value) })}
+                    className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end gap-3">
+              <button
+                onClick={() => setShowAdjustModal(false)}
+                className="px-5 py-2.5 bg-secondary text-primary font-bold rounded-xl border border-border hover:bg-accent/10 transition-all text-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowAdjustModal(false);
+                  handleGeneratePayslip(selectedEmployee, modalIsPrint, adjustForm);
+                }}
+                className="px-5 py-2.5 bg-primary text-background font-bold rounded-xl hover:scale-105 active:scale-95 transition-all text-sm cursor-pointer shadow-md"
+              >
+                {modalIsPrint ? 'Confirm & Print' : 'Confirm & Generate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

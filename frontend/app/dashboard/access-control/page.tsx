@@ -9,7 +9,7 @@ import {
   Shield, 
   CheckSquare, 
   Square, 
-  DollarSign, 
+  IndianRupee, 
   Briefcase, 
   Edit3, 
   X, 
@@ -227,7 +227,7 @@ export default function AccessControlPage() {
                           </td>
                           <td className="px-6 py-4 font-semibold text-primary">
                             {u.salary 
-                              ? `$${Number(u.salary).toLocaleString('en-US', { minimumFractionDigits: 2 })}` 
+                              ? `₹${Number(u.salary).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` 
                               : <span className="text-muted-foreground/40 italic text-xs font-normal">Not Set</span>
                             }
                           </td>
@@ -322,11 +322,11 @@ export default function AccessControlPage() {
                         {/* Salary Input */}
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                            Salary (Monthly USD)
+                            Salary (Monthly INR)
                           </label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/70">
-                              <DollarSign className="h-4 w-4" />
+                              <IndianRupee className="h-4 w-4" />
                             </div>
                             <input
                               type="number"

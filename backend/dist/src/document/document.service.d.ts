@@ -33,6 +33,7 @@ export declare class DocumentService {
         status: string;
         createdAt: Date;
     }) | null>;
+    generatePdf(tenantId: string, id: string): Promise<Buffer>;
     getDocumentsForEntity(tenantId: string, entityId: string, entityType: string): Promise<({
         template: {
             id: string;

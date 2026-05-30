@@ -431,6 +431,138 @@ async function main() {
       category: 'SALES',
       contentHtml: '<h1>Sales Quotation</h1><p>Prepared for {{clientName}}</p><p>Package: {{packageName}}</p><p>Base Price: ${{basePrice}}</p><p>Valid Until: {{validUntil}}</p>',
     },
+    {
+      name: 'Employment Agreement',
+      category: 'HR',
+      contentHtml: documentStyles + `
+<div class="contract-container">
+  <div class="header">
+    <h1>Employment Agreement</h1>
+    <p>Effective Date: {{joiningDate}}</p>
+  </div>
+  <div class="section">
+    <h2>1. Parties and Designation</h2>
+    <p>This Employment Agreement is entered into by and between <strong>{{companyName}}</strong> and <strong>{{firstName}} {{lastName}}</strong>. The Employee is hired in the capacity of <strong>{{designation}}</strong>.</p>
+  </div>
+  <div class="section">
+    <h2>2. Compensation and Benefits</h2>
+    <p>The Employee shall receive a monthly salary basis of <strong>\${{salaryBasis}}</strong>, subject to applicable tax withholdings and deductions. Standard company benefits apply.</p>
+  </div>
+  <div class="section">
+    <h2>3. Term and Termination</h2>
+    <p>This employment is at-will. Either party may terminate this agreement at any time with or without cause by giving standard notice.</p>
+  </div>
+  <div class="signatures">
+    <div class="sig-col">
+      <p>For: <strong>{{companyName}}</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized Signatory</p>
+    </div>
+    <div class="sig-col">
+      <p>Employee: <strong>{{firstName}} {{lastName}}</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Signature</p>
+    </div>
+  </div>
+</div>
+      `,
+    },
+    {
+      name: 'Closing Agreement',
+      category: 'HR',
+      contentHtml: documentStyles + `
+<div class="contract-container">
+  <div class="header">
+    <h1>Relieving & Experience Letter</h1>
+    <p>Relieving Date: {{relievingDate}}</p>
+  </div>
+  <div class="section">
+    <h2>To Whom It May Concern</h2>
+    <p>This is to certify that <strong>{{firstName}} {{lastName}}</strong> was employed with <strong>{{companyName}}</strong> as a <strong>{{designation}}</strong> from <strong>{{joiningDate}}</strong> to <strong>{{relievingDate}}</strong>.</p>
+    <p>During their tenure, we found them to be diligent, honest, and dedicated. All corporate assets have been returned, and all dues have been cleared. We wish them success in their future endeavors.</p>
+  </div>
+  <div class="signatures">
+    <div class="sig-col">
+      <p>For: <strong>{{companyName}}</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized HR Signatory</p>
+    </div>
+  </div>
+</div>
+      `,
+    },
+    {
+      name: 'Employee Payslip',
+      category: 'HR',
+      contentHtml: documentStyles + `
+<div class="contract-container">
+  <div class="header">
+    <h1>Salary Payslip</h1>
+    <p>Month: {{month}}</p>
+  </div>
+  <div class="section">
+    <h2>Employee Details</h2>
+    <table style="width: 100%; font-size: 13px; color: #334155; border-collapse: collapse; margin-bottom: 20px;">
+      <tr>
+        <td style="padding: 6px 0; font-weight: bold; width: 30%;">Employee Name:</td>
+        <td style="padding: 6px 0;">{{firstName}} {{lastName}}</td>
+      </tr>
+      <tr>
+        <td style="padding: 6px 0; font-weight: bold;">Designation:</td>
+        <td style="padding: 6px 0;">{{designation}}</td>
+      </tr>
+      <tr>
+        <td style="padding: 6px 0; font-weight: bold;">Email:</td>
+        <td style="padding: 6px 0;">{{email}}</td>
+      </tr>
+    </table>
+  </div>
+  <div class="section">
+    <h2>Earnings & Deductions</h2>
+    <table style="width: 100%; font-size: 13px; color: #334155; border-collapse: collapse; border: 1px solid #e2e8f0;">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+          <th style="padding: 8px; text-align: left; font-weight: bold; width: 35%;">Earnings Description</th>
+          <th style="padding: 8px; text-align: right; font-weight: bold; width: 15%;">Amount</th>
+          <th style="padding: 8px; text-align: left; font-weight: bold; width: 35%;">Deductions Description</th>
+          <th style="padding: 8px; text-align: right; font-weight: bold; width: 15%;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">Basic Salary</td>
+          <td style="padding: 8px; text-align: right; border-bottom: 1px solid #f1f5f9;">\${{basicSalary}}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">PF Deduction</td>
+          <td style="padding: 8px; text-align: right; border-bottom: 1px solid #f1f5f9;">\${{pf}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">Bonus</td>
+          <td style="padding: 8px; text-align: right; border-bottom: 1px solid #f1f5f9;">\${{bonus}}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">ESI Deduction</td>
+          <td style="padding: 8px; text-align: right; border-bottom: 1px solid #f1f5f9;">\${{esi}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">Incentive</td>
+          <td style="padding: 8px; text-align: right; border-bottom: 1px solid #f1f5f9;">\${{incentive}}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">Other Deductions</td>
+          <td style="padding: 8px; text-align: right; border-bottom: 1px solid #f1f5f9;">\${{otherDeductions}}</td>
+        </tr>
+        <tr style="font-weight: bold; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+          <td style="padding: 8px;">Gross Earnings</td>
+          <td style="padding: 8px; text-align: right;">\${{grossEarnings}}</td>
+          <td style="padding: 8px;">Total Deductions</td>
+          <td style="padding: 8px; text-align: right;">\${{totalDeductions}}</td>
+        </tr>
+        <tr style="font-weight: bold; background: #e0f2fe; border-top: 2px solid #0284c7;">
+          <td style="padding: 8px;" colspan="3">Net Salary Credited</td>
+          <td style="padding: 8px; text-align: right;">\${{netSalary}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+      `,
+    },
   ];
 
   for (const t of templates) {

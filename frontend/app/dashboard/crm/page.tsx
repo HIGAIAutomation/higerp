@@ -12,7 +12,7 @@ import {
   AlertCircle,
   Briefcase,
   Layers,
-  DollarSign,
+  IndianRupee,
   User,
   ExternalLink
 } from 'lucide-react';
@@ -232,9 +232,9 @@ export default function CRMPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">ESTIMATED VALUE (USD)</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">ESTIMATED VALUE (INR)</label>
                   <div className="relative flex items-center">
-                    <DollarSign className="absolute left-3 text-muted-foreground h-4 w-4" />
+                    <IndianRupee className="absolute left-3 text-muted-foreground h-4 w-4" />
                     <input
                       required
                       type="number"
@@ -275,7 +275,7 @@ export default function CRMPage() {
                     className="w-full px-3 py-2.5 bg-background/10 border border-background/10 rounded-xl focus:outline-none focus:border-accent text-xs text-background cursor-pointer"
                   >
                     {leads.map((l) => (
-                      <option key={l.id} value={l.id} className="text-foreground bg-card">{l.companyName} (${Number(l.valEstimate).toLocaleString()})</option>
+                      <option key={l.id} value={l.id} className="text-foreground bg-card">{l.companyName} (₹{Number(l.valEstimate).toLocaleString('en-IN')})</option>
                     ))}
                   </select>
                 </div>
@@ -288,7 +288,7 @@ export default function CRMPage() {
                     className="w-full px-3 py-2.5 bg-background/10 border border-background/10 rounded-xl focus:outline-none focus:border-accent text-xs text-background cursor-pointer"
                   >
                     {packages.map((p) => (
-                      <option key={p.id} value={p.id} className="text-foreground bg-card">{p.name} (${Number(p.basePrice).toLocaleString()})</option>
+                      <option key={p.id} value={p.id} className="text-foreground bg-card">{p.name} (₹{Number(p.basePrice).toLocaleString('en-IN')})</option>
                     ))}
                   </select>
                 </div>
@@ -341,7 +341,7 @@ export default function CRMPage() {
                           <td className="py-4 font-bold text-primary">{l.companyName}</td>
                           <td className="py-4 text-muted-foreground">{l.contact}</td>
                           <td className="py-4 font-medium text-foreground/80">{l.source}</td>
-                          <td className="py-4 font-bold text-primary">${Number(l.valEstimate).toLocaleString()}</td>
+                          <td className="py-4 font-bold text-primary">₹{Number(l.valEstimate).toLocaleString('en-IN')}</td>
                           <td className="py-4">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
                               {l.status}
@@ -367,7 +367,7 @@ export default function CRMPage() {
                   <div key={pkg.id} className="p-6 border border-border rounded-3xl bg-secondary/30 flex flex-col justify-between">
                     <div>
                       <h4 className="font-bold text-primary text-base mb-2">{pkg.name}</h4>
-                      <p className="text-xs text-muted-foreground mb-4 font-semibold">Base License Fee: ${Number(pkg.basePrice).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground mb-4 font-semibold">Base License Fee: ₹{Number(pkg.basePrice).toLocaleString('en-IN')}</p>
                     </div>
 
                     <div className="border-t border-border pt-4">
@@ -376,7 +376,7 @@ export default function CRMPage() {
                         {pkg.tiers?.map((t: any) => (
                           <div key={t.id} className="bg-card border border-border rounded-xl p-2 text-center w-[48%] shadow-sm">
                             <p className="text-[10px] font-bold text-muted-foreground uppercase">{t.name}</p>
-                            <p className="text-xs font-extrabold text-primary">${Number(t.price).toLocaleString()}</p>
+                            <p className="text-xs font-extrabold text-primary">₹{Number(t.price).toLocaleString('en-IN')}</p>
                           </div>
                         ))}
                       </div>

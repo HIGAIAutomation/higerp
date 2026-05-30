@@ -76,6 +76,7 @@ model Employee {
   designation  String?
   salaryBasis  Float?
   joiningDate  DateTime?
+  profDocNumber String?
   status       String   @default("active")
   metadata     Json?
   createdAt    DateTime @default(now())

@@ -7,43 +7,43 @@ export declare class MarketingService {
         tenantId: string;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
+        assignedTo: string | null;
+        dueDate: Date | null;
         projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        assignedTo: string | null;
-        dueDate: Date | null;
         updatedBy: string;
-        updatedAt: Date;
     }[]>;
     upsertPost(tenantId: string, projectId: string, data: any, username: string): Promise<{
         id: string;
         tenantId: string;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
+        assignedTo: string | null;
+        dueDate: Date | null;
         projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        assignedTo: string | null;
-        dueDate: Date | null;
         updatedBy: string;
-        updatedAt: Date;
     }>;
     getPostHistory(tenantId: string, projectId?: string, month?: string): Promise<{
         id: string;
         tenantId: string;
         status: string;
         createdAt: Date;
+        assignedTo: string | null;
+        dueDate: Date | null;
         projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        assignedTo: string | null;
-        dueDate: Date | null;
         updatedBy: string;
     }[]>;
     getAllPostsByMonth(tenantId: string, month: string): Promise<{
@@ -51,15 +51,15 @@ export declare class MarketingService {
         tenantId: string;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
+        assignedTo: string | null;
+        dueDate: Date | null;
         projectId: string;
         platform: string;
         postType: string;
         comments: string | null;
         month: string | null;
-        assignedTo: string | null;
-        dueDate: Date | null;
         updatedBy: string;
-        updatedAt: Date;
     }[]>;
     getTenantUsers(tenantId: string): Promise<{
         id: string;
@@ -72,12 +72,12 @@ export declare class MarketingService {
         tenantId: string;
         createdAt: Date;
         name: string;
-        projectId: string;
-        updatedBy: string;
         updatedAt: Date;
         leads: number;
         startDate: Date;
         endDate: Date | null;
+        projectId: string;
+        updatedBy: string;
         spend: number;
     }[]>;
     createCampaign(tenantId: string, projectId: string, data: any, username: string): Promise<{
@@ -85,12 +85,12 @@ export declare class MarketingService {
         tenantId: string;
         createdAt: Date;
         name: string;
-        projectId: string;
-        updatedBy: string;
         updatedAt: Date;
         leads: number;
         startDate: Date;
         endDate: Date | null;
+        projectId: string;
+        updatedBy: string;
         spend: number;
     }>;
     getSpecialDayPosters(tenantId: string, projectId: string, month: string): Promise<{
@@ -98,10 +98,10 @@ export declare class MarketingService {
         tenantId: string;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
         projectId: string;
         month: string;
         updatedBy: string;
-        updatedAt: Date;
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;
@@ -111,10 +111,10 @@ export declare class MarketingService {
         tenantId: string;
         status: string;
         createdAt: Date;
+        updatedAt: Date;
         projectId: string;
         month: string;
         updatedBy: string;
-        updatedAt: Date;
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;

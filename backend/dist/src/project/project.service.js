@@ -69,6 +69,9 @@ let ProjectService = class ProjectService {
     async getProjects(tenantId) {
         return this.prisma.project.findMany({
             where: { tenantId },
+            include: {
+                adCampaigns: true,
+            },
         });
     }
     async updateProject(id, tenantId, data) {

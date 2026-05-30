@@ -23,7 +23,21 @@ export declare class ProjectController {
         videoCount: number;
         clientId: string | null;
     }>;
-    getProjects(req: any): Promise<{
+    getProjects(req: any): Promise<({
+        adCampaigns: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedAt: Date;
+            leads: number;
+            startDate: Date;
+            endDate: Date | null;
+            projectId: string;
+            updatedBy: string;
+            spend: number;
+        }[];
+    } & {
         id: string;
         tenantId: string;
         status: string;
@@ -43,7 +57,7 @@ export declare class ProjectController {
         postCount: number;
         videoCount: number;
         clientId: string | null;
-    }[]>;
+    })[]>;
     updateProject(id: string, body: any, req: any): Promise<{
         id: string;
         tenantId: string;

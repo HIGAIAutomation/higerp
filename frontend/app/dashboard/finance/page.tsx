@@ -12,7 +12,7 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
-  DollarSign,
+  IndianRupee,
   Calculator,
   Layers
 } from 'lucide-react';
@@ -184,7 +184,7 @@ export default function FinancePage() {
             </div>
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">TOTAL REVENUE (CREDITS)</p>
-              <p className="text-2xl font-black text-primary mt-1">${Number(summary.totalRevenue).toLocaleString()}</p>
+              <p className="text-2xl font-black text-primary mt-1">₹{Number(summary.totalRevenue).toLocaleString('en-IN')}</p>
             </div>
           </div>
 
@@ -194,20 +194,20 @@ export default function FinancePage() {
             </div>
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">TOTAL EXPENSES (DEBITS)</p>
-              <p className="text-2xl font-black text-primary mt-1">${Number(summary.totalExpenses).toLocaleString()}</p>
+              <p className="text-2xl font-black text-primary mt-1">₹{Number(summary.totalExpenses).toLocaleString('en-IN')}</p>
             </div>
           </div>
 
           <div className="bg-primary text-background rounded-3xl p-6 flex items-center shadow-xl relative overflow-hidden">
             <div className="absolute right-0 top-0 p-4 opacity-5">
-              <DollarSign size={80} />
+              <IndianRupee size={80} />
             </div>
             <div className="p-4 bg-background/10 text-accent rounded-2xl mr-4 backdrop-blur-md">
-              <DollarSign className="h-6 w-6" />
+              <IndianRupee className="h-6 w-6" />
             </div>
             <div>
               <p className="text-[10px] font-bold text-background/50 uppercase tracking-wider">NET PROFITABILITY</p>
-              <p className="text-2xl font-black text-background mt-1">${Number(summary.netProfit).toLocaleString()}</p>
+              <p className="text-2xl font-black text-background mt-1">₹{Number(summary.netProfit).toLocaleString('en-IN')}</p>
             </div>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function FinancePage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">SUBTOTAL (USD)</label>
+                <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">SUBTOTAL (INR)</label>
                 <input
                   required
                   type="number"
@@ -285,22 +285,22 @@ export default function FinancePage() {
                   <>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">CGST (9%):</span>
-                      <span className="font-bold text-foreground">${cgst.toFixed(2)}</span>
+                      <span className="font-bold text-foreground">₹{cgst.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">SGST (9%):</span>
-                      <span className="font-bold text-foreground">${sgst.toFixed(2)}</span>
+                      <span className="font-bold text-foreground">₹{sgst.toFixed(2)}</span>
                     </div>
                   </>
                 ) : (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">IGST (18%):</span>
-                    <span className="font-bold text-foreground">${igst.toFixed(2)}</span>
+                    <span className="font-bold text-foreground">₹{igst.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-border pt-2 font-bold text-sm text-primary">
                   <span>Grand Total:</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>₹{total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -340,7 +340,7 @@ export default function FinancePage() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">DEBIT AMOUNT (USD)</label>
+                  <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">DEBIT AMOUNT (INR)</label>
                   <input
                     required
                     type="number"
@@ -416,7 +416,7 @@ export default function FinancePage() {
                           <td className={`py-4 font-bold ${
                             txn.type === 'CREDIT' ? 'text-emerald-500' : 'text-rose-500'
                           }`}>
-                            {txn.type === 'CREDIT' ? '+' : '-'}${Number(txn.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            {txn.type === 'CREDIT' ? '+' : '-'}₹{Number(txn.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                           </td>
                           <td className="py-4 text-muted-foreground text-xs">{txn.date ? txn.date.split('T')[0] : 'N/A'}</td>
                         </tr>

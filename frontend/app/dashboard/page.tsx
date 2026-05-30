@@ -3,7 +3,7 @@
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { DashboardStats } from "@/components/dashboard/stats";
 import { useAuth } from "@/components/providers/auth-provider";
-import { FileText, Clock, CheckCircle2, Briefcase, DollarSign } from "lucide-react";
+import { FileText, Clock, CheckCircle2, Briefcase, IndianRupee } from "lucide-react";
 
 const recentDocs = [
   { name: "SOW - Project Alpha.pdf", type: "Statement of Work", date: "2 mins ago", status: "Generated" },
@@ -43,13 +43,13 @@ export default function DashboardPage() {
           
           <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
             <div className="p-4 bg-accent/10 rounded-2xl text-accent">
-              <DollarSign className="h-6 w-6" />
+              <IndianRupee className="h-6 w-6" />
             </div>
             <div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Monthly Compensation</p>
               <h3 className="text-lg font-bold text-primary mt-0.5">
                 {user?.salary ? (
-                  `$${Number(user.salary).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+                  `₹${Number(user.salary).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                 ) : (
                   <span className="text-muted-foreground italic font-normal">Pending Salary Calculation</span>
                 )}

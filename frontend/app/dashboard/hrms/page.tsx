@@ -12,10 +12,11 @@ import {
   AlertCircle,
   Briefcase,
   Mail,
-  DollarSign,
+  IndianRupee,
   Calendar,
   Download,
-  X
+  X,
+  Hash
 } from 'lucide-react';
 
 interface Employee {
@@ -27,6 +28,7 @@ interface Employee {
   joiningDate: string;
   status: string;
   salaryBasis: string;
+  profDocNumber?: string;
   documents?: any[];
 }
 
@@ -45,6 +47,7 @@ export default function HRMSPage() {
     email: '',
     designation: '',
     salaryBasis: '',
+    profDocNumber: '',
     joiningDate: new Date().toISOString().split('T')[0],
   });
 
@@ -107,6 +110,7 @@ export default function HRMSPage() {
         email: '',
         designation: '',
         salaryBasis: '',
+        profDocNumber: '',
         joiningDate: new Date().toISOString().split('T')[0],
       });
 
@@ -200,15 +204,29 @@ export default function HRMSPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">SALARY BASIS (MONTHLY USD)</label>
+                <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">SALARY BASIS (MONTHLY INR)</label>
                 <div className="relative flex items-center">
-                  <DollarSign className="absolute left-3 text-muted-foreground h-4 w-4" />
+                  <IndianRupee className="absolute left-3 text-muted-foreground h-4 w-4" />
                   <input
                     required
                     type="number"
                     placeholder="e.g., 5000"
                     value={form.salaryBasis}
                     onChange={(e) => setForm({ ...form, salaryBasis: e.target.value })}
+                    className="w-full pl-10 pr-3 py-2.5 bg-secondary border border-border rounded-xl focus:outline-none focus:border-accent text-sm text-foreground placeholder-muted-foreground/60"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">PROF DOCUMENT NUMBER</label>
+                <div className="relative flex items-center">
+                  <Hash className="absolute left-3 text-muted-foreground h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="e.g., PAN / Aadhaar / Employee ID"
+                    value={form.profDocNumber}
+                    onChange={(e) => setForm({ ...form, profDocNumber: e.target.value })}
                     className="w-full pl-10 pr-3 py-2.5 bg-secondary border border-border rounded-xl focus:outline-none focus:border-accent text-sm text-foreground placeholder-muted-foreground/60"
                   />
                 </div>
@@ -303,6 +321,7 @@ export default function HRMSPage() {
                         <th className="pb-4">Name</th>
                         <th className="pb-4">Email</th>
                         <th className="pb-4">Designation</th>
+                        <th className="pb-4">Prof Doc #</th>
                         <th className="pb-4">Joined</th>
                         <th className="pb-4">Salary</th>
                         <th className="pb-4">Status</th>
@@ -315,8 +334,9 @@ export default function HRMSPage() {
                           <td className="py-4 font-bold text-primary">{emp.firstName} {emp.lastName}</td>
                           <td className="py-4 text-muted-foreground">{emp.email}</td>
                           <td className="py-4 font-medium text-foreground/80">{emp.designation}</td>
+                          <td className="py-4 text-muted-foreground font-mono text-xs">{emp.profDocNumber || '—'}</td>
                           <td className="py-4 text-muted-foreground">{emp.joiningDate ? emp.joiningDate.split('T')[0] : 'N/A'}</td>
-                          <td className="py-4 font-bold text-primary">${Number(emp.salaryBasis).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                          <td className="py-4 font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                           <td className="py-4">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                               {emp.status}

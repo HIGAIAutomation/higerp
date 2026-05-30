@@ -7,9 +7,9 @@ export declare class SupportController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        assignedTo: string | null;
         updatedAt: Date;
         description: string;
+        assignedTo: string | null;
         title: string;
         priority: string;
         userId: string | null;
@@ -20,9 +20,9 @@ export declare class SupportController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        assignedTo: string | null;
         updatedAt: Date;
         description: string;
+        assignedTo: string | null;
         title: string;
         priority: string;
         userId: string | null;

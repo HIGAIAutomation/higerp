@@ -29,6 +29,12 @@ let HrmsController = class HrmsController {
     async getEmployees(req) {
         return this.hrmsService.getEmployees(req.user.tenantId);
     }
+    async closeEmployee(id, body, req) {
+        return this.hrmsService.closeEmployee(req.user.tenantId, id, body);
+    }
+    async generatePayslip(id, body, req) {
+        return this.hrmsService.generatePayslip(req.user.tenantId, id, body.month, body);
+    }
 };
 exports.HrmsController = HrmsController;
 __decorate([
@@ -48,6 +54,26 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HrmsController.prototype, "getEmployees", null);
+__decorate([
+    (0, common_1.Post)('employees/:id/close'),
+    (0, roles_decorator_1.Roles)('admin', 'hr'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], HrmsController.prototype, "closeEmployee", null);
+__decorate([
+    (0, common_1.Post)('employees/:id/payslip'),
+    (0, roles_decorator_1.Roles)('admin', 'hr'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], HrmsController.prototype, "generatePayslip", null);
 exports.HrmsController = HrmsController = __decorate([
     (0, common_1.Controller)('hrms'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),

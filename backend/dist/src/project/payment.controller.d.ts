@@ -5,18 +5,19 @@ export declare class PaymentController {
     getAllPayments(req: any): Promise<({
         project: {
             name: string;
+            whatsappNumber: string | null;
         };
     } & {
         id: string;
         tenantId: string;
         status: string;
         createdAt: Date;
-        projectId: string;
-        dueDate: Date;
-        updatedBy: string | null;
         updatedAt: Date;
         invoiceNumber: string;
+        dueDate: Date;
         amount: number;
+        projectId: string;
+        updatedBy: string | null;
         whatsappSent: boolean;
     })[]>;
     generateBill(body: any, req: any): Promise<{
@@ -24,12 +25,12 @@ export declare class PaymentController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        projectId: string;
-        dueDate: Date;
-        updatedBy: string | null;
         updatedAt: Date;
         invoiceNumber: string;
+        dueDate: Date;
         amount: number;
+        projectId: string;
+        updatedBy: string | null;
         whatsappSent: boolean;
     }>;
     markAsPaid(id: string, req: any): Promise<{
@@ -37,12 +38,12 @@ export declare class PaymentController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        projectId: string;
-        dueDate: Date;
-        updatedBy: string | null;
         updatedAt: Date;
         invoiceNumber: string;
+        dueDate: Date;
         amount: number;
+        projectId: string;
+        updatedBy: string | null;
         whatsappSent: boolean;
     }>;
 }
