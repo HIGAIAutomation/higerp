@@ -59,8 +59,30 @@ let DocumentService = class DocumentService {
         if (!template) {
             throw new Error(`Template ${templateName} not found for tenant ${tenantId}`);
         }
+        if (!Handlebars.helpers['or']) {
+            Handlebars.registerHelper('or', function (a, b) {
+                return a || b;
+            });
+        }
         const compiledTemplate = Handlebars.compile(template.contentHtml);
         const contentHtml = compiledTemplate(data);
+        const existingDoc = await this.prisma.generatedDocument.findFirst({
+            where: {
+                tenantId,
+                templateId: template.id,
+                entityType,
+                entityId,
+            },
+        });
+        if (existingDoc) {
+            return this.prisma.generatedDocument.update({
+                where: { id: existingDoc.id },
+                data: {
+                    compiledHtml: contentHtml,
+                    status: 'generated',
+                },
+            });
+        }
         return this.prisma.generatedDocument.create({
             data: {
                 tenantId,

@@ -68,6 +68,13 @@ export async function fetchWithAuth(path: string, options: RequestInit = {}): Pr
       return null;
     }
 
+    if (response.status === 401) {
+      logout();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+
     const errorText = await response.text();
     let errorMessage = `HTTP error! status: ${response.status}`;
     try {

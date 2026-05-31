@@ -8,10 +8,10 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -22,10 +22,10 @@ export declare class MarketingController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -43,10 +43,10 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -58,10 +58,10 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -72,10 +72,10 @@ export declare class MarketingController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -90,9 +90,9 @@ export declare class MarketingController {
         leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedBy: string;
         projectId: string;
         spend: number;
-        updatedBy: string;
     }[]>;
     createCampaign(projectId: string, body: any, req: any): Promise<{
         id: string;
@@ -103,9 +103,9 @@ export declare class MarketingController {
         leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedBy: string;
         projectId: string;
         spend: number;
-        updatedBy: string;
     }>;
     getSpecialDayPosters(projectId: string, month: string, req: any): Promise<{
         id: string;
@@ -113,8 +113,8 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
         updatedBy: string;
+        projectId: string;
         month: string;
         holidayName: string;
         scheduledDate: Date;
@@ -126,8 +126,8 @@ export declare class MarketingController {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
         updatedBy: string;
+        projectId: string;
         month: string;
         holidayName: string;
         scheduledDate: Date;

@@ -163,6 +163,7 @@ model Project {
   tenantId           String
   clientId           String?
   client             User?    @relation("ClientProjects", fields: [clientId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  clientName         String?
   name               String
   category           String   @default("Web/App Development")
   description        String?
@@ -181,6 +182,8 @@ model Project {
   postCount          Int      @default(0)
   videoCount         Int      @default(0)
   socialCredentials  Json?
+  moduleDetails      Json?
+  projectInclusions  String?
   
   tenant             Tenant   @relation(fields: [tenantId], references: [id])
   marketingPosts     MarketingPost[]

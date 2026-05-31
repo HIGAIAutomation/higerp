@@ -8,10 +8,10 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -23,10 +23,10 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -37,10 +37,10 @@ export declare class MarketingService {
         tenantId: string;
         status: string;
         createdAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -52,10 +52,10 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
-        updatedBy: string;
-        assignedTo: string | null;
         dueDate: Date | null;
+        updatedBy: string;
+        projectId: string;
+        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -76,9 +76,9 @@ export declare class MarketingService {
         leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedBy: string;
         projectId: string;
         spend: number;
-        updatedBy: string;
     }[]>;
     createCampaign(tenantId: string, projectId: string, data: any, username: string): Promise<{
         id: string;
@@ -89,9 +89,9 @@ export declare class MarketingService {
         leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedBy: string;
         projectId: string;
         spend: number;
-        updatedBy: string;
     }>;
     getSpecialDayPosters(tenantId: string, projectId: string, month: string): Promise<{
         id: string;
@@ -99,8 +99,8 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
         updatedBy: string;
+        projectId: string;
         month: string;
         holidayName: string;
         scheduledDate: Date;
@@ -112,8 +112,8 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        projectId: string;
         updatedBy: string;
+        projectId: string;
         month: string;
         holidayName: string;
         scheduledDate: Date;

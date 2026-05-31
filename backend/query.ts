@@ -4,16 +4,19 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  const doc = await prisma.generatedDocument.findFirst({
-    orderBy: { createdAt: 'desc' },
+  const docs = await prisma.generatedDocument.findMany({
     include: { template: true }
   });
-  if (doc) {
-    console.log("=== Compiled HTML ===");
-    console.log(doc.compiledHtml);
-  } else {
-    console.log("No document found.");
-  }
+  console.log("=== Generated Documents ===");
+  console.log(JSON.stringify(docs.map(d => ({
+    id: d.id,
+    entityId: d.entityId,
+    entityType: d.entityType,
+    status: d.status,
+    templateName: d.template?.name,
+    hasHtml: !!d.compiledHtml,
+    tenantId: d.tenantId
+  })), null, 2));
   await prisma.$disconnect();
 }
 main().catch(err => {

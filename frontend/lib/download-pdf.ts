@@ -15,7 +15,8 @@ export const downloadPdf = async (docId: string, docName: string, setDownloading
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch document layout.');
+      const errorText = await response.text().catch(() => '');
+      throw new Error(`Failed to fetch document layout: ${response.status} ${response.statusText}. ${errorText}`);
     }
     
     const htmlContent = await response.text();
@@ -32,7 +33,8 @@ export const downloadPdf = async (docId: string, docName: string, setDownloading
       filename: `${docName.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     } as any).from(container).save();
     
     document.body.removeChild(container);
@@ -59,7 +61,8 @@ export const downloadPdfFromHtml = async (htmlContent: string, docName: string, 
       filename: `${docName.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     } as any).from(container).save();
     
     document.body.removeChild(container);

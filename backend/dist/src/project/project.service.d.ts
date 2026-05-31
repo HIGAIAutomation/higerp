@@ -6,37 +6,38 @@ export declare class ProjectService {
     constructor(prisma: PrismaService, documentService: DocumentService);
     createProject(tenantId: string, data: any): Promise<any>;
     getProjects(tenantId: string): Promise<({
-        adCampaigns: {
-            id: string;
-            tenantId: string;
-            createdAt: Date;
-            name: string;
-            updatedAt: Date;
-            leads: number;
-            startDate: Date;
-            endDate: Date | null;
-            projectId: string;
-            spend: number;
-            updatedBy: string;
-        }[];
         client: {
             id: string;
             email: string | null;
             username: string;
             role: string;
         } | null;
+        adCampaigns: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            startDate: Date;
+            endDate: Date | null;
+            projectId: string;
+            spend: number;
+            leads: number;
+            updatedBy: string;
+            updatedAt: Date;
+        }[];
     } & {
         id: string;
         tenantId: string;
-        status: string;
         name: string;
+        clientId: string | null;
+        clientName: string | null;
         category: string;
         description: string | null;
-        price: number;
-        clientId: string | null;
         startDate: Date | null;
         endDate: Date | null;
+        status: string;
         whatsappNumber: string | null;
+        price: number;
         modules: string | null;
         platforms: string | null;
         deliveryCode: boolean;
@@ -47,20 +48,23 @@ export declare class ProjectService {
         postCount: number;
         videoCount: number;
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
+        moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
+        projectInclusions: string | null;
     })[]>;
     updateProject(id: string, tenantId: string, data: any, clientIdFilter?: string): Promise<any>;
     deleteProject(id: string, tenantId: string): Promise<{
         id: string;
         tenantId: string;
-        status: string;
         name: string;
+        clientId: string | null;
+        clientName: string | null;
         category: string;
         description: string | null;
-        price: number;
-        clientId: string | null;
         startDate: Date | null;
         endDate: Date | null;
+        status: string;
         whatsappNumber: string | null;
+        price: number;
         modules: string | null;
         platforms: string | null;
         deliveryCode: boolean;
@@ -71,5 +75,7 @@ export declare class ProjectService {
         postCount: number;
         videoCount: number;
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
+        moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
+        projectInclusions: string | null;
     }>;
 }

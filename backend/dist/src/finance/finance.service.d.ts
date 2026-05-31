@@ -9,12 +9,12 @@ export declare class FinanceService {
         createdAt: Date;
         clientId: string;
         invoiceNumber: string;
+        dueDate: Date | null;
         subtotal: number;
         cgst: number;
         sgst: number;
         igst: number;
         total: number;
-        dueDate: Date | null;
     }>;
     createExpense(tenantId: string, data: any): Promise<{
         id: string;

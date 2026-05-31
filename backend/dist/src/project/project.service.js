@@ -61,28 +61,31 @@ let ProjectService = class ProjectService {
                 where: { username: data.clientUsername, tenantId },
             });
             if (existingUser) {
-                throw new common_1.BadRequestException('Client username is already taken');
+                clientId = existingUser.id;
             }
-            if (!data.clientPassword) {
-                throw new common_1.BadRequestException('Password is required for client account');
+            else {
+                if (!data.clientPassword) {
+                    throw new common_1.BadRequestException('Password is required for client account');
+                }
+                const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
+                const clientUser = await this.prisma.user.create({
+                    data: {
+                        tenantId,
+                        email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
+                        username: data.clientUsername,
+                        password: hashedPassword,
+                        role: 'user',
+                        pageAccess: ['/dashboard', '/dashboard/projects'],
+                    },
+                });
+                clientId = clientUser.id;
             }
-            const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
-            const clientUser = await this.prisma.user.create({
-                data: {
-                    tenantId,
-                    email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
-                    username: data.clientUsername,
-                    password: hashedPassword,
-                    role: 'user',
-                    pageAccess: ['/dashboard', '/dashboard/projects'],
-                },
-            });
-            clientId = clientUser.id;
         }
         const project = await this.prisma.project.create({
             data: {
                 tenantId,
                 clientId,
+                clientName: data.clientName || null,
                 name: data.name,
                 category: data.category || 'Web/App Development',
                 description: data.description,
@@ -101,8 +104,24 @@ let ProjectService = class ProjectService {
                 postCount: data.postCount !== undefined ? parseInt(data.postCount, 10) : 0,
                 videoCount: data.videoCount !== undefined ? parseInt(data.videoCount, 10) : 0,
                 socialCredentials: data.socialCredentials || null,
+                moduleDetails: data.moduleDetails || null,
+                projectInclusions: data.projectInclusions || null,
             },
         });
+        if (project.category === 'Web/App Development' && project.price > 0) {
+            const invoiceBase = `INV-PROJ-${project.id}`;
+            await this.prisma.projectPayment.create({
+                data: {
+                    tenantId,
+                    projectId: project.id,
+                    invoiceNumber: `${invoiceBase}-ADVANCE`,
+                    amount: parseFloat((project.price * 0.25).toFixed(2)),
+                    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                    status: 'pending',
+                    whatsappSent: false,
+                }
+            });
+        }
         const lifecycleDocs = [
             'Non-Disclosure Agreement (NDA) - Client',
             'Master Service Agreement (MSA)',
@@ -116,13 +135,20 @@ let ProjectService = class ProjectService {
             try {
                 await this.documentService.generateDocument(docName, tenantId, {
                     projectName: project.name,
-                    clientName: data.clientName || 'Valued Client',
+                    clientName: project.clientName || data.clientName || 'Valued Client',
                     companyName: 'HIG AI Automation LLP',
                     startDate: project.startDate ? new Date(project.startDate).toLocaleDateString() : '____________',
                     endDate: project.endDate ? new Date(project.endDate).toLocaleDateString() : '____________',
                     price: project.price ? `₹${project.price.toLocaleString('en-IN')}` : '₹6,000.00',
                     postCount: project.postCount || 15,
                     videoCount: project.videoCount || 6,
+                    isWebProject: project.category === 'Web/App Development',
+                    isDigitalMarketing: project.category === 'Digital Marketing',
+                    isAutomation: project.category === 'Automation',
+                    isAiDevelopment: project.category === 'AI Development',
+                    moduleDetails: project.moduleDetails || [],
+                    projectInclusions: project.projectInclusions || '',
+                    inclusions: project.projectInclusions ? project.projectInclusions.split(/[,\n]+/).map((x) => x.trim()).filter(Boolean) : [],
                 }, 'PROJECT', project.id);
             }
             catch (error) {
@@ -167,44 +193,40 @@ let ProjectService = class ProjectService {
         }
         let clientId = currentProject.clientId;
         if (data.clientUsername) {
-            if (clientId) {
-                const existingWithUsername = await this.prisma.user.findFirst({
-                    where: { username: data.clientUsername, tenantId, NOT: { id: clientId } },
-                });
-                if (existingWithUsername) {
-                    throw new common_1.BadRequestException('Client username is already taken');
-                }
-                const userUpdateData = { username: data.clientUsername };
-                if (data.clientPassword) {
-                    userUpdateData.password = await bcrypt.hash(data.clientPassword, 10);
-                }
-                await this.prisma.user.update({
-                    where: { id: clientId },
-                    data: userUpdateData,
-                });
+            const existingUser = await this.prisma.user.findFirst({
+                where: { username: data.clientUsername, tenantId },
+            });
+            if (existingUser) {
+                clientId = existingUser.id;
             }
             else {
-                const existingUser = await this.prisma.user.findFirst({
-                    where: { username: data.clientUsername, tenantId },
-                });
-                if (existingUser) {
-                    throw new common_1.BadRequestException('Client username is already taken');
+                if (clientId) {
+                    const userUpdateData = { username: data.clientUsername };
+                    if (data.clientPassword) {
+                        userUpdateData.password = await bcrypt.hash(data.clientPassword, 10);
+                    }
+                    await this.prisma.user.update({
+                        where: { id: clientId },
+                        data: userUpdateData,
+                    });
                 }
-                if (!data.clientPassword) {
-                    throw new common_1.BadRequestException('Password is required for a new client account');
+                else {
+                    if (!data.clientPassword) {
+                        throw new common_1.BadRequestException('Password is required for a new client account');
+                    }
+                    const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
+                    const clientUser = await this.prisma.user.create({
+                        data: {
+                            tenantId,
+                            email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
+                            username: data.clientUsername,
+                            password: hashedPassword,
+                            role: 'user',
+                            pageAccess: ['/dashboard', '/dashboard/projects'],
+                        },
+                    });
+                    clientId = clientUser.id;
                 }
-                const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
-                const clientUser = await this.prisma.user.create({
-                    data: {
-                        tenantId,
-                        email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
-                        username: data.clientUsername,
-                        password: hashedPassword,
-                        role: 'user',
-                        pageAccess: ['/dashboard', '/dashboard/projects'],
-                    },
-                });
-                clientId = clientUser.id;
             }
         }
         const oldModules = currentProject.modules
@@ -239,10 +261,75 @@ let ProjectService = class ProjectService {
                 throw new common_1.BadRequestException('Cannot complete the project until all 5 delivery checklist items are completed.');
             }
         }
-        return this.prisma.project.update({
+        const newModuleDetails = data.moduleDetails;
+        if (newModuleDetails && Array.isArray(newModuleDetails) && newModuleDetails.length > 0) {
+            const totalModules = newModuleDetails.length;
+            const completedModules = newModuleDetails.filter((m) => m.completed).length;
+            const completionPercentage = completedModules / totalModules;
+            const projectPrice = parseFloat(data.price || currentProject.price || 0);
+            const invoiceBase = `INV-PROJ-${id}`;
+            const partAmount = parseFloat((projectPrice * 0.25).toFixed(2));
+            if (completionPercentage >= 0.33) {
+                const existPart1 = await this.prisma.projectPayment.findFirst({
+                    where: { projectId: id, invoiceNumber: `${invoiceBase}-PART1`, tenantId }
+                });
+                if (!existPart1) {
+                    await this.prisma.projectPayment.create({
+                        data: {
+                            tenantId,
+                            projectId: id,
+                            invoiceNumber: `${invoiceBase}-PART1`,
+                            amount: partAmount,
+                            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                            status: 'pending',
+                            whatsappSent: false,
+                        }
+                    });
+                }
+            }
+            if (completionPercentage >= 0.66) {
+                const existPart2 = await this.prisma.projectPayment.findFirst({
+                    where: { projectId: id, invoiceNumber: `${invoiceBase}-PART2`, tenantId }
+                });
+                if (!existPart2) {
+                    await this.prisma.projectPayment.create({
+                        data: {
+                            tenantId,
+                            projectId: id,
+                            invoiceNumber: `${invoiceBase}-PART2`,
+                            amount: partAmount,
+                            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                            status: 'pending',
+                            whatsappSent: false,
+                        }
+                    });
+                }
+            }
+            if (completionPercentage >= 1.0) {
+                const existPart3 = await this.prisma.projectPayment.findFirst({
+                    where: { projectId: id, invoiceNumber: `${invoiceBase}-PART3`, tenantId }
+                });
+                if (!existPart3) {
+                    const finalAmount = parseFloat((projectPrice - (3 * partAmount)).toFixed(2));
+                    await this.prisma.projectPayment.create({
+                        data: {
+                            tenantId,
+                            projectId: id,
+                            invoiceNumber: `${invoiceBase}-PART3`,
+                            amount: finalAmount,
+                            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                            status: 'pending',
+                            whatsappSent: false,
+                        }
+                    });
+                }
+            }
+        }
+        const updatedProject = await this.prisma.project.update({
             where: { id, tenantId },
             data: {
                 clientId,
+                clientName: data.clientName !== undefined ? data.clientName : undefined,
                 name: data.name,
                 category: data.category,
                 description: data.description,
@@ -261,8 +348,44 @@ let ProjectService = class ProjectService {
                 postCount: data.postCount !== undefined ? parseInt(data.postCount, 10) : undefined,
                 videoCount: data.videoCount !== undefined ? parseInt(data.videoCount, 10) : undefined,
                 socialCredentials: data.socialCredentials !== undefined ? data.socialCredentials : undefined,
+                moduleDetails: data.moduleDetails !== undefined ? data.moduleDetails : undefined,
+                projectInclusions: data.projectInclusions !== undefined ? data.projectInclusions : undefined,
             },
         });
+        const lifecycleDocs = [
+            'Non-Disclosure Agreement (NDA) - Client',
+            'Master Service Agreement (MSA)',
+            'Statement of Work (SOW)',
+            'Project Proposal',
+            'Service Level Agreement (SLA)',
+            'Intellectual Property Agreement',
+            'Data Processing Agreement (DPA)',
+        ];
+        for (const docName of lifecycleDocs) {
+            try {
+                await this.documentService.generateDocument(docName, tenantId, {
+                    projectName: updatedProject.name,
+                    clientName: updatedProject.clientName || 'Valued Client',
+                    companyName: 'HIG AI Automation LLP',
+                    startDate: updatedProject.startDate ? new Date(updatedProject.startDate).toLocaleDateString() : '____________',
+                    endDate: updatedProject.endDate ? new Date(updatedProject.endDate).toLocaleDateString() : '____________',
+                    price: updatedProject.price ? `₹${updatedProject.price.toLocaleString('en-IN')}` : '₹6,000.00',
+                    postCount: updatedProject.postCount || 15,
+                    videoCount: updatedProject.videoCount || 6,
+                    isWebProject: updatedProject.category === 'Web/App Development',
+                    isDigitalMarketing: updatedProject.category === 'Digital Marketing',
+                    isAutomation: updatedProject.category === 'Automation',
+                    isAiDevelopment: updatedProject.category === 'AI Development',
+                    moduleDetails: updatedProject.moduleDetails || [],
+                    projectInclusions: updatedProject.projectInclusions || '',
+                    inclusions: updatedProject.projectInclusions ? updatedProject.projectInclusions.split(/[,\n]+/).map((x) => x.trim()).filter(Boolean) : [],
+                }, 'PROJECT', updatedProject.id);
+            }
+            catch (error) {
+                console.error(`Failed to auto-generate project doc ${docName} on update: ${error.message}`);
+            }
+        }
+        return updatedProject;
     }
     async deleteProject(id, tenantId) {
         await this.prisma.generatedDocument.deleteMany({

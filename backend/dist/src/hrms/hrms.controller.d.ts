@@ -7,10 +7,10 @@ export declare class HrmsController {
         tenantId: string;
         status: string;
         createdAt: Date;
-        email: string;
-        designation: string | null;
         firstName: string;
         lastName: string;
+        email: string;
+        designation: string | null;
         salaryBasis: number | null;
         joiningDate: Date | null;
         profDocNumber: string | null;
@@ -24,10 +24,10 @@ export declare class HrmsController {
             tenantId: string;
             status: string;
             createdAt: Date;
-            email: string;
-            designation: string | null;
             firstName: string;
             lastName: string;
+            email: string;
+            designation: string | null;
             salaryBasis: number | null;
             joiningDate: Date | null;
             profDocNumber: string | null;

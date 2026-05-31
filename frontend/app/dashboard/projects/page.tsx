@@ -27,6 +27,7 @@ interface Project {
   name: string;
   category?: string;
   description: string;
+  clientName?: string;
   startDate: string;
   endDate: string;
   status: string;
@@ -46,6 +47,7 @@ interface Project {
     username: string;
     email?: string;
   };
+  moduleDetails?: { name: string; price: number; description?: string; completed: boolean }[];
 }
 
 interface GeneratedDoc {
@@ -77,6 +79,104 @@ export default function ProjectsPage() {
 
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+
+  // Module Details States for Create/Edit Form
+  const [moduleInputs, setModuleInputs] = useState<{ name: string; price: string; description: string; completed: boolean }[]>([]);
+  const [newModuleName, setNewModuleName] = useState('');
+  const [newModulePrice, setNewModulePrice] = useState('');
+  const [newModuleDescription, setNewModuleDescription] = useState('');
+
+  const [editModuleInputs, setEditModuleInputs] = useState<{ name: string; price: string; description: string; completed: boolean }[]>([]);
+  const [newEditModuleName, setNewEditModuleName] = useState('');
+  const [newEditModulePrice, setNewEditModulePrice] = useState('');
+  const [newEditModuleDescription, setNewEditModuleDescription] = useState('');
+
+  const handleAddModuleInput = () => {
+    const trimmedName = newModuleName.trim();
+    const parsedPrice = parseFloat(newModulePrice);
+    const trimmedDesc = newModuleDescription.trim();
+    if (!trimmedName || isNaN(parsedPrice)) return;
+    
+    const updatedInputs = [...moduleInputs, { name: trimmedName, price: String(parsedPrice), description: trimmedDesc, completed: false }];
+    setModuleInputs(updatedInputs);
+    
+    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    setForm(prev => ({
+      ...prev,
+      price: String(totalPrice),
+      modules: updatedInputs.map(m => m.name).join(', ')
+    }));
+    
+    setNewModuleName('');
+    setNewModulePrice('');
+    setNewModuleDescription('');
+  };
+
+  const handleRemoveModuleInput = (index: number) => {
+    const updatedInputs = moduleInputs.filter((_, i) => i !== index);
+    setModuleInputs(updatedInputs);
+    
+    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    setForm(prev => ({
+      ...prev,
+      price: String(totalPrice),
+      modules: updatedInputs.map(m => m.name).join(', ')
+    }));
+  };
+
+  const handleAddEditModuleInput = () => {
+    const trimmedName = newEditModuleName.trim();
+    const parsedPrice = parseFloat(newEditModulePrice);
+    const trimmedDesc = newEditModuleDescription.trim();
+    if (!trimmedName || isNaN(parsedPrice)) return;
+    
+    const updatedInputs = [...editModuleInputs, { name: trimmedName, price: String(parsedPrice), description: trimmedDesc, completed: false }];
+    setEditModuleInputs(updatedInputs);
+    
+    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    setEditForm(prev => ({
+      ...prev,
+      price: String(totalPrice),
+      modules: updatedInputs.map(m => m.name).join(', ')
+    }));
+    
+    setNewEditModuleName('');
+    setNewEditModulePrice('');
+    setNewEditModuleDescription('');
+  };
+
+  const handleRemoveEditModuleInput = (index: number) => {
+    const updatedInputs = editModuleInputs.filter((_, i) => i !== index);
+    setEditModuleInputs(updatedInputs);
+    
+    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    setEditForm(prev => ({
+      ...prev,
+      price: String(totalPrice),
+      modules: updatedInputs.map(m => m.name).join(', ')
+    }));
+  };
+
+  const handleToggleModuleCompletion = async (project: Project, moduleIndex: number) => {
+    try {
+      const currentDetails = project.moduleDetails ? [...project.moduleDetails] : [];
+      if (currentDetails[moduleIndex]) {
+        currentDetails[moduleIndex].completed = !currentDetails[moduleIndex].completed;
+      }
+      
+      await fetchWithAuth(`/projects/${project.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...project,
+          moduleDetails: currentDetails
+        }),
+      });
+      await fetchProjects();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update module status.');
+    }
+  };
 
   // Platforms States
   const [newPlatformText, setNewPlatformText] = useState('');
@@ -161,10 +261,12 @@ export default function ProjectsPage() {
     clientUsername: '',
     clientPassword: '',
     platforms: 'Instagram, Facebook, YouTube, LinkedIn',
+    projectInclusions: '',
   });
 
   const [editForm, setEditForm] = useState({
     name: '',
+    clientName: '',
     description: '',
     category: 'Web/App Development',
     startDate: '',
@@ -183,6 +285,7 @@ export default function ProjectsPage() {
     clientUsername: '',
     clientPassword: '',
     platforms: '',
+    projectInclusions: '',
   });
 
   const fetchProjects = async () => {
@@ -232,7 +335,10 @@ export default function ProjectsPage() {
 
       await fetchWithAuth('/projects', {
         method: 'POST',
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          moduleDetails: form.category === 'Web/App Development' ? moduleInputs.map(m => ({ name: m.name, price: parseFloat(m.price), description: m.description, completed: m.completed })) : undefined
+        }),
       });
 
       // Reset form
@@ -251,7 +357,9 @@ export default function ProjectsPage() {
         clientUsername: '',
         clientPassword: '',
         platforms: 'Instagram, Facebook, YouTube, LinkedIn',
+        projectInclusions: '',
       });
+      setModuleInputs([]);
 
       await fetchProjects();
     } catch (err: any) {
@@ -266,6 +374,7 @@ export default function ProjectsPage() {
     setEditingProject(proj);
     setEditForm({
       name: proj.name,
+      clientName: proj.clientName || '',
       description: proj.description || '',
       category: proj.category || 'Web/App Development',
       startDate: proj.startDate ? proj.startDate.split('T')[0] : '',
@@ -284,7 +393,16 @@ export default function ProjectsPage() {
       clientUsername: proj.client?.username || '',
       clientPassword: '',
       platforms: proj.platforms || '',
+      projectInclusions: (proj as any).projectInclusions || '',
     });
+    
+    const details = proj.moduleDetails || [];
+    setEditModuleInputs(details.map(m => ({
+      name: m.name,
+      price: String(m.price),
+      description: m.description || '',
+      completed: !!m.completed
+    })));
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -337,9 +455,13 @@ export default function ProjectsPage() {
       setError(null);
       await fetchWithAuth(`/projects/${editingProject.id}`, {
         method: 'PUT',
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          ...editForm,
+          moduleDetails: editForm.category === 'Web/App Development' ? editModuleInputs.map(m => ({ name: m.name, price: parseFloat(m.price), description: m.description, completed: m.completed })) : undefined
+        }),
       });
       setEditingProject(null);
+      setEditModuleInputs([]);
       await fetchProjects();
     } catch (err: any) {
       console.error(err);
@@ -542,7 +664,75 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              {form.category !== 'Digital Marketing' && (
+              {form.category === 'Web/App Development' ? (
+                <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                  <label className="block text-xs font-bold text-accent uppercase tracking-wider">Project Modules & Pricing</label>
+                  
+                  {moduleInputs.length > 0 && (
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {moduleInputs.map((mod, idx) => (
+                        <div key={idx} className="bg-card p-3 rounded-xl border border-border text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <div className="font-bold text-foreground">{mod.name}</div>
+                            <div className="flex items-center space-x-3">
+                              <span className="font-bold text-accent">Rs. {Number(mod.price).toLocaleString()}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveModuleInput(idx)}
+                                className="text-muted-foreground hover:text-rose-500 transition-colors p-1 cursor-pointer"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                          {mod.description && (
+                            <div className="text-[11px] text-muted-foreground font-medium leading-normal">{mod.description}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="col-span-2">
+                        <input
+                          type="text"
+                          placeholder="Module Name (e.g. Auth)"
+                          value={newModuleName}
+                          onChange={(e) => setNewModuleName(e.target.value)}
+                          className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="number"
+                          placeholder="Price (Rs)"
+                          value={newModulePrice}
+                          onChange={(e) => setNewModulePrice(e.target.value)}
+                          className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Module Description / Subtext (e.g. Secure login & registration)"
+                        value={newModuleDescription}
+                        onChange={(e) => setNewModuleDescription(e.target.value)}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddModuleInput}
+                      className="w-full py-3.5 bg-accent/10 hover:bg-accent/20 text-accent font-bold rounded-2xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      + Add Module
+                    </button>
+                  </div>
+                </div>
+              ) : form.category !== 'Digital Marketing' && (
                 <div>
                   <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
                   <input
@@ -555,29 +745,31 @@ export default function ProjectsPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET IMAGE POST COUNT</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 10"
-                    value={form.postCount}
-                    onChange={(e) => setForm({ ...form, postCount: e.target.value })}
-                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                  />
-                </div>
+              {form.category === 'Digital Marketing' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET IMAGE POST COUNT</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 10"
+                      value={form.postCount}
+                      onChange={(e) => setForm({ ...form, postCount: e.target.value })}
+                      className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET VIDEO POST COUNT</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 5"
-                    value={form.videoCount}
-                    onChange={(e) => setForm({ ...form, videoCount: e.target.value })}
-                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                  />
+                  <div>
+                    <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET VIDEO POST COUNT</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 5"
+                      value={form.videoCount}
+                      onChange={(e) => setForm({ ...form, videoCount: e.target.value })}
+                      className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {form.category === 'Digital Marketing' && (
                 <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
@@ -616,6 +808,17 @@ export default function ProjectsPage() {
                   </div>
                 </div>
               )}
+
+              <div>
+                <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">ADDITIONAL DOCUMENT DETAILS / INCLUSIONS (ONE PER LINE)</label>
+                <textarea
+                  rows={4}
+                  placeholder={`e.g. Special training session for staff\nAll server deployment credentials included\nSupport SLA extended by 30 days`}
+                  value={form.projectInclusions}
+                  onChange={(e) => setForm({ ...form, projectInclusions: e.target.value })}
+                  className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold resize-none leading-relaxed"
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -755,30 +958,51 @@ export default function ProjectsPage() {
                             <span className="text-foreground text-sm font-bold">{proj.whatsappNumber || 'Not Provided'}</span>
                           </div>
                           <div className="col-span-2">
-                            <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-1">Target Modules</span>
-                            <div className="flex flex-wrap gap-1">
-                              {proj.modules ? (
-                                proj.modules.split(',').map((m, idx) => (
+                            <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-2 font-bold">Modules & Progress</span>
+                            {proj.category === 'Web/App Development' && proj.moduleDetails && proj.moduleDetails.length > 0 ? (
+                              <div className="space-y-2 bg-secondary/30 p-4 rounded-xl border border-border/60">
+                                {proj.moduleDetails.map((mod, idx) => (
+                                  <label key={idx} className="flex items-center justify-between cursor-pointer group">
+                                    <div className="flex items-center space-x-3">
+                                      <input
+                                        type="checkbox"
+                                        checked={!!mod.completed}
+                                        onChange={() => handleToggleModuleCompletion(proj, idx)}
+                                        className="h-4 w-4 rounded text-accent border-border bg-card focus:ring-accent/20 cursor-pointer"
+                                      />
+                                      <span className={`text-xs ${mod.completed ? 'line-through text-muted-foreground/70 font-semibold' : 'text-foreground font-semibold'}`}>
+                                        {mod.name}
+                                      </span>
+                                    </div>
+                                    <span className="text-[10.5px] text-accent font-bold">Rs. {Number(mod.price).toLocaleString()}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            ) : proj.modules ? (
+                              <div className="flex flex-wrap gap-1">
+                                {proj.modules.split(',').map((m, idx) => (
                                   <span key={idx} className="bg-secondary text-foreground px-2.5 py-0.5 rounded-lg text-[10.5px] border border-border font-medium">
                                     {m.trim()}
                                   </span>
-                                ))
-                              ) : (
-                                <span className="text-muted-foreground italic text-[11px]">No modules specified</span>
-                              )}
-                            </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic text-[11px]">No modules specified</span>
+                            )}
                           </div>
                           
-                            <div className="col-span-2 grid grid-cols-2 gap-4 pt-3 border-t border-border">
-                              <div>
-                                <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Target Image Posts</span>
-                                <span className="text-foreground text-sm font-bold">{proj.postCount !== undefined ? proj.postCount : 0} posts</span>
+                            {proj.category === 'Digital Marketing' && (
+                              <div className="col-span-2 grid grid-cols-2 gap-4 pt-3 border-t border-border">
+                                <div>
+                                  <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Target Image Posts</span>
+                                  <span className="text-foreground text-sm font-bold">{proj.postCount !== undefined ? proj.postCount : 0} posts</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Target Video Posts</span>
+                                  <span className="text-foreground text-sm font-bold">{proj.videoCount !== undefined ? proj.videoCount : 0} videos</span>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Target Video Posts</span>
-                                <span className="text-foreground text-sm font-bold">{proj.videoCount !== undefined ? proj.videoCount : 0} videos</span>
-                              </div>
-                            </div>
+                            )}
 
                           {/* Checklist Status Indicator */}
                           <div className="col-span-2 pt-3 border-t border-border">
@@ -942,6 +1166,18 @@ export default function ProjectsPage() {
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT NAME</label>
+                    <input
+                      required
+                      type="text"
+                      placeholder="e.g. SpaceX Corp"
+                      value={editForm.clientName}
+                      onChange={(e) => setEditForm({ ...editForm, clientName: e.target.value })}
+                      className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT USERNAME (PORTAL ACCESS)</label>
@@ -1051,7 +1287,75 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  {editForm.category !== 'Digital Marketing' && (
+                  {editForm.category === 'Web/App Development' ? (
+                    <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                      <label className="block text-xs font-bold text-accent uppercase tracking-wider">Project Modules & Pricing</label>
+                      
+                      {editModuleInputs.length > 0 && (
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          {editModuleInputs.map((mod, idx) => (
+                            <div key={idx} className="bg-card p-3 rounded-xl border border-border text-xs space-y-1">
+                              <div className="flex items-center justify-between">
+                                <div className="font-semibold text-foreground">{mod.name}</div>
+                                <div className="flex items-center space-x-3">
+                                  <span className="font-bold text-accent">Rs. {Number(mod.price).toLocaleString()}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveEditModuleInput(idx)}
+                                    className="text-muted-foreground hover:text-rose-500 transition-colors p-1 cursor-pointer"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              {mod.description && (
+                                <div className="text-[11px] text-muted-foreground font-medium leading-normal">{mod.description}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="col-span-2">
+                            <input
+                              type="text"
+                              placeholder="Module Name"
+                              value={newEditModuleName}
+                              onChange={(e) => setNewEditModuleName(e.target.value)}
+                              className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="number"
+                              placeholder="Price (Rs)"
+                              value={newEditModulePrice}
+                              onChange={(e) => setNewEditModulePrice(e.target.value)}
+                              className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Module Description / Subtext"
+                            value={newEditModuleDescription}
+                            onChange={(e) => setNewEditModuleDescription(e.target.value)}
+                            className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleAddEditModuleInput}
+                          className="w-full py-3.5 bg-accent/10 hover:bg-accent/20 text-accent font-bold rounded-2xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+                        >
+                          + Add Module
+                        </button>
+                      </div>
+                    </div>
+                  ) : editForm.category !== 'Digital Marketing' && (
                     <div>
                       <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
                       <input
@@ -1064,29 +1368,31 @@ export default function ProjectsPage() {
                     </div>
                   )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET IMAGE POST COUNT</label>
-                        <input
-                          type="number"
-                          placeholder="e.g. 10"
-                          value={editForm.postCount}
-                          onChange={(e) => setEditForm({ ...editForm, postCount: e.target.value })}
-                          className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                        />
-                      </div>
+                    {editForm.category === 'Digital Marketing' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET IMAGE POST COUNT</label>
+                          <input
+                            type="number"
+                            placeholder="e.g. 10"
+                            value={editForm.postCount}
+                            onChange={(e) => setEditForm({ ...editForm, postCount: e.target.value })}
+                            className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                          />
+                        </div>
 
-                      <div>
-                        <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET VIDEO POST COUNT</label>
-                        <input
-                          type="number"
-                          placeholder="e.g. 5"
-                          value={editForm.videoCount}
-                          onChange={(e) => setEditForm({ ...editForm, videoCount: e.target.value })}
-                          className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                        />
+                        <div>
+                          <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET VIDEO POST COUNT</label>
+                          <input
+                            type="number"
+                            placeholder="e.g. 5"
+                            value={editForm.videoCount}
+                            onChange={(e) => setEditForm({ ...editForm, videoCount: e.target.value })}
+                            className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                   {editForm.category === 'Digital Marketing' && (
                     <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
@@ -1125,6 +1431,17 @@ export default function ProjectsPage() {
                       </div>
                     </div>
                   )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">ADDITIONAL DOCUMENT DETAILS / INCLUSIONS (ONE PER LINE)</label>
+                    <textarea
+                      rows={4}
+                      placeholder={`e.g. Special training session for staff\nAll server deployment credentials included\nSupport SLA extended by 30 days`}
+                      value={editForm.projectInclusions}
+                      onChange={(e) => setEditForm({ ...editForm, projectInclusions: e.target.value })}
+                      className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold resize-none leading-relaxed"
+                    />
+                  </div>
 
                   {/* Delivery Checklist - Category Specific */}
                   <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
