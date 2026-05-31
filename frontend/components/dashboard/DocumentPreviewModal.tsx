@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { X, PenTool, UploadCloud, Save, Loader2, ChevronLeft, ChevronRight, Undo2 } from 'lucide-react';
+import { X, PenTool, UploadCloud, Save, Loader2, ChevronLeft, ChevronRight, Undo2, CheckCircle2 } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
 
 interface DocumentPreviewModalProps {
@@ -15,6 +15,8 @@ interface DocumentPreviewModalProps {
   onPrev?: () => void;
   hasNext?: boolean;
   hasPrev?: boolean;
+  status?: string;
+  onUnsign?: (applyToAll: boolean) => void;
 }
 
 export function DocumentPreviewModal({
@@ -27,7 +29,9 @@ export function DocumentPreviewModal({
   onNext,
   onPrev,
   hasNext,
-  hasPrev
+  hasPrev,
+  status,
+  onUnsign
 }: DocumentPreviewModalProps) {
   const [isSigning, setIsSigning] = useState(false);
   const [signMode, setSignMode] = useState<'draw' | 'upload'>('draw');
@@ -155,8 +159,34 @@ export function DocumentPreviewModal({
           </div>
 
           {/* E-Sign Panel */}
-          <div className={`w-full md:w-80 bg-muted/10 p-6 flex flex-col transition-all duration-300 overflow-y-auto ${!isSigning ? 'justify-center' : 'justify-start'}`}>
-            {!isSigning ? (
+          <div className={`w-full md:w-80 bg-muted/10 p-6 flex flex-col transition-all duration-300 overflow-y-auto ${(status === 'signed' || !isSigning) ? 'justify-center' : 'justify-start'}`}>
+            {status === 'signed' ? (
+              <div className="text-center animate-in fade-in zoom-in duration-300">
+                <div className="mb-4 bg-emerald-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-emerald-500">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-2">Document Signed</h3>
+                <p className="text-sm text-muted-foreground mb-6 font-semibold">
+                  This document has already been digitally signed and finalized.
+                </p>
+                {onUnsign && (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => onUnsign(false)}
+                      className="w-full bg-rose-500/10 text-rose-600 py-3 rounded-xl font-bold hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                    >
+                      Remove Signature
+                    </button>
+                    <button
+                      onClick={() => onUnsign(true)}
+                      className="w-full bg-transparent border border-rose-500/30 text-rose-600 py-3 rounded-xl font-bold hover:bg-rose-500/10 transition-all text-sm"
+                    >
+                      Remove from All Documents
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : !isSigning ? (
               <div className="text-center">
                 <div className="mb-4 bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-accent">
                   <PenTool className="h-8 w-8" />

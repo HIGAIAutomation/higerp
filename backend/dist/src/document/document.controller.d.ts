@@ -54,7 +54,16 @@ export declare class DocumentController {
     }) | null>;
     signDocument(id: string, body: {
         signatureData: string;
-    }, req: any): Promise<{
+    }, req: any): Promise<({
+        template: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            category: string;
+            contentHtml: string;
+        } | null;
+    } & {
         id: string;
         tenantId: string;
         templateId: string | null;
@@ -66,5 +75,27 @@ export declare class DocumentController {
         signatureData: string | null;
         signedAt: Date | null;
         createdAt: Date;
-    } | null>;
+    }) | null>;
+    unsignDocument(id: string, req: any): Promise<({
+        template: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            category: string;
+            contentHtml: string;
+        } | null;
+    } & {
+        id: string;
+        tenantId: string;
+        templateId: string | null;
+        entityType: string;
+        entityId: string;
+        filePath: string | null;
+        compiledHtml: string | null;
+        status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
+        createdAt: Date;
+    }) | null>;
 }

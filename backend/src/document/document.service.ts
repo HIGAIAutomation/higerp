@@ -167,7 +167,7 @@ export class DocumentService {
     let updatedHtml = doc.compiledHtml;
     
     // Inject signature image based on standard marker class (if exists) or at the end
-    const signatureHtml = `<div style="margin-top: 10px; margin-bottom: 10px;"><img src="${signatureData}" alt="Signature" style="max-height: 80px; width: auto; object-fit: contain;" /></div>`;
+    const signatureHtml = `<div style="margin-top: 10px; margin-bottom: 10px;"><img src="${signatureData}" alt="Signature" style="height: 80px; max-width: 280px; object-fit: contain;" /></div>`;
     
     if (updatedHtml.includes('<div class="sig-line client-sig-line"></div>')) {
       updatedHtml = updatedHtml.replace('<div class="sig-line client-sig-line"></div>', `<div class="sig-line client-sig-line" style="border-bottom: none;">${signatureHtml}</div><div class="sig-line" style="margin-top: 5px;"></div>`);
@@ -209,6 +209,55 @@ export class DocumentService {
     // Fetch and return the updated document
     return this.prisma.generatedDocument.findFirst({
       where: { id, tenantId },
+      include: { template: true },
+    });
+  }
+
+  async unsignDocument(tenantId: string, id: string) {
+    const doc = await this.prisma.generatedDocument.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!doc || !doc.compiledHtml) {
+      throw new Error('Document not found or cannot be unsigned.');
+    }
+
+    let updatedHtml = doc.compiledHtml;
+
+    // Strip client-sig-line injected block
+    const clientSigRegex = /<div class="sig-line client-sig-line" style="border-bottom: none;"><div style="margin-top: 10px; margin-bottom: 10px;"><img src="data:image\/[^"]+" alt="Signature" style="[^"]*" \/><\/div><\/div><div class="sig-line" style="margin-top: 5px;"><\/div>/g;
+    updatedHtml = updatedHtml.replace(clientSigRegex, '<div class="sig-line client-sig-line"></div>');
+    
+    // Strip standard sig-line injected block
+    const standardSigRegex = /<div class="sig-line" style="border-bottom: none;"><div style="margin-top: 10px; margin-bottom: 10px;"><img src="data:image\/[^"]+" alt="Signature" style="[^"]*" \/><\/div><\/div><div class="sig-line" style="margin-top: 5px;"><\/div>/g;
+    updatedHtml = updatedHtml.replace(standardSigRegex, '<div class="sig-line"></div>');
+    
+    // Strip fallback injected block
+    const fallbackRegex = /<div class="injected-signature"[^>]*>[\s\S]*?<\/div>/g;
+    updatedHtml = updatedHtml.replace(fallbackRegex, '');
+
+    const response = await this.prisma.$runCommandRaw({
+      update: 'GeneratedDocument',
+      updates: [
+        {
+          q: { _id: id, tenantId },
+          u: {
+            $set: {
+              compiledHtml: updatedHtml,
+              status: 'draft',
+              signatureData: null
+            },
+            $unset: {
+              signedAt: ""
+            }
+          }
+        }
+      ]
+    });
+
+    return this.prisma.generatedDocument.findFirst({
+      where: { id, tenantId },
+      include: { template: true },
     });
   }
 }

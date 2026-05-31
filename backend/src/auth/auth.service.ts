@@ -12,7 +12,13 @@ export class AuthService {
 
   async validateUser(username: string, pass: string, tenantId: string = '00000000-0000-0000-0000-000000000000'): Promise<any> {
     const user = await this.prisma.user.findFirst({
-      where: { username, tenantId },
+      where: { 
+        tenantId,
+        OR: [
+          { username },
+          { email: username }
+        ]
+      },
     });
     if (user && await bcrypt.compare(pass, user.password)) {
       const { password, ...result } = user;

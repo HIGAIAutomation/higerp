@@ -9,12 +9,12 @@ export declare class HrmsController {
         createdAt: Date;
         email: string;
         designation: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         firstName: string;
         lastName: string;
         salaryBasis: number | null;
         joiningDate: Date | null;
         profDocNumber: string | null;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         deptId: string | null;
     }>;
     getEmployees(req: any): Promise<any[]>;
@@ -26,12 +26,12 @@ export declare class HrmsController {
             createdAt: Date;
             email: string;
             designation: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             firstName: string;
             lastName: string;
             salaryBasis: number | null;
             joiningDate: Date | null;
             profDocNumber: string | null;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             deptId: string | null;
         };
         document: {

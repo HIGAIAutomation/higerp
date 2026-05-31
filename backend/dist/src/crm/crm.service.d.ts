@@ -8,7 +8,6 @@ export declare class CrmService {
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -17,6 +16,7 @@ export declare class CrmService {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     createPackage(tenantId: string, data: any): Promise<{
         id: string;
@@ -60,7 +60,6 @@ export declare class CrmService {
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -69,12 +68,12 @@ export declare class CrmService {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;
     updateLead(tenantId: string, id: string, data: any): Promise<{
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -83,12 +82,12 @@ export declare class CrmService {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     deleteLead(tenantId: string, id: string): Promise<{
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -97,6 +96,7 @@ export declare class CrmService {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getPackages(tenantId: string): Promise<({
         tiers: {
@@ -139,6 +139,8 @@ export declare class CrmService {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     } | undefined>;
     sendGoogleCalendarInvite(followUp: any): Promise<void>;
@@ -147,7 +149,6 @@ export declare class CrmService {
             id: string;
             tenantId: string;
             status: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             companyName: string | null;
             contact: string | null;
             source: string | null;
@@ -156,6 +157,7 @@ export declare class CrmService {
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
     } & {
         id: string;
@@ -171,7 +173,6 @@ export declare class CrmService {
             id: string;
             tenantId: string;
             status: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             companyName: string | null;
             contact: string | null;
             source: string | null;
@@ -180,6 +181,7 @@ export declare class CrmService {
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
     } & {
         id: string;

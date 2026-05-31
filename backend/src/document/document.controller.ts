@@ -101,4 +101,13 @@ export class DocumentController {
       throw error;
     }
   }
+  @Post('/:id/unsign')
+  async unsignDocument(@Param('id') id: string, @Request() req: any) {
+    try {
+      return await this.documentService.unsignDocument(req.user.tenantId, id);
+    } catch (error: any) {
+      console.error('Error unsigning document in backend:', error);
+      throw error;
+    }
+  }
 }

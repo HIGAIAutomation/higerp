@@ -6,7 +6,6 @@ export declare class CrmController {
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -15,6 +14,7 @@ export declare class CrmController {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     getLeads(req: any): Promise<({
         opportunities: {
@@ -37,7 +37,6 @@ export declare class CrmController {
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -46,12 +45,12 @@ export declare class CrmController {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;
     updateLead(id: string, body: any, req: any): Promise<{
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -60,12 +59,12 @@ export declare class CrmController {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     deleteLead(id: string, req: any): Promise<{
         id: string;
         tenantId: string;
         status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
@@ -74,13 +73,13 @@ export declare class CrmController {
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     createFollowUp(body: any, req: any): Promise<({
         lead: {
             id: string;
             tenantId: string;
             status: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             companyName: string | null;
             contact: string | null;
             source: string | null;
@@ -89,6 +88,7 @@ export declare class CrmController {
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
     } & {
         id: string;
@@ -104,7 +104,6 @@ export declare class CrmController {
             id: string;
             tenantId: string;
             status: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             companyName: string | null;
             contact: string | null;
             source: string | null;
@@ -113,6 +112,7 @@ export declare class CrmController {
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         };
     } & {
         id: string;

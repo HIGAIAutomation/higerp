@@ -98,6 +98,15 @@ let DocumentController = class DocumentController {
             throw error;
         }
     }
+    async unsignDocument(id, req) {
+        try {
+            return await this.documentService.unsignDocument(req.user.tenantId, id);
+        }
+        catch (error) {
+            console.error('Error unsigning document in backend:', error);
+            throw error;
+        }
+    }
 };
 exports.DocumentController = DocumentController;
 __decorate([
@@ -152,6 +161,14 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocumentController.prototype, "signDocument", null);
+__decorate([
+    (0, common_1.Post)('/:id/unsign'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "unsignDocument", null);
 exports.DocumentController = DocumentController = __decorate([
     (0, common_1.Controller)('document'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

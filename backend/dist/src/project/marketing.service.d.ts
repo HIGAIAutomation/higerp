@@ -8,10 +8,10 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        assignedTo: string | null;
         dueDate: Date | null;
         updatedBy: string;
         projectId: string;
-        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -23,10 +23,10 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        assignedTo: string | null;
         dueDate: Date | null;
         updatedBy: string;
         projectId: string;
-        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -37,10 +37,10 @@ export declare class MarketingService {
         tenantId: string;
         status: string;
         createdAt: Date;
+        assignedTo: string | null;
         dueDate: Date | null;
         updatedBy: string;
         projectId: string;
-        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;
@@ -52,10 +52,10 @@ export declare class MarketingService {
         status: string;
         createdAt: Date;
         updatedAt: Date;
+        assignedTo: string | null;
         dueDate: Date | null;
         updatedBy: string;
         projectId: string;
-        assignedTo: string | null;
         platform: string;
         postType: string;
         comments: string | null;

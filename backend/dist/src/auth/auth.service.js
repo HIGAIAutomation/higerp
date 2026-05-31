@@ -56,7 +56,13 @@ let AuthService = class AuthService {
     }
     async validateUser(username, pass, tenantId = '00000000-0000-0000-0000-000000000000') {
         const user = await this.prisma.user.findFirst({
-            where: { username, tenantId },
+            where: {
+                tenantId,
+                OR: [
+                    { username },
+                    { email: username }
+                ]
+            },
         });
         if (user && await bcrypt.compare(pass, user.password)) {
             const { password, ...result } = user;

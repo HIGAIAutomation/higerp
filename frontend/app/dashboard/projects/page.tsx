@@ -490,6 +490,41 @@ export default function ProjectsPage() {
     }
   };
 
+  const handleUnsignDocument = async (applyToAll: boolean = false) => {
+    if (!previewDoc) return;
+    try {
+      const entityId = previewDoc.entityId;
+      const docsToUnsign = applyToAll 
+        ? (projectDocs[entityId] || []).filter(d => d.status === 'signed')
+        : [previewDoc];
+
+      if (docsToUnsign.length === 0) return;
+
+      const unsignedDocs = await Promise.all(docsToUnsign.map(async (doc) => {
+        return await fetchWithAuth(`/document/${doc.id}/unsign`, {
+          method: 'POST',
+        });
+      }));
+      
+      const currentUpdated = unsignedDocs.find(d => d.id === previewDoc.id) || unsignedDocs[0];
+      if (currentUpdated) setPreviewDoc(currentUpdated);
+      
+      setProjectDocs(prev => {
+        const pDocs = prev[entityId] || [];
+        return {
+          ...prev,
+          [entityId]: pDocs.map(d => {
+            const updated = unsignedDocs.find(ud => ud.id === d.id);
+            return updated || d;
+          })
+        };
+      });
+    } catch (error) {
+      console.error('Error removing signature:', error);
+      alert('Failed to remove signature from document');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -1986,6 +2021,8 @@ export default function ProjectsPage() {
         documentName={previewDoc?.template?.name || 'Document'}
         compiledHtml={previewDoc?.compiledHtml || null}
         onSign={handleSignDocument}
+        onUnsign={handleUnsignDocument}
+        status={previewDoc?.status}
         onNext={handleNextPreview}
         onPrev={handlePrevPreview}
         hasNext={getPreviewNavInfo().hasNext}
