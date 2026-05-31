@@ -133,9 +133,19 @@ let ProjectService = class ProjectService {
         ];
         for (const docName of lifecycleDocs) {
             try {
+                let finalClientName = project.clientName || data.clientName;
+                if ((!finalClientName || finalClientName.trim() === '') && clientId) {
+                    const clientUser = await this.prisma.user.findUnique({ where: { id: clientId } });
+                    if (clientUser) {
+                        finalClientName = clientUser.username;
+                    }
+                }
+                if (!finalClientName || finalClientName.trim() === '') {
+                    finalClientName = 'Valued Client';
+                }
                 await this.documentService.generateDocument(docName, tenantId, {
                     projectName: project.name,
-                    clientName: project.clientName || data.clientName || 'Valued Client',
+                    clientName: finalClientName,
                     companyName: 'HIG AI Automation LLP',
                     startDate: project.startDate ? new Date(project.startDate).toLocaleDateString() : '____________',
                     endDate: project.endDate ? new Date(project.endDate).toLocaleDateString() : '____________',
@@ -363,9 +373,19 @@ let ProjectService = class ProjectService {
         ];
         for (const docName of lifecycleDocs) {
             try {
+                let finalClientName = updatedProject.clientName;
+                if ((!finalClientName || finalClientName.trim() === '') && clientId) {
+                    const clientUser = await this.prisma.user.findUnique({ where: { id: clientId } });
+                    if (clientUser) {
+                        finalClientName = clientUser.username;
+                    }
+                }
+                if (!finalClientName || finalClientName.trim() === '') {
+                    finalClientName = 'Valued Client';
+                }
                 await this.documentService.generateDocument(docName, tenantId, {
                     projectName: updatedProject.name,
-                    clientName: updatedProject.clientName || 'Valued Client',
+                    clientName: finalClientName,
                     companyName: 'HIG AI Automation LLP',
                     startDate: updatedProject.startDate ? new Date(updatedProject.startDate).toLocaleDateString() : '____________',
                     endDate: updatedProject.endDate ? new Date(updatedProject.endDate).toLocaleDateString() : '____________',

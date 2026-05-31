@@ -465,13 +465,104 @@ const recentDocsAdmin = [
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const isClient = user?.role === "user";
+  const isClient = user?.role === "user" || user?.role === "client";
 
   // Client States
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectDocs, setProjectDocs] = useState<GeneratedDoc[]>([]);
   const [loading, setLoading] = useState(isClient);
   const [error, setError] = useState<string | null>(null);
+
+  // Birthday Wishes States
+  const [showBirthdayModal, setShowBirthdayModal] = useState(false);
+  const [isBirthdayToday, setIsBirthdayToday] = useState(false);
+
+  const checkIsBirthday = () => {
+    if (!user?.dob) return false;
+    try {
+      const today = new Date();
+      const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
+      const todayDay = String(today.getDate()).padStart(2, '0');
+      
+      const cleanDob = user.dob.trim().replace(/\//g, '-');
+      const parts = cleanDob.split('-');
+      if (parts.length === 3) {
+        if (parts[0].length === 4) {
+          return parts[1] === todayMonth && parts[2] === todayDay;
+        } else {
+          return parts[1] === todayMonth && parts[0] === todayDay;
+        }
+      } else if (parts.length === 2) {
+        return parts[0] === todayMonth && parts[1] === todayDay;
+      }
+    } catch (e) {
+      console.error("Error parsing DOB:", e);
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    if (user?.dob) {
+      const birthdayToday = checkIsBirthday();
+      setIsBirthdayToday(birthdayToday);
+      
+      const dismissed = sessionStorage.getItem(`birthday_dismissed_${user.id}`);
+      if (birthdayToday && !dismissed) {
+        setShowBirthdayModal(true);
+      }
+    }
+  }, [user]);
+
+  const renderBirthdayModal = () => {
+    if (!showBirthdayModal || !user) return null;
+
+    return (
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div className="relative w-full max-w-2xl bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-900 text-white rounded-[40px] shadow-2xl overflow-hidden border border-white/20 p-8 text-center animate-in zoom-in-95 duration-500">
+          <div className="absolute top-8 left-8 text-pink-400 text-3xl animate-bounce">🎈</div>
+          <div className="absolute top-12 right-12 text-purple-400 text-3xl animate-bounce delay-150">🎉</div>
+          <div className="absolute bottom-16 left-16 text-yellow-450 text-3xl animate-bounce delay-300">🎂</div>
+          <div className="absolute bottom-12 right-12 text-sky-400 text-3xl animate-bounce delay-75">🎁</div>
+
+          <div className="space-y-6 my-6">
+            <div className="inline-flex p-5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 mb-2">
+              <span className="text-5xl animate-bounce">👑</span>
+            </div>
+            
+            <h1 className="text-5xl font-black tracking-tight bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-transparent drop-shadow-md">
+              HAPPY BIRTHDAY!
+            </h1>
+            
+            <div className="h-1 bg-amber-500/40 w-32 mx-auto rounded-full" />
+
+            <h2 className="text-3xl font-extrabold capitalize text-white tracking-wide">
+              {user.username}
+            </h2>
+
+            {user.designation && (
+              <p className="text-indigo-300 text-sm font-semibold tracking-wider uppercase">
+                {user.designation}
+              </p>
+            )}
+
+            <p className="text-slate-200 text-base max-w-md mx-auto leading-relaxed font-inter font-medium pt-2">
+              HIG AI Automation LLP wishes you a wonderful birthday! May your day be filled with celebration, joy, and a fantastic year of accomplishments ahead. 🌟
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setShowBirthdayModal(false);
+              sessionStorage.setItem(`birthday_dismissed_${user.id}`, 'true');
+            }}
+            className="mt-6 px-8 py-3.5 rounded-2xl bg-amber-500 text-slate-950 font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-amber-500/20 cursor-pointer"
+          >
+            Thank You! 🎉
+          </button>
+        </div>
+      </div>
+    );
+  };
   
   // Credentials States
   const [activeProject, setActiveProject] = useState<Project | null>(null);
@@ -693,6 +784,7 @@ export default function DashboardPage() {
 
     return (
       <DashboardLayout>
+        {renderBirthdayModal()}
         <div className="font-sans min-h-screen pb-12 space-y-8 bg-slate-50 -mx-8 -my-8 p-8 text-slate-800 border-l border-slate-200">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
@@ -1154,6 +1246,7 @@ export default function DashboardPage() {
   // 2. ADMIN/SUPERADMIN DASHBOARD LAYOUT (CURRENT STANDARD)
   return (
     <DashboardLayout>
+      {renderBirthdayModal()}
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold text-primary tracking-tight">System Overview</h1>

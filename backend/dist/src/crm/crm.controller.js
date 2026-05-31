@@ -29,11 +29,32 @@ let CrmController = class CrmController {
     async getLeads(req) {
         return this.crmService.getLeads(req.user.tenantId);
     }
+    async updateLead(id, body, req) {
+        return this.crmService.updateLead(req.user.tenantId, id, body);
+    }
+    async deleteLead(id, req) {
+        return this.crmService.deleteLead(req.user.tenantId, id);
+    }
+    async createFollowUp(body, req) {
+        return this.crmService.createFollowUp(req.user.tenantId, body);
+    }
+    async getFollowUps(req) {
+        return this.crmService.getFollowUps(req.user.tenantId);
+    }
+    async deleteFollowUp(id, req) {
+        return this.crmService.deleteFollowUp(req.user.tenantId, id);
+    }
     async createPackage(body, req) {
         return this.crmService.createPackage(req.user.tenantId, body);
     }
     async getPackages(req) {
         return this.crmService.getPackages(req.user.tenantId);
+    }
+    async updatePackage(id, body, req) {
+        return this.crmService.updatePackage(req.user.tenantId, id, body);
+    }
+    async deletePackage(id, req) {
+        return this.crmService.deletePackage(req.user.tenantId, id);
     }
     async generateQuote(leadId, packageId, req) {
         return this.crmService.generateQuote(req.user.tenantId, leadId, packageId);
@@ -58,6 +79,51 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CrmController.prototype, "getLeads", null);
 __decorate([
+    (0, common_1.Put)('leads/:id'),
+    (0, roles_decorator_1.Roles)('admin', 'sales'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], CrmController.prototype, "updateLead", null);
+__decorate([
+    (0, common_1.Delete)('leads/:id'),
+    (0, roles_decorator_1.Roles)('admin', 'sales'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], CrmController.prototype, "deleteLead", null);
+__decorate([
+    (0, common_1.Post)('followups'),
+    (0, roles_decorator_1.Roles)('admin', 'sales'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], CrmController.prototype, "createFollowUp", null);
+__decorate([
+    (0, common_1.Get)('followups'),
+    (0, roles_decorator_1.Roles)('admin', 'sales'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CrmController.prototype, "getFollowUps", null);
+__decorate([
+    (0, common_1.Delete)('followups/:id'),
+    (0, roles_decorator_1.Roles)('admin', 'sales'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], CrmController.prototype, "deleteFollowUp", null);
+__decorate([
     (0, common_1.Post)('packages'),
     (0, roles_decorator_1.Roles)('admin'),
     __param(0, (0, common_1.Body)()),
@@ -74,6 +140,25 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], CrmController.prototype, "getPackages", null);
+__decorate([
+    (0, common_1.Put)('packages/:id'),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], CrmController.prototype, "updatePackage", null);
+__decorate([
+    (0, common_1.Delete)('packages/:id'),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], CrmController.prototype, "deletePackage", null);
 __decorate([
     (0, common_1.Post)('leads/:id/quote'),
     (0, roles_decorator_1.Roles)('admin', 'sales'),

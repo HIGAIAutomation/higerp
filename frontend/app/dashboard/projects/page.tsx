@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import { fetchWithAuth } from '@/lib/api';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useUndo } from '@/components/providers/undo-provider';
 import { 
   Briefcase, 
   Plus, 
@@ -64,8 +65,23 @@ interface GeneratedDoc {
   };
 }
 
+interface PricingTier {
+  id: string;
+  name: string;
+  price: number;
+}
+
+interface Package {
+  id: string;
+  name: string;
+  description: string | null;
+  basePrice: number;
+  tiers: PricingTier[];
+}
+
 export default function ProjectsPage() {
   const { user } = useAuth();
+  const { showUndo } = useUndo();
   const isSuperAdmin = user?.role === 'superadmin';
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -79,6 +95,11 @@ export default function ProjectsPage() {
 
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+
+  // Service Catalog states
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>('');
+  const [selectedPricingModel, setSelectedPricingModel] = useState<string>('base');
 
   // Module Details States for Create/Edit Form
   const [moduleInputs, setModuleInputs] = useState<{ name: string; price: string; description: string; completed: boolean }[]>([]);
@@ -318,9 +339,52 @@ export default function ProjectsPage() {
     }
   };
 
+  const fetchPackages = async () => {
+    try {
+      const data = await fetchWithAuth('/crm/packages');
+      setPackages(data);
+    } catch (err) {
+      console.error('Failed to load packages', err);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
+    fetchPackages();
   }, []);
+
+  const handlePackageChange = (packageId: string) => {
+    setSelectedPackageId(packageId);
+    if (!packageId) {
+      setSelectedPricingModel('base');
+      return;
+    }
+    const pkg = packages.find(p => p.id === packageId);
+    if (pkg) {
+      setForm(prev => ({
+        ...prev,
+        name: pkg.name,
+        description: pkg.description || '',
+        price: String(pkg.basePrice)
+      }));
+      setSelectedPricingModel('base');
+    }
+  };
+
+  const handlePricingModelChange = (modelName: string) => {
+    setSelectedPricingModel(modelName);
+    const pkg = packages.find(p => p.id === selectedPackageId);
+    if (!pkg) return;
+    
+    if (modelName === 'base') {
+      setForm(prev => ({ ...prev, price: String(pkg.basePrice) }));
+    } else {
+      const tier = pkg.tiers?.find(t => t.name === modelName);
+      if (tier) {
+        setForm(prev => ({ ...prev, price: String(tier.price) }));
+      }
+    }
+  };
 
   const handleDownloadDoc = async (docId: string, docName: string) => {
     const { downloadPdf } = await import('@/lib/download-pdf');
@@ -360,6 +424,8 @@ export default function ProjectsPage() {
         projectInclusions: '',
       });
       setModuleInputs([]);
+      setSelectedPackageId('');
+      setSelectedPricingModel('base');
 
       await fetchProjects();
     } catch (err: any) {
@@ -472,6 +538,8 @@ export default function ProjectsPage() {
   };
 
   const handleDelete = async (id: string) => {
+    const proj = projects.find(p => p.id === id);
+    if (!proj) return;
     try {
       setDeleting(true);
       setError(null);
@@ -480,6 +548,31 @@ export default function ProjectsPage() {
       });
       setProjectToDelete(null);
       await fetchProjects();
+
+      showUndo(`Project "${proj.name}" has been deleted.`, async () => {
+        await fetchWithAuth('/projects', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: proj.name,
+            clientName: proj.clientName || '',
+            description: proj.description || '',
+            category: proj.category || 'Web/App Development',
+            startDate: proj.startDate ? proj.startDate.split('T')[0] : '',
+            endDate: proj.endDate ? proj.endDate.split('T')[0] : '',
+            whatsappNumber: proj.whatsappNumber || '',
+            price: proj.price !== undefined ? String(proj.price) : '',
+            modules: proj.modules || '',
+            postCount: proj.postCount !== undefined ? String(proj.postCount) : '0',
+            videoCount: proj.videoCount !== undefined ? String(proj.videoCount) : '0',
+            clientUsername: proj.client?.username || '',
+            clientPassword: '',
+            platforms: proj.platforms || '',
+            projectInclusions: (proj as any).projectInclusions || '',
+            moduleDetails: proj.moduleDetails
+          }),
+        });
+        await fetchProjects();
+      });
     } catch (err) {
       console.error(err);
       setError('Failed to delete project. Please ensure the backend is running.');
@@ -552,6 +645,54 @@ export default function ProjectsPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CHOOSE SERVICE/PRODUCT TEMPLATE</label>
+                <div className="relative">
+                  <select
+                    value={selectedPackageId}
+                    onChange={(e) => handlePackageChange(e.target.value)}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold cursor-pointer appearance-none"
+                  >
+                    <option value="">-- Select a Service/Product (Optional) --</option>
+                    {packages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name} (Base License: ₹{pkg.basePrice})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-muted-foreground">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {selectedPackageId && (
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">PRICING MODEL</label>
+                  <div className="relative">
+                    <select
+                      value={selectedPricingModel}
+                      onChange={(e) => handlePricingModelChange(e.target.value)}
+                      className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold cursor-pointer appearance-none"
+                    >
+                      <option value="base">Base License Fee (₹{packages.find(p => p.id === selectedPackageId)?.basePrice})</option>
+                      {packages.find(p => p.id === selectedPackageId)?.tiers?.map((tier) => (
+                        <option key={tier.id} value={tier.name}>
+                          {tier.name} Charges (₹{tier.price})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-muted-foreground">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">PROJECT NAME</label>
                 <input

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogIn, UserPlus, Shield } from "lucide-react";
+import HIGLogo from "@/components/logo";
 
 const modules = [
   { name: 'HRMS', href: '/dashboard/hrms' },
@@ -15,7 +16,7 @@ export default function Home() {
       <header className="absolute top-6 left-6 right-6 z-50">
         <div className="max-w-7xl mx-auto glass border border-primary/10 px-6 py-4 rounded-2xl flex items-center justify-between shadow-lg">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary flex items-center gap-2">
-            <img src="/logo.png" alt="HIG Logo" className="h-8 object-contain rounded-lg" />
+            <HIGLogo size={32} className="rounded-lg" />
             HIG AI <span className="text-accent font-semibold">ERP</span>
           </Link>
           <div className="flex items-center gap-3">

@@ -113,17 +113,36 @@ model GeneratedDocument {
 }
 
 model Lead {
+  id                String   @id @default(uuid()) @map("_id")
+  tenantId          String
+  companyName       String?
+  contact           String?
+  source            String?
+  status            String   @default("new")
+  assignedTo        String?
+  valEstimate       Float?
+  
+  // Intake requirement fields
+  uniqueId          String?
+  interestedService String?
+  requirements      String?
+  metadata          Json?
+  
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+  opportunities     Opportunity[]
+  followUps         FollowUp[]
+}
+
+model FollowUp {
   id          String   @id @default(uuid()) @map("_id")
   tenantId    String
-  companyName String?
-  contact     String?
-  source      String?
-  status      String   @default("new")
-  assignedTo  String?
-  valEstimate Float?
+  leadId      String
+  dateTime    DateTime
+  endDateTime DateTime?
+  notes       String?
+  synced      Boolean  @default(false)
   
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  opportunities Opportunity[]
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
 }
 
 model Opportunity {

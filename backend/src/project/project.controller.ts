@@ -16,15 +16,15 @@ export class ProjectController {
   }
 
   @Get()
-  @Roles('admin', 'project_manager', 'user')
+  @Roles('admin', 'project_manager', 'user', 'client')
   async getProjects(@Request() req: any) {
     return this.projectService.getProjects(req.user.tenantId);
   }
 
   @Put(':id')
-  @Roles('superadmin', 'user')
+  @Roles('superadmin', 'user', 'client')
   async updateProject(@Param('id') id: string, @Body() body: any, @Request() req: any) {
-    if (req.user.role === 'user') {
+    if (req.user.role === 'user' || req.user.role === 'client') {
       return this.projectService.updateProject(id, req.user.tenantId, body, req.user.userId);
     }
     return this.projectService.updateProject(id, req.user.tenantId, body);

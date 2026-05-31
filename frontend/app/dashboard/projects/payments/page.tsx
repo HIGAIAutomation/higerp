@@ -17,6 +17,7 @@ import {
   Check,
   Download
 } from 'lucide-react';
+import HIGLogo from '@/components/logo';
 
 interface Project {
   id: string;
@@ -341,7 +342,7 @@ export default function PaymentsPage() {
             <h1 className="text-3xl font-extrabold text-primary tracking-tight">Payment Control Centre</h1>
             <p className="text-sm text-muted-foreground mt-2 font-medium">Generate project invoices, dispatch WhatsApp reminders, and audit payment receipts.</p>
           </div>
-          <img src="/logo.png" alt="HIG Logo" className="h-12 object-contain hidden md:block rounded-xl border border-border shadow-sm" />
+          <HIGLogo size={48} className="hidden md:block rounded-xl border border-border shadow-sm" />
         </div>
 
         {error && (
@@ -463,7 +464,7 @@ export default function PaymentsPage() {
               {/* Bill Generator Form */}
               <div className="lg:col-span-4 bg-card rounded-[32px] p-8 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                 <div className="flex flex-col items-center mb-6">
-                  <img src="/logo.png" alt="HIG Logo" className="h-10 object-contain mb-3 rounded-xl border border-border shadow-sm" />
+                  <HIGLogo size={40} className="mb-3 rounded-xl border border-border shadow-sm" />
                   <div className="flex items-center space-x-2">
                     <Plus className="h-5 w-5 text-accent" strokeWidth={3} />
                     <h2 className="text-xl font-bold text-accent tracking-tight font-sans">Issue New Bill</h2>

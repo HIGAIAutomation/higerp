@@ -8,11 +8,15 @@ export declare class CrmService {
         id: string;
         tenantId: string;
         status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
         assignedTo: string | null;
         valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
     }>;
     createPackage(tenantId: string, data: any): Promise<{
         id: string;
@@ -41,16 +45,57 @@ export declare class CrmService {
             stage: string;
             expectedCloseDate: Date | null;
         }[];
+        followUps: {
+            id: string;
+            tenantId: string;
+            leadId: string;
+            dateTime: Date;
+            endDateTime: Date | null;
+            notes: string | null;
+            synced: boolean;
+        }[];
     } & {
         id: string;
         tenantId: string;
         status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
         assignedTo: string | null;
         valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
     })[]>;
+    updateLead(tenantId: string, id: string, data: any): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        companyName: string | null;
+        contact: string | null;
+        source: string | null;
+        assignedTo: string | null;
+        valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
+    }>;
+    deleteLead(tenantId: string, id: string): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        companyName: string | null;
+        contact: string | null;
+        source: string | null;
+        assignedTo: string | null;
+        valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
+    }>;
     getPackages(tenantId: string): Promise<({
         tiers: {
             id: string;
@@ -67,4 +112,89 @@ export declare class CrmService {
         basePrice: number;
         isActive: boolean;
     })[]>;
+    updatePackage(tenantId: string, id: string, data: any): Promise<{
+        id: string;
+        tenantId: string;
+        name: string;
+        description: string | null;
+        basePrice: number;
+        isActive: boolean;
+    }>;
+    deletePackage(tenantId: string, id: string): Promise<{
+        id: string;
+        tenantId: string;
+        name: string;
+        description: string | null;
+        basePrice: number;
+        isActive: boolean;
+    }>;
+    generateClientRequirementDocument(tenantId: string, leadId: string): Promise<{
+        id: string;
+        tenantId: string;
+        templateId: string | null;
+        entityType: string;
+        entityId: string;
+        filePath: string | null;
+        compiledHtml: string | null;
+        status: string;
+        createdAt: Date;
+    } | undefined>;
+    sendGoogleCalendarInvite(followUp: any): Promise<void>;
+    createFollowUp(tenantId: string, data: any): Promise<({
+        lead: {
+            id: string;
+            tenantId: string;
+            status: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            companyName: string | null;
+            contact: string | null;
+            source: string | null;
+            assignedTo: string | null;
+            valEstimate: number | null;
+            uniqueId: string | null;
+            interestedService: string | null;
+            requirements: string | null;
+        };
+    } & {
+        id: string;
+        tenantId: string;
+        leadId: string;
+        dateTime: Date;
+        endDateTime: Date | null;
+        notes: string | null;
+        synced: boolean;
+    }) | null>;
+    getFollowUps(tenantId: string): Promise<({
+        lead: {
+            id: string;
+            tenantId: string;
+            status: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            companyName: string | null;
+            contact: string | null;
+            source: string | null;
+            assignedTo: string | null;
+            valEstimate: number | null;
+            uniqueId: string | null;
+            interestedService: string | null;
+            requirements: string | null;
+        };
+    } & {
+        id: string;
+        tenantId: string;
+        leadId: string;
+        dateTime: Date;
+        endDateTime: Date | null;
+        notes: string | null;
+        synced: boolean;
+    })[]>;
+    deleteFollowUp(tenantId: string, id: string): Promise<{
+        id: string;
+        tenantId: string;
+        leadId: string;
+        dateTime: Date;
+        endDateTime: Date | null;
+        notes: string | null;
+        synced: boolean;
+    }>;
 }

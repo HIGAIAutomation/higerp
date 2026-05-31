@@ -101,6 +101,8 @@ export class AuthService {
     if (data.pageAccess !== undefined) updateData.pageAccess = data.pageAccess;
     if (data.role !== undefined) updateData.role = data.role;
     if (data.email !== undefined) updateData.email = data.email;
+    if (data.dob !== undefined) updateData.dob = data.dob;
+    if (data.address !== undefined) updateData.address = data.address;
 
     const user = await this.prisma.user.update({
       where: { id: userId, tenantId },

@@ -4,38 +4,38 @@ export declare class ProjectController {
     constructor(projectService: ProjectService);
     createProject(body: any, req: any): Promise<any>;
     getProjects(req: any): Promise<({
+        adCampaigns: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedAt: Date;
+            leads: number;
+            startDate: Date;
+            endDate: Date | null;
+            updatedBy: string;
+            projectId: string;
+            spend: number;
+        }[];
         client: {
             id: string;
             email: string | null;
             username: string;
             role: string;
         } | null;
-        adCampaigns: {
-            id: string;
-            tenantId: string;
-            createdAt: Date;
-            name: string;
-            startDate: Date;
-            endDate: Date | null;
-            projectId: string;
-            spend: number;
-            leads: number;
-            updatedBy: string;
-            updatedAt: Date;
-        }[];
     } & {
         id: string;
         tenantId: string;
+        status: string;
         name: string;
-        clientId: string | null;
-        clientName: string | null;
         category: string;
         description: string | null;
+        price: number;
+        clientId: string | null;
+        clientName: string | null;
         startDate: Date | null;
         endDate: Date | null;
-        status: string;
         whatsappNumber: string | null;
-        price: number;
         modules: string | null;
         platforms: string | null;
         deliveryCode: boolean;
@@ -53,16 +53,16 @@ export declare class ProjectController {
     deleteProject(id: string, req: any): Promise<{
         id: string;
         tenantId: string;
+        status: string;
         name: string;
-        clientId: string | null;
-        clientName: string | null;
         category: string;
         description: string | null;
+        price: number;
+        clientId: string | null;
+        clientName: string | null;
         startDate: Date | null;
         endDate: Date | null;
-        status: string;
         whatsappNumber: string | null;
-        price: number;
         modules: string | null;
         platforms: string | null;
         deliveryCode: boolean;
