@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/auth-provider';
 import { KeyRound, User, Calendar, MapPin, AlertCircle, CheckCircle2 } from 'lucide-react';
+import HIGLogo from '@/components/logo';
 
 export default function RegisterPage() {
   const { register, user, loading } = useAuth();
@@ -53,7 +54,7 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="text-center mb-8 flex flex-col items-center">
-          <img src="/logo.png" alt="HIG Logo" className="h-16 object-contain mb-4 rounded-2xl shadow-md border border-slate-200 bg-white p-1" />
+          <HIGLogo size={64} className="mb-4 rounded-2xl shadow-md border border-slate-200 bg-white p-1" />
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
             Create Account
           </h1>

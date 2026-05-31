@@ -6,11 +6,15 @@ export declare class CrmController {
         id: string;
         tenantId: string;
         status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
         assignedTo: string | null;
         valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
     }>;
     getLeads(req: any): Promise<({
         opportunities: {
@@ -20,16 +24,114 @@ export declare class CrmController {
             stage: string;
             expectedCloseDate: Date | null;
         }[];
+        followUps: {
+            id: string;
+            tenantId: string;
+            leadId: string;
+            dateTime: Date;
+            endDateTime: Date | null;
+            notes: string | null;
+            synced: boolean;
+        }[];
     } & {
         id: string;
         tenantId: string;
         status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
         assignedTo: string | null;
         valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
     })[]>;
+    updateLead(id: string, body: any, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        companyName: string | null;
+        contact: string | null;
+        source: string | null;
+        assignedTo: string | null;
+        valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
+    }>;
+    deleteLead(id: string, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        status: string;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        companyName: string | null;
+        contact: string | null;
+        source: string | null;
+        assignedTo: string | null;
+        valEstimate: number | null;
+        uniqueId: string | null;
+        interestedService: string | null;
+        requirements: string | null;
+    }>;
+    createFollowUp(body: any, req: any): Promise<({
+        lead: {
+            id: string;
+            tenantId: string;
+            status: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            companyName: string | null;
+            contact: string | null;
+            source: string | null;
+            assignedTo: string | null;
+            valEstimate: number | null;
+            uniqueId: string | null;
+            interestedService: string | null;
+            requirements: string | null;
+        };
+    } & {
+        id: string;
+        tenantId: string;
+        leadId: string;
+        dateTime: Date;
+        endDateTime: Date | null;
+        notes: string | null;
+        synced: boolean;
+    }) | null>;
+    getFollowUps(req: any): Promise<({
+        lead: {
+            id: string;
+            tenantId: string;
+            status: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            companyName: string | null;
+            contact: string | null;
+            source: string | null;
+            assignedTo: string | null;
+            valEstimate: number | null;
+            uniqueId: string | null;
+            interestedService: string | null;
+            requirements: string | null;
+        };
+    } & {
+        id: string;
+        tenantId: string;
+        leadId: string;
+        dateTime: Date;
+        endDateTime: Date | null;
+        notes: string | null;
+        synced: boolean;
+    })[]>;
+    deleteFollowUp(id: string, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        leadId: string;
+        dateTime: Date;
+        endDateTime: Date | null;
+        notes: string | null;
+        synced: boolean;
+    }>;
     createPackage(body: any, req: any): Promise<{
         id: string;
         tenantId: string;
@@ -54,6 +156,22 @@ export declare class CrmController {
         basePrice: number;
         isActive: boolean;
     })[]>;
+    updatePackage(id: string, body: any, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        name: string;
+        description: string | null;
+        basePrice: number;
+        isActive: boolean;
+    }>;
+    deletePackage(id: string, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        name: string;
+        description: string | null;
+        basePrice: number;
+        isActive: boolean;
+    }>;
     generateQuote(leadId: string, packageId: string, req: any): Promise<{
         id: string;
         tenantId: string;

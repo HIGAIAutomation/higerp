@@ -17,7 +17,10 @@ import {
   Loader2, 
   AlertCircle, 
   Lock,
-  UserCheck
+  UserCheck,
+  Mail,
+  Calendar,
+  MapPin
 } from 'lucide-react';
 
 interface UserItem {
@@ -57,6 +60,9 @@ export default function AccessControlPage() {
   const [editSalary, setEditSalary] = useState('');
   const [editRole, setEditRole] = useState('user');
   const [editPageAccess, setEditPageAccess] = useState<string[]>([]);
+  const [editEmail, setEditEmail] = useState('');
+  const [editDob, setEditDob] = useState('');
+  const [editAddress, setEditAddress] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -98,6 +104,9 @@ export default function AccessControlPage() {
     setEditSalary(user.salary ? String(user.salary) : '');
     setEditRole(user.role);
     setEditPageAccess(user.pageAccess || []);
+    setEditEmail(user.email || '');
+    setEditDob(user.dob || '');
+    setEditAddress(user.address || '');
     setSaveSuccess(false);
   };
 
@@ -124,7 +133,10 @@ export default function AccessControlPage() {
           designation: editDesignation || null,
           salary: editSalary === '' ? null : Number(editSalary),
           role: editRole,
-          pageAccess: editPageAccess,
+          pageAccess: editRole === 'client' ? ['/dashboard/projects'] : editPageAccess,
+          email: editEmail || null,
+          dob: editDob || null,
+          address: editAddress || null,
         }),
       });
 
@@ -216,6 +228,8 @@ export default function AccessControlPage() {
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
                               u.role === 'superadmin' 
                                 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' 
+                                : u.role === 'client'
+                                ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20'
                                 : 'bg-secondary text-muted-foreground'
                             }`}>
                               {u.role === 'superadmin' && <Shield className="h-3 w-3" />}
@@ -339,6 +353,63 @@ export default function AccessControlPage() {
                           </div>
                         </div>
 
+                        {/* Email Input */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                            Email Address
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/70">
+                              <Mail className="h-4 w-4" />
+                            </div>
+                            <input
+                              type="email"
+                              placeholder="e.g. user@example.com"
+                              value={editEmail}
+                              onChange={(e) => setEditEmail(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-border rounded-xl text-primary placeholder-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Date of Birth Input */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                            Date of Birth
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/70">
+                              <Calendar className="h-4 w-4" />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="e.g. YYYY-MM-DD"
+                              value={editDob}
+                              onChange={(e) => setEditDob(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-border rounded-xl text-primary placeholder-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Address Input */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                            Address
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/70">
+                              <MapPin className="h-4 w-4" />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="e.g. City, Country"
+                              value={editAddress}
+                              onChange={(e) => setEditAddress(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-border rounded-xl text-primary placeholder-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                            />
+                          </div>
+                        </div>
+
                         {/* System Role */}
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
@@ -346,10 +417,17 @@ export default function AccessControlPage() {
                           </label>
                           <select
                             value={editRole}
-                            onChange={(e) => setEditRole(e.target.value)}
+                            onChange={(e) => {
+                              const newRole = e.target.value;
+                              setEditRole(newRole);
+                              if (newRole === 'client') {
+                                setEditPageAccess(['/dashboard/projects']);
+                              }
+                            }}
                             className="w-full px-3.5 py-2.5 bg-secondary border border-border rounded-xl text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                           >
                             <option value="user">User</option>
+                            <option value="client">Client</option>
                             <option value="superadmin">Super Admin</option>
                           </select>
                         </div>
@@ -363,11 +441,20 @@ export default function AccessControlPage() {
                             <div className="space-y-2 bg-secondary/30 p-4 border border-border rounded-2xl max-h-[220px] overflow-y-auto">
                               {AVAILABLE_MODULES.map((m) => {
                                 const isChecked = editPageAccess.includes(m.path);
+                                const isDisabled = editRole === 'client' && m.path !== '/dashboard/projects';
                                 return (
                                   <div 
                                     key={m.path}
-                                    onClick={() => handleToggleModule(m.path)}
-                                    className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-secondary/70 transition-colors cursor-pointer select-none"
+                                    onClick={() => {
+                                      if (!isDisabled) {
+                                        handleToggleModule(m.path);
+                                      }
+                                    }}
+                                    className={`flex items-center gap-3 py-1.5 px-2 rounded-lg transition-colors select-none ${
+                                      isDisabled 
+                                        ? 'opacity-50 cursor-not-allowed bg-secondary/20' 
+                                        : 'hover:bg-secondary/70 cursor-pointer'
+                                    }`}
                                   >
                                     {isChecked ? (
                                       <CheckSquare className="h-5 w-5 text-accent flex-shrink-0" />

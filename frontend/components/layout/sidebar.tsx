@@ -21,6 +21,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import HIGLogo from "@/components/logo";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -40,6 +41,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const [projectsExpanded, setProjectsExpanded] = useState(pathname.startsWith("/dashboard/projects"));
   const [hrmsExpanded, setHrmsExpanded] = useState(pathname.startsWith("/dashboard/hrms"));
+  const [crmExpanded, setCrmExpanded] = useState(pathname.startsWith("/dashboard/crm"));
 
   const isSuperAdmin = user?.role === 'superadmin';
   const pageAccessList = user?.pageAccess || [];
@@ -47,14 +49,18 @@ export function Sidebar() {
   // Filter navigation links
   const visibleNavigation = navigation
     .map((item) => {
-      if (item.href === "/dashboard" && user?.role === "user") {
+      if (item.href === "/dashboard" && (user?.role === "user" || user?.role === "client")) {
         return { ...item, name: "Project Track" };
       }
       return item;
     })
     .filter((item) => {
       if (item.href === "/dashboard") return true; // Everyone sees Dashboard home
-      if (user?.role === "user") return false; // Clients should not see any other sidebar tabs!
+      if (user?.role === "user") return false; // Standard user sees no other tabs
+      if (user?.role === "client") {
+        // Clients should only see tabs explicitly in their pageAccessList (e.g. /dashboard/projects)
+        return pageAccessList.includes(item.href);
+      }
       if (isSuperAdmin) return true; // Super Admin sees everything
       return pageAccessList.includes(item.href); // Normal users see what they are allowed
     });
@@ -75,7 +81,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full w-64 flex-col bg-card text-foreground border-r border-border shadow-2xl">
       <div className="flex h-20 items-center px-6 gap-3">
-        <img src="/logo.png" alt="HIG Logo" className="h-9 object-contain rounded-lg border border-border shadow-sm" />
+        <HIGLogo size={36} className="rounded-lg" />
         <span className="text-xl font-bold tracking-tight text-foreground">
           AI <span className="text-accent font-semibold">ERP</span>
         </span>
@@ -139,6 +145,17 @@ export function Sidebar() {
                       )}
                     >
                       Payroll Tracking
+                    </Link>
+                    <Link
+                      href="/dashboard/hrms/birthdays"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/hrms/birthdays"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Birthdays & Posters
                     </Link>
                   </div>
                 )}
@@ -241,6 +258,81 @@ export function Sidebar() {
                         </Link>
                       </>
                     )}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (item.href === "/dashboard/crm") {
+            return (
+              <div key={item.name} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => setCrmExpanded(!crmExpanded)}
+                  className={cn(
+                    "w-full group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 cursor-pointer",
+                    pathname.startsWith("/dashboard/crm")
+                      ? "bg-accent/10 text-accent shadow-inner"
+                      : "text-foreground/70 hover:bg-accent/5 hover:text-foreground"
+                  )}
+                >
+                  <div className="flex items-center">
+                    <item.icon className="mr-3 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                    {item.name}
+                  </div>
+                  {crmExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-foreground/50" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-foreground/50" />
+                  )}
+                </button>
+                {crmExpanded && (
+                  <div className="pl-8 space-y-1 pr-2 transition-all duration-200">
+                    <Link
+                      href="/dashboard/crm"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/crm"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Sales Pipeline
+                    </Link>
+                    <Link
+                      href="/dashboard/crm/services"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/crm/services"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Available Services
+                    </Link>
+                    <Link
+                      href="/dashboard/crm/followups"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/crm/followups"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Follow Ups
+                    </Link>
+                    <Link
+                      href="/dashboard/crm/closed-leads"
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
+                        pathname === "/dashboard/crm/closed-leads"
+                          ? "text-accent bg-accent/5 font-bold"
+                          : "text-foreground/60 hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      Closed Leads
+                    </Link>
                   </div>
                 )}
               </div>

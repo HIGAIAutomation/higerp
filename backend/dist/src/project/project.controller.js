@@ -30,7 +30,7 @@ let ProjectController = class ProjectController {
         return this.projectService.getProjects(req.user.tenantId);
     }
     async updateProject(id, body, req) {
-        if (req.user.role === 'user') {
+        if (req.user.role === 'user' || req.user.role === 'client') {
             return this.projectService.updateProject(id, req.user.tenantId, body, req.user.userId);
         }
         return this.projectService.updateProject(id, req.user.tenantId, body);
@@ -51,7 +51,7 @@ __decorate([
 ], ProjectController.prototype, "createProject", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)('admin', 'project_manager', 'user'),
+    (0, roles_decorator_1.Roles)('admin', 'project_manager', 'user', 'client'),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -59,7 +59,7 @@ __decorate([
 ], ProjectController.prototype, "getProjects", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, roles_decorator_1.Roles)('superadmin', 'user'),
+    (0, roles_decorator_1.Roles)('superadmin', 'user', 'client'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
