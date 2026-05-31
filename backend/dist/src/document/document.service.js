@@ -187,6 +187,54 @@ let DocumentService = class DocumentService {
             data: { tenantId, name, category, contentHtml },
         });
     }
+    async signDocument(tenantId, id, signatureData) {
+        const doc = await this.prisma.generatedDocument.findFirst({
+            where: { id, tenantId },
+        });
+        if (!doc || !doc.compiledHtml) {
+            throw new Error('Document not found or cannot be signed.');
+        }
+        let updatedHtml = doc.compiledHtml;
+        const signatureHtml = `<div style="margin-top: 10px; margin-bottom: 10px;"><img src="${signatureData}" alt="Signature" style="max-height: 80px; width: auto; object-fit: contain;" /></div>`;
+        if (updatedHtml.includes('<div class="sig-line client-sig-line"></div>')) {
+            updatedHtml = updatedHtml.replace('<div class="sig-line client-sig-line"></div>', `<div class="sig-line client-sig-line" style="border-bottom: none;">${signatureHtml}</div><div class="sig-line" style="margin-top: 5px;"></div>`);
+        }
+        else if (updatedHtml.includes('<div class="sig-line"></div>')) {
+            const searchStr = '<div class="sig-line"></div>';
+            const lastIndex = updatedHtml.lastIndexOf(searchStr);
+            if (lastIndex !== -1) {
+                updatedHtml = updatedHtml.substring(0, lastIndex) +
+                    `<div class="sig-line" style="border-bottom: none;">${signatureHtml}</div><div class="sig-line" style="margin-top: 5px;"></div>` +
+                    updatedHtml.substring(lastIndex + searchStr.length);
+            }
+        }
+        else {
+            updatedHtml = updatedHtml + `<div class="injected-signature" style="page-break-inside: avoid; text-align: right; padding-right: 50px; margin-top: 50px;">
+        <p><strong>Authorized E-Signature</strong></p>
+        ${signatureHtml}
+        <p>Date: ${new Date().toLocaleDateString()}</p>
+      </div>`;
+        }
+        const response = await this.prisma.$runCommandRaw({
+            update: 'GeneratedDocument',
+            updates: [
+                {
+                    q: { _id: id, tenantId },
+                    u: {
+                        $set: {
+                            compiledHtml: updatedHtml,
+                            status: 'signed',
+                            signatureData: signatureData,
+                            signedAt: { $date: new Date().toISOString() }
+                        }
+                    }
+                }
+            ]
+        });
+        return this.prisma.generatedDocument.findFirst({
+            where: { id, tenantId },
+        });
+    }
 };
 exports.DocumentService = DocumentService;
 exports.DocumentService = DocumentService = __decorate([

@@ -53,6 +53,13 @@ let MarketingController = class MarketingController {
     async upsertSpecialDayPoster(projectId, body, req) {
         return this.marketingService.upsertSpecialDayPoster(req.user.tenantId, projectId, body, req.user.username);
     }
+    async getContentSheet(projectId, month, req) {
+        const sheet = await this.marketingService.getContentSheet(req.user.tenantId, projectId, month);
+        return sheet || { items: [], statuses: {}, campaigns: {} };
+    }
+    async upsertContentSheet(projectId, month, body, req) {
+        return this.marketingService.upsertContentSheet(req.user.tenantId, projectId, month, body);
+    }
 };
 exports.MarketingController = MarketingController;
 __decorate([
@@ -150,6 +157,27 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], MarketingController.prototype, "upsertSpecialDayPoster", null);
+__decorate([
+    (0, common_1.Get)(':projectId/sheets'),
+    (0, roles_decorator_1.Roles)('admin', 'project_manager', 'user', 'superadmin'),
+    __param(0, (0, common_1.Param)('projectId')),
+    __param(1, (0, common_1.Query)('month')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], MarketingController.prototype, "getContentSheet", null);
+__decorate([
+    (0, common_1.Post)(':projectId/sheets'),
+    (0, roles_decorator_1.Roles)('admin', 'project_manager', 'user', 'superadmin'),
+    __param(0, (0, common_1.Param)('projectId')),
+    __param(1, (0, common_1.Query)('month')),
+    __param(2, (0, common_1.Body)()),
+    __param(3, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], MarketingController.prototype, "upsertContentSheet", null);
 exports.MarketingController = MarketingController = __decorate([
     (0, common_1.Controller)('marketing'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),

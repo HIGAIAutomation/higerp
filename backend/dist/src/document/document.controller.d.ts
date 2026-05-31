@@ -20,6 +20,8 @@ export declare class DocumentController {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     })[]>;
     downloadDocument(id: string, req: any, res: any): Promise<void>;
@@ -46,6 +48,23 @@ export declare class DocumentController {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     }) | null>;
+    signDocument(id: string, body: {
+        signatureData: string;
+    }, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        templateId: string | null;
+        entityType: string;
+        entityId: string;
+        filePath: string | null;
+        compiledHtml: string | null;
+        status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
+        createdAt: Date;
+    } | null>;
 }

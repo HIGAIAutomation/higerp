@@ -63,6 +63,8 @@ export declare class CrmController {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     }>;
 }

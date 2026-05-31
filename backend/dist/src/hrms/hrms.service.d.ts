@@ -9,10 +9,10 @@ export declare class HrmsService {
         tenantId: string;
         status: string;
         createdAt: Date;
-        firstName: string;
-        lastName: string;
         email: string;
         designation: string | null;
+        firstName: string;
+        lastName: string;
         salaryBasis: number | null;
         joiningDate: Date | null;
         profDocNumber: string | null;
@@ -26,10 +26,10 @@ export declare class HrmsService {
             tenantId: string;
             status: string;
             createdAt: Date;
-            firstName: string;
-            lastName: string;
             email: string;
             designation: string | null;
+            firstName: string;
+            lastName: string;
             salaryBasis: number | null;
             joiningDate: Date | null;
             profDocNumber: string | null;
@@ -45,6 +45,8 @@ export declare class HrmsService {
             filePath: string | null;
             compiledHtml: string | null;
             status: string;
+            signatureData: string | null;
+            signedAt: Date | null;
             createdAt: Date;
         };
     }>;
@@ -57,6 +59,8 @@ export declare class HrmsService {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     }>;
 }

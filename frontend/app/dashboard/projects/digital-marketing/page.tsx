@@ -32,7 +32,9 @@ import {
   CheckCircle,
   ArrowRight,
   Lightbulb,
-  HelpCircle
+  HelpCircle,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 // Inline Branded Platform SVG Icons to bypass lucide-react missing export issues
@@ -440,6 +442,7 @@ const MAHARAJA_CATERING_DATA: ContentSheetItem[] = [
 
 export default function DigitalMarketingPage() {
   const { user } = useAuth();
+  const isEmployee = user?.role === 'superadmin' || user?.role === 'admin' || user?.role === 'project_manager';
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -451,6 +454,7 @@ export default function DigitalMarketingPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("2026-06"); // Set target month default
   const [activePlatform, setActivePlatform] = useState<'instagram' | 'fb' | 'youtube'>('instagram');
   const [activeTab, setActiveTab] = useState<'operations' | 'chatgpt'>('operations');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   // Operations States - Synced to LocalStorage per project & month
   const [contentItems, setContentItems] = useState<ContentSheetItem[]>([]);
@@ -460,6 +464,10 @@ export default function DigitalMarketingPage() {
   // Drag over files state
   const [dragActive, setDragActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Inline row editing states
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<ContentSheetItem>>({});
 
   // Interactive ChatBot States
   const [chatOpen, setChatOpen] = useState(false);
@@ -650,104 +658,102 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
     fetchAllProjects();
   }, []);
 
-  // Sync state with LocalStorage on Project or Month change
+  // Fetch month-wise content sheet from database
+  const fetchContentSheet = async (projectId: string, month: string) => {
+    if (!projectId || !month) return;
+    try {
+      setLoading(true);
+      const data = await fetchWithAuth(`/marketing/${projectId}/sheets?month=${month}`);
+      
+      if (data && data.items) {
+        setContentItems(data.items || []);
+        setPlatformStatuses(data.statuses || {});
+        setCampaignStatuses(data.campaigns || {});
+      } else {
+        // Fallback: check if Maharaja Catering is selected to seed initial demo data
+        const currentProj = projects.find(p => p.id === projectId);
+        if (currentProj?.name.toLowerCase().includes('catering') || projectId === 'maharaja-catering-fallback-id') {
+          setContentItems(MAHARAJA_CATERING_DATA);
+          
+          // Seed initial realistic statuses
+          const initialMap: Record<string, 'inprogress' | 'completed' | 'posted'> = {};
+          const initialCampMap: Record<string, 'inprogress' | 'running'> = {};
+          MAHARAJA_CATERING_DATA.forEach((item, idx) => {
+            if (idx < 5) {
+              initialMap[`${item.id}_instagram`] = 'posted';
+              initialMap[`${item.id}_fb`] = 'posted';
+              initialMap[`${item.id}_youtube`] = 'completed';
+            } else if (idx < 10) {
+              initialMap[`${item.id}_instagram`] = 'completed';
+              initialMap[`${item.id}_fb`] = 'inprogress';
+              initialMap[`${item.id}_youtube`] = 'inprogress';
+            } else {
+              initialMap[`${item.id}_instagram`] = 'inprogress';
+              initialMap[`${item.id}_fb`] = 'inprogress';
+              initialMap[`${item.id}_youtube`] = 'inprogress';
+            }
+            if (item.runAdCampaign === 'YES') {
+              initialCampMap[item.id] = item.id === 'mc_1' || item.id === 'mc_2' ? 'running' : 'inprogress';
+            }
+          });
+          setPlatformStatuses(initialMap);
+          setCampaignStatuses(initialCampMap);
+          
+          // Save demo data to database so it exists there from now on
+          await saveStateToStorage(MAHARAJA_CATERING_DATA, initialMap, initialCampMap, projectId, month);
+        } else {
+          setContentItems([]);
+          setPlatformStatuses({});
+          setCampaignStatuses({});
+        }
+      }
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch content sheet:', err);
+      setContentItems([]);
+      setPlatformStatuses({});
+      setCampaignStatuses({});
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!selectedProjectId) return;
-
-    const storageKeyItems = `higerp_sheet_items_${selectedProjectId}_${selectedMonth}`;
-    const storageKeyStatuses = `higerp_sheet_statuses_${selectedProjectId}_${selectedMonth}`;
-    const storageKeyCampaigns = `higerp_campaign_statuses_${selectedProjectId}_${selectedMonth}`;
-
-    const savedItems = localStorage.getItem(storageKeyItems);
-    const savedStatuses = localStorage.getItem(storageKeyStatuses);
-    const savedCampaigns = localStorage.getItem(storageKeyCampaigns);
-
-    if (savedItems) {
-      try {
-        setContentItems(JSON.parse(savedItems));
-      } catch (_) {
-        setContentItems([]);
-      }
-    } else {
-      // Auto-load Maharaja Catering if the project name matches or as initial demo state
-      const currentProj = projects.find(p => p.id === selectedProjectId);
-      if (currentProj?.name.toLowerCase().includes('catering') || currentProj?.id === 'maharaja-catering-fallback-id') {
-        setContentItems(MAHARAJA_CATERING_DATA);
-        localStorage.setItem(storageKeyItems, JSON.stringify(MAHARAJA_CATERING_DATA));
-      } else {
-        setContentItems([]);
-      }
-    }
-
-    if (savedStatuses) {
-      try {
-        setPlatformStatuses(JSON.parse(savedStatuses));
-      } catch (_) {
-        setPlatformStatuses({});
-      }
-    } else {
-      // Initialize some statuses for Maharaja Catering to look realistic
-      if (savedItems === null && (projects.find(p => p.id === selectedProjectId)?.name.toLowerCase().includes('catering') || selectedProjectId === 'maharaja-catering-fallback-id')) {
-        const initialMap: Record<string, 'inprogress' | 'completed' | 'posted'> = {};
-        MAHARAJA_CATERING_DATA.forEach((item, idx) => {
-          if (idx < 5) {
-            initialMap[`${item.id}_instagram`] = 'posted';
-            initialMap[`${item.id}_fb`] = 'posted';
-            initialMap[`${item.id}_youtube`] = 'completed';
-          } else if (idx < 10) {
-            initialMap[`${item.id}_instagram`] = 'completed';
-            initialMap[`${item.id}_fb`] = 'inprogress';
-            initialMap[`${item.id}_youtube`] = 'inprogress';
-          } else {
-            initialMap[`${item.id}_instagram`] = 'inprogress';
-            initialMap[`${item.id}_fb`] = 'inprogress';
-            initialMap[`${item.id}_youtube`] = 'inprogress';
-          }
-        });
-        setPlatformStatuses(initialMap);
-        localStorage.setItem(storageKeyStatuses, JSON.stringify(initialMap));
-      } else {
-        setPlatformStatuses({});
-      }
-    }
-
-    if (savedCampaigns) {
-      try {
-        setCampaignStatuses(JSON.parse(savedCampaigns));
-      } catch (_) {
-        setCampaignStatuses({});
-      }
-    } else {
-      // Initialize Maharaja Catering Campaign status
-      if (savedItems === null && (projects.find(p => p.id === selectedProjectId)?.name.toLowerCase().includes('catering') || selectedProjectId === 'maharaja-catering-fallback-id')) {
-        const initialCampMap: Record<string, 'inprogress' | 'running'> = {};
-        MAHARAJA_CATERING_DATA.forEach((item) => {
-          if (item.runAdCampaign === 'YES') {
-            initialCampMap[item.id] = item.id === 'mc_1' || item.id === 'mc_2' ? 'running' : 'inprogress';
-          }
-        });
-        setCampaignStatuses(initialCampMap);
-        localStorage.setItem(storageKeyCampaigns, JSON.stringify(initialCampMap));
-      } else {
-        setCampaignStatuses({});
-      }
-    }
+    fetchContentSheet(selectedProjectId, selectedMonth);
   }, [selectedProjectId, selectedMonth, projects]);
 
-  // Save changes helper
-  const saveStateToStorage = (
+  // Save changes helper to database
+  const saveStateToStorage = async (
     items: ContentSheetItem[], 
     statuses: Record<string, 'inprogress' | 'completed' | 'posted'>, 
-    campaigns: Record<string, 'inprogress' | 'running'>
+    campaigns: Record<string, 'inprogress' | 'running'>,
+    projectId: string = selectedProjectId,
+    month: string = selectedMonth
   ) => {
-    if (!selectedProjectId) return;
-    const storageKeyItems = `higerp_sheet_items_${selectedProjectId}_${selectedMonth}`;
-    const storageKeyStatuses = `higerp_sheet_statuses_${selectedProjectId}_${selectedMonth}`;
-    const storageKeyCampaigns = `higerp_campaign_statuses_${selectedProjectId}_${selectedMonth}`;
-
+    if (!projectId || !month) return;
+    
+    // Optional: still keep localStorage as local cache fallback
+    const storageKeyItems = `higerp_sheet_items_${projectId}_${month}`;
+    const storageKeyStatuses = `higerp_sheet_statuses_${projectId}_${month}`;
+    const storageKeyCampaigns = `higerp_campaign_statuses_${projectId}_${month}`;
     localStorage.setItem(storageKeyItems, JSON.stringify(items));
     localStorage.setItem(storageKeyStatuses, JSON.stringify(statuses));
     localStorage.setItem(storageKeyCampaigns, JSON.stringify(campaigns));
+
+    try {
+      await fetchWithAuth(`/marketing/${projectId}/sheets?month=${month}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items,
+          statuses,
+          campaigns,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to save content sheet to database:', err);
+    }
   };
 
   // Status Handlers
@@ -808,6 +814,129 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
     setPlatformStatuses({});
     setCampaignStatuses({});
     saveStateToStorage([], {}, {});
+  };
+
+  // CSV Sheet Downloader
+  const handleDownloadCsvSheet = () => {
+    if (contentItems.length === 0) return;
+    
+    const headers = [
+      "Date",
+      "Day",
+      "Content Type",
+      "Topic",
+      "Special Day",
+      "Content / Viral Idea",
+      "Caption",
+      "Keywords",
+      "Hashtags",
+      "Posting Time",
+      "Run Ad Campaign",
+      "Lead Goal",
+      "CTA"
+    ];
+    
+    const rows = contentItems.map(item => [
+      item.date,
+      item.day,
+      item.contentType,
+      item.topic,
+      item.specialDay || "",
+      item.viralIdea || "",
+      item.caption || "",
+      item.keywords || "",
+      item.hashtags || "",
+      item.postingTime || "",
+      item.runAdCampaign,
+      item.leadGoal || "",
+      item.cta || ""
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `content_sheet_${selectedMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Row Edit Handlers
+  const handleStartEdit = (item: ContentSheetItem) => {
+    setEditingItemId(item.id);
+    setEditForm({ ...item });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItemId) return;
+    const nextItems = contentItems.map(item => 
+      item.id === editingItemId ? { ...item, ...editForm } as ContentSheetItem : item
+    );
+    setContentItems(nextItems);
+    setEditingItemId(null);
+    setEditForm({});
+    await saveStateToStorage(nextItems, platformStatuses, campaignStatuses);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditForm({});
+  };
+
+  const handleDeleteRow = async (itemId: string) => {
+    if (!confirm("Are you sure you want to delete this row?")) return;
+    const nextItems = contentItems.filter(item => item.id !== itemId);
+    setContentItems(nextItems);
+    await saveStateToStorage(nextItems, platformStatuses, campaignStatuses);
+  };
+
+  const handleAddNewRow = async () => {
+    const newId = `new_${Date.now()}`;
+    
+    // Auto-calculate next date based on last item or default to today YYYY-MM-DD
+    let nextDate = new Date().toISOString().split('T')[0];
+    if (contentItems.length > 0) {
+      const lastDateStr = contentItems[contentItems.length - 1].date;
+      try {
+        const d = new Date(lastDateStr);
+        d.setDate(d.getDate() + 1);
+        if (!isNaN(d.getTime())) {
+          nextDate = d.toISOString().split('T')[0];
+        }
+      } catch (_) {}
+    }
+    
+    const dObj = new Date(nextDate);
+    const dayName = !isNaN(dObj.getTime()) ? dObj.toLocaleDateString('en-US', { weekday: 'long' }) : 'Monday';
+
+    const newItem: ContentSheetItem = {
+      id: newId,
+      date: nextDate,
+      day: dayName,
+      contentType: 'Poster',
+      topic: 'New Content Topic',
+      specialDay: '',
+      viralIdea: '',
+      caption: '',
+      keywords: '',
+      hashtags: '',
+      postingTime: '07:00 PM',
+      runAdCampaign: 'NO',
+      leadGoal: '-',
+      cta: ''
+    };
+    
+    const nextItems = [...contentItems, newItem];
+    setContentItems(nextItems);
+    setEditingItemId(newId);
+    setEditForm(newItem);
+    await saveStateToStorage(nextItems, platformStatuses, campaignStatuses);
   };
 
   // CSV Parser
@@ -1156,7 +1285,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout fullWidth={viewMode === 'table'}>
       <div className="font-sans min-h-screen bg-transparent pb-16 antialiased">
         
         {/* ===== Page Header ===== */}
@@ -1515,7 +1644,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             {/* ==================================================== */}
             {/* CHRONOLOGICAL FEED (Left Columns)                    */}
             {/* ==================================================== */}
-            <div className="lg:col-span-8 space-y-6">
+            <div className={`${viewMode === 'table' ? 'lg:col-span-12' : 'lg:col-span-8'} space-y-6 transition-all duration-300`}>
               
               <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                 
@@ -1531,7 +1660,33 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* View Mode Toggle */}
+                    <div className="flex items-center bg-secondary p-1 rounded-xl border border-border/40 select-none">
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('table')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          viewMode === 'table'
+                            ? 'bg-card text-foreground shadow-sm border border-border/10'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Sheet View
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('cards')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          viewMode === 'cards'
+                            ? 'bg-card text-foreground shadow-sm border border-border/10'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Card View
+                      </button>
+                    </div>
+
                     {/* Search Field */}
                     <div className="relative w-full sm:w-56">
                       <input
@@ -1557,151 +1712,334 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                 </div>
 
                 {/* Alternating Chronological Post Stream (Poster - Reel) */}
-                <div className="space-y-6 max-h-[850px] overflow-y-auto pr-2">
-                  {filteredContentItems.length === 0 ? (
-                    <div className="text-center py-16 bg-secondary/20 rounded-2xl border border-dashed border-border">
-                      <HelpCircle className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
-                      <h4 className="text-sm font-bold text-foreground">No Items Match Filter</h4>
-                      <p className="text-xs text-muted-foreground mt-1">Try resetting your search filter query.</p>
-                    </div>
-                  ) : (
-                    filteredContentItems.map((item, idx) => {
-                      const status = platformStatuses[`${item.id}_${activePlatform}`] || 'inprogress';
-                      
-                      return (
-                        <div 
-                          key={item.id} 
-                          className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-start gap-4 shadow-sm hover:shadow-md ${
-                            status === 'posted' ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40' :
-                            status === 'completed' ? 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40' :
-                            'bg-card border-border hover:border-indigo-500/30'
-                          }`}
-                        >
-                          
-                          {/* Date and Content Type Visual Indicator */}
-                          <div className="flex flex-row md:flex-col items-center justify-between md:justify-start md:items-start gap-2.5 md:w-32 flex-shrink-0">
+                {viewMode === 'table' ? (
+                  /* ================= SHEET TABLE VIEW ================= */
+                  <div className="overflow-x-auto w-full border border-border/85 rounded-2xl shadow-inner max-h-[850px] overflow-y-auto bg-card select-none">
+                    <table className="w-full border-collapse text-left text-xs text-foreground divide-y divide-border">
+                      <thead className="sticky top-0 bg-[#E8F1D7] dark:bg-[#1a2d19] text-[#42613D] dark:text-[#a5c3a1] font-black uppercase text-[10px] tracking-wider z-10 border-b border-[#D2DEC1] dark:border-[#263c25]">
+                        <tr>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Date</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Day</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Type</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Topic</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Special Day</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Content / Viral Idea</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Caption</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Keywords</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Hashtags</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Posting Time</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Run Ad Campaign</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">Lead Goal</th>
+                          <th className="px-4 py-3 border-r border-[#D2DEC1] dark:border-[#263c25]">CTA</th>
+                          <th className="px-4 py-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {filteredContentItems.length === 0 ? (
+                          <tr>
+                            <td colSpan={14} className="text-center py-16 bg-secondary/10 text-muted-foreground font-semibold">
+                              <HelpCircle className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
+                              <h4>No Items Match Filter</h4>
+                              <p className="text-xs mt-1">Try resetting your search query.</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredContentItems.map((item) => {
+                            const status = platformStatuses[`${item.id}_${activePlatform}`] || 'inprogress';
                             
-                            {/* Date Badge */}
-                            <div>
-                              <p className="text-xs font-black text-foreground">{item.date}</p>
-                              <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase mt-0.5">{item.day}</p>
-                            </div>
-
-                            {/* Content Type Badge */}
-                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-extrabold uppercase border shadow-sm ${
-                              item.contentType === 'Reel' 
-                                ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' 
-                                : 'bg-sky-500/10 text-sky-500 border-sky-500/20'
-                            }`}>
-                              {item.contentType === 'Reel' ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
-                              {item.contentType}
-                            </span>
-
-                            {/* Time Badge */}
-                  <span className="inline-flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-lg border border-border/60">
-                              <Clock className="h-3 w-3" />
-                              {item.postingTime}
-                            </span>
-
-                          </div>
-
-                          {/* Post Contents Body */}
-                          <div className="flex-grow space-y-3">
-                            <div>
-                              {/* Special Day Badge */}
-                              {item.specialDay && (
-                                <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm animate-pulse mb-2.5 block w-fit">
-                                  ✨ Special Day: {item.specialDay}
-                                </span>
-                              )}
-
-                              <h3 className="text-base font-extrabold text-foreground tracking-tight leading-tight">
-                                {item.topic}
-                              </h3>
-                              
-                              {/* Viral Content Idea */}
-                              {item.viralIdea && (
-                                <p className="text-xs text-indigo-400 font-semibold italic mt-1.5 flex items-center gap-1">
-                                  <Lightbulb className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
-                                  Viral Idea: {item.viralIdea}
-                                </p>
-                              )}
-                            </div>
-
-                            {/* Post Caption Body */}
-                            {item.caption && (
-                              <div className="bg-secondary/40 p-3 rounded-xl border border-border/50 text-xs font-semibold text-foreground/80 leading-relaxed max-w-2xl">
-                                {item.caption}
-                              </div>
-                            )}
-
-                            {/* Keywords and Hashtags */}
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              {item.hashtags.split(' ').map((tag, tIdx) => tag && (
-                                <span key={tIdx} className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded-md">
-                                  {tag}
-                                </span>
-                              ))}
-                              {item.keywords.split(',').map((kw, kIdx) => kw && (
-                                <span key={kIdx} className="text-[10px] font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-md border border-border/40">
-                                  {kw.trim()}
-                                </span>
-                              ))}
-                            </div>
-
-                            {/* CTA & Campaign Tag */}
-                            <div className="flex flex-wrap items-center gap-2 pt-1">
-                              {item.cta && (
-                                <span className="text-[10px] font-extrabold bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/20">
-                                  CTA: {item.cta}
-                                </span>
-                              )}
-                              {item.runAdCampaign === 'YES' && (
-                                <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-500 px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
-                                  <TrendingUp className="h-3 w-3" />
-                                  Campaign Configured
-                                </span>
-                              )}
-                            </div>
-
-                          </div>
-
-                          {/* Branded Status Selection dropdown for active account */}
-                          <div className="flex-shrink-0 md:w-36 mt-4 md:mt-0 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-4">
-                            
-                            {/* Branded status indicator */}
-                            <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                              status === 'posted' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                              status === 'completed' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                              'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                            }`}>
-                              {status === 'posted' ? 'Posted' : status === 'completed' ? 'Completed' : 'In Progress'}
-                            </span>
-
-                            {/* Interactive Status Selector */}
-                            <div className="w-full relative">
-                              <select
-                                value={status}
-                                onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
-                                className={`w-full px-3 py-2.5 rounded-xl text-xs font-extrabold focus:outline-none focus:ring-1 focus:ring-indigo-500/10 cursor-pointer border shadow-sm select-none ${
-                                  status === 'posted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                                  status === 'completed' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                                  'bg-secondary border-border text-foreground'
+                            return (
+                              <tr 
+                                key={item.id} 
+                                className={`hover:bg-secondary/35 transition-all even:bg-secondary/15 ${
+                                  status === 'posted' ? 'bg-emerald-500/5 hover:bg-emerald-500/10' :
+                                  status === 'completed' ? 'bg-blue-500/5 hover:bg-blue-500/10' : ''
                                 }`}
                               >
-                                <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
-                                <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
-                                <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
-                              </select>
+                                {/* Date */}
+                                <td className="px-4 py-3 font-bold border-r border-border/40 whitespace-nowrap text-foreground">{item.date}</td>
+                                {/* Day */}
+                                <td className="px-4 py-3 text-muted-foreground border-r border-border/40 whitespace-nowrap">{item.day}</td>
+                                {/* Type */}
+                                <td className="px-4 py-3 border-r border-border/40 whitespace-nowrap">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase border shadow-sm ${
+                                    item.contentType === 'Reel' 
+                                      ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' 
+                                      : 'bg-sky-500/10 text-sky-500 border-sky-500/20'
+                                  }`}>
+                                    {item.contentType === 'Reel' ? <Video className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
+                                    {item.contentType}
+                                  </span>
+                                </td>
+                                {/* Topic */}
+                                <td className="px-4 py-3 font-extrabold border-r border-border/40 text-foreground whitespace-nowrap">{item.topic}</td>
+                                {/* Special Day */}
+                                <td className="px-4 py-3 border-r border-border/40 font-medium">
+                                  {item.specialDay ? (
+                                    <span className="inline-flex items-center gap-1 bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider animate-pulse whitespace-nowrap">
+                                      ✨ {item.specialDay}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground/30">-</span>
+                                  )}
+                                </td>
+                                {/* Content / Viral Idea */}
+                                <td className="px-4 py-3 border-r border-border/40 font-semibold text-indigo-400 min-w-[200px]">
+                                  {item.viralIdea ? (
+                                    <span className="flex items-center gap-1">
+                                      <Lightbulb className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
+                                      {item.viralIdea}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground/30">-</span>
+                                  )}
+                                </td>
+                                {/* Caption */}
+                                <td className="px-4 py-3 border-r border-border/40 min-w-[280px]">
+                                  <div 
+                                    className="max-h-[60px] overflow-y-auto pr-1 text-[11px] font-medium text-foreground/80 leading-relaxed select-all hover:bg-secondary/60 p-1.5 rounded transition-all cursor-pointer" 
+                                    title="Double click or select text to copy"
+                                  >
+                                    {item.caption}
+                                  </div>
+                                </td>
+                                {/* Keywords */}
+                                <td className="px-4 py-3 border-r border-border/40 min-w-[150px]">
+                                  <div className="flex flex-wrap gap-1">
+                                    {item.keywords.split(',').map((kw, kIdx) => kw.trim() && (
+                                      <span key={kIdx} className="text-[9px] font-semibold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded border border-border/40 whitespace-nowrap">
+                                        {kw.trim()}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+                                {/* Hashtags */}
+                                <td className="px-4 py-3 border-r border-border/40 min-w-[180px]">
+                                  <div className="flex flex-wrap gap-1">
+                                    {item.hashtags.split(' ').map((tag, tIdx) => tag.trim() && (
+                                      <span key={tIdx} className="text-[9px] font-bold text-indigo-400 bg-indigo-500/5 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                        {tag.trim()}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+                                {/* Posting Time */}
+                                <td className="px-4 py-3 border-r border-border/40 font-bold text-muted-foreground whitespace-nowrap">
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded border border-border/60">
+                                    <Clock className="h-2.5 w-2.5" />
+                                    {item.postingTime}
+                                  </span>
+                                </td>
+                                {/* Run Ad Campaign */}
+                                <td className="px-4 py-3 border-r border-border/40 text-center whitespace-nowrap">
+                                  {item.runAdCampaign === 'YES' ? (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-black bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-lg border border-emerald-500/20 uppercase tracking-widest shadow-sm">
+                                      ★ YES ★
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center text-[9px] font-black bg-secondary text-muted-foreground/60 px-2 py-0.5 rounded-lg border border-border/60 uppercase tracking-widest">
+                                      NO
+                                    </span>
+                                  )}
+                                </td>
+                                {/* Lead Goal */}
+                                <td className="px-4 py-3 border-r border-border/40 font-bold text-indigo-400 whitespace-nowrap">
+                                  {item.leadGoal !== '-' ? (
+                                    <span className="bg-indigo-500/10 px-2 py-0.5 rounded text-[10px]">
+                                      {item.leadGoal}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground/30">-</span>
+                                  )}
+                                </td>
+                                {/* CTA */}
+                                <td className="px-4 py-3 border-r border-border/40 whitespace-nowrap">
+                                  {item.cta ? (
+                                    <span className="text-[9px] font-extrabold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-lg uppercase tracking-wider border border-amber-500/20">
+                                      {item.cta}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground/30">-</span>
+                                  )}
+                                </td>
+                                {/* Status */}
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                                      status === 'posted' ? 'bg-emerald-500' :
+                                      status === 'completed' ? 'bg-blue-500' :
+                                      'bg-amber-500 animate-pulse'
+                                    }`}></span>
+                                    
+                                    <select
+                                      value={status}
+                                      onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
+                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-500/10 cursor-pointer border shadow-sm select-none ${
+                                        status === 'posted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                                        status === 'completed' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                                        'bg-secondary border-border text-foreground'
+                                      }`}
+                                    >
+                                      <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
+                                      <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
+                                      <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
+                                    </select>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  /* ================= ORIGINAL CARD VIEW ================= */
+                  <div className="space-y-6 max-h-[850px] overflow-y-auto pr-2">
+                    {filteredContentItems.length === 0 ? (
+                      <div className="text-center py-16 bg-secondary/20 rounded-2xl border border-dashed border-border">
+                        <HelpCircle className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
+                        <h4 className="text-sm font-bold text-foreground">No Items Match Filter</h4>
+                        <p className="text-xs text-muted-foreground mt-1">Try resetting your search filter query.</p>
+                      </div>
+                    ) : (
+                      filteredContentItems.map((item, idx) => {
+                        const status = platformStatuses[`${item.id}_${activePlatform}`] || 'inprogress';
+                        
+                        return (
+                          <div 
+                            key={item.id} 
+                            className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-start gap-4 shadow-sm hover:shadow-md ${
+                              status === 'posted' ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40' :
+                              status === 'completed' ? 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40' :
+                              'bg-card border-border hover:border-indigo-500/30'
+                            }`}
+                          >
+                            
+                            {/* Date and Content Type Visual Indicator */}
+                            <div className="flex flex-row md:flex-col items-center justify-between md:justify-start md:items-start gap-2.5 md:w-32 flex-shrink-0">
+                              
+                              {/* Date Badge */}
+                              <div>
+                                <p className="text-xs font-black text-foreground">{item.date}</p>
+                                <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase mt-0.5">{item.day}</p>
+                              </div>
+
+                              {/* Content Type Badge */}
+                              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-extrabold uppercase border shadow-sm ${
+                                item.contentType === 'Reel' 
+                                  ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' 
+                                  : 'bg-sky-500/10 text-sky-500 border-sky-500/20'
+                              }`}>
+                                {item.contentType === 'Reel' ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                                {item.contentType}
+                              </span>
+
+                              {/* Time Badge */}
+                              <span className="inline-flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-lg border border-border/60">
+                                <Clock className="h-3 w-3" />
+                                {item.postingTime}
+                              </span>
+
+                            </div>
+
+                            {/* Post Contents Body */}
+                            <div className="flex-grow space-y-3">
+                              <div>
+                                {/* Special Day Badge */}
+                                {item.specialDay && (
+                                  <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm animate-pulse mb-2.5 block w-fit">
+                                    ✨ Special Day: {item.specialDay}
+                                  </span>
+                                )}
+
+                                <h3 className="text-base font-extrabold text-foreground tracking-tight leading-tight">
+                                  {item.topic}
+                                </h3>
+                                
+                                {/* Viral Content Idea */}
+                                {item.viralIdea && (
+                                  <p className="text-xs text-indigo-400 font-semibold italic mt-1.5 flex items-center gap-1">
+                                    <Lightbulb className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
+                                    Viral Idea: {item.viralIdea}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Post Caption Body */}
+                              {item.caption && (
+                                <div className="bg-secondary/40 p-3 rounded-xl border border-border/50 text-xs font-semibold text-foreground/80 leading-relaxed max-w-2xl">
+                                  {item.caption}
+                                </div>
+                              )}
+
+                              {/* Keywords and Hashtags */}
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {item.hashtags.split(' ').map((tag, tIdx) => tag && (
+                                  <span key={tIdx} className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded-md">
+                                    {tag}
+                                  </span>
+                                ))}
+                                {item.keywords.split(',').map((kw, kIdx) => kw && (
+                                  <span key={kIdx} className="text-[10px] font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-md border border-border/40">
+                                    {kw.trim()}
+                                  </span>
+                                ))}
+                              </div>
+
+                              {/* CTA & Campaign Tag */}
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
+                                {item.cta && (
+                                  <span className="text-[10px] font-extrabold bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/20">
+                                    CTA: {item.cta}
+                                  </span>
+                                )}
+                                {item.runAdCampaign === 'YES' && (
+                                  <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-500 px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
+                                    <TrendingUp className="h-3 w-3" />
+                                    Campaign Configured
+                                  </span>
+                                )}
+                              </div>
+
+                            </div>
+
+                            {/* Branded Status Selection dropdown for active account */}
+                            <div className="flex-shrink-0 md:w-36 mt-4 md:mt-0 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-4">
+                              
+                              {/* Branded status indicator */}
+                              <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                status === 'posted' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                status === 'completed' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                                'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                              }`}>
+                                {status === 'posted' ? 'Posted' : status === 'completed' ? 'Completed' : 'In Progress'}
+                              </span>
+
+                              {/* Interactive Status Selector */}
+                              <div className="w-full relative">
+                                <select
+                                  value={status}
+                                  onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
+                                  className={`w-full px-3 py-2.5 rounded-xl text-xs font-extrabold focus:outline-none focus:ring-1 focus:ring-indigo-500/10 cursor-pointer border shadow-sm select-none ${
+                                    status === 'posted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                                    status === 'completed' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                                    'bg-secondary border-border text-foreground'
+                                  }`}
+                                >
+                                  <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
+                                  <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
+                                  <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
+                                </select>
+                              </div>
+
                             </div>
 
                           </div>
-
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
 
               </div>
 
@@ -1710,7 +2048,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             {/* ==================================================== */}
             {/* AD CAMPAIGNS PANEL & STATS (Right Columns)            */}
             {/* ==================================================== */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className={`${viewMode === 'table' ? 'lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-8 space-y-0' : 'lg:col-span-4 space-y-6'} transition-all duration-300`}>
               
               {/* Ad Campaigns operations tracker card */}
               <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-6">

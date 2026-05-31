@@ -72,10 +72,10 @@ export declare class MarketingService {
         tenantId: string;
         createdAt: Date;
         name: string;
-        updatedAt: Date;
-        leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedAt: Date;
+        leads: number;
         updatedBy: string;
         projectId: string;
         spend: number;
@@ -85,10 +85,10 @@ export declare class MarketingService {
         tenantId: string;
         createdAt: Date;
         name: string;
-        updatedAt: Date;
-        leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedAt: Date;
+        leads: number;
         updatedBy: string;
         projectId: string;
         spend: number;
@@ -118,5 +118,27 @@ export declare class MarketingService {
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;
+    }>;
+    getContentSheet(tenantId: string, projectId: string, month: string): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        projectId: string;
+        month: string;
+        items: import("@prisma/client/runtime/library").JsonValue;
+        statuses: import("@prisma/client/runtime/library").JsonValue;
+        campaigns: import("@prisma/client/runtime/library").JsonValue;
+    } | null>;
+    upsertContentSheet(tenantId: string, projectId: string, month: string, data: any): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        projectId: string;
+        month: string;
+        items: import("@prisma/client/runtime/library").JsonValue;
+        statuses: import("@prisma/client/runtime/library").JsonValue;
+        campaigns: import("@prisma/client/runtime/library").JsonValue;
     }>;
 }

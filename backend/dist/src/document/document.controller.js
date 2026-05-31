@@ -86,6 +86,18 @@ let DocumentController = class DocumentController {
     async getDocument(id, req) {
         return this.documentService.getDocument(req.user.tenantId, id);
     }
+    async signDocument(id, body, req) {
+        if (!body.signatureData) {
+            throw new Error('Signature data is required');
+        }
+        try {
+            return await this.documentService.signDocument(req.user.tenantId, id, body.signatureData);
+        }
+        catch (error) {
+            console.error('Error signing document in backend:', error);
+            throw error;
+        }
+    }
 };
 exports.DocumentController = DocumentController;
 __decorate([
@@ -131,6 +143,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], DocumentController.prototype, "getDocument", null);
+__decorate([
+    (0, common_1.Post)('/:id/sign'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "signDocument", null);
 exports.DocumentController = DocumentController = __decorate([
     (0, common_1.Controller)('document'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

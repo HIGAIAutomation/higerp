@@ -153,4 +153,62 @@ export class DocumentService {
       data: { tenantId, name, category, contentHtml },
     });
   }
+
+  async signDocument(tenantId: string, id: string, signatureData: string) {
+    const doc = await this.prisma.generatedDocument.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!doc || !doc.compiledHtml) {
+      throw new Error('Document not found or cannot be signed.');
+    }
+
+    // Basic HTML injection: insert the signature image just before the Authorized Signature line or at the bottom
+    let updatedHtml = doc.compiledHtml;
+    
+    // Inject signature image based on standard marker class (if exists) or at the end
+    const signatureHtml = `<div style="margin-top: 10px; margin-bottom: 10px;"><img src="${signatureData}" alt="Signature" style="max-height: 80px; width: auto; object-fit: contain;" /></div>`;
+    
+    if (updatedHtml.includes('<div class="sig-line client-sig-line"></div>')) {
+      updatedHtml = updatedHtml.replace('<div class="sig-line client-sig-line"></div>', `<div class="sig-line client-sig-line" style="border-bottom: none;">${signatureHtml}</div><div class="sig-line" style="margin-top: 5px;"></div>`);
+    } else if (updatedHtml.includes('<div class="sig-line"></div>')) {
+      const searchStr = '<div class="sig-line"></div>';
+      const lastIndex = updatedHtml.lastIndexOf(searchStr);
+      if (lastIndex !== -1) {
+        updatedHtml = updatedHtml.substring(0, lastIndex) + 
+          `<div class="sig-line" style="border-bottom: none;">${signatureHtml}</div><div class="sig-line" style="margin-top: 5px;"></div>` + 
+          updatedHtml.substring(lastIndex + searchStr.length);
+      }
+    } else {
+      // Fallback: append at the end of the document body wrapper
+      updatedHtml = updatedHtml + `<div class="injected-signature" style="page-break-inside: avoid; text-align: right; padding-right: 50px; margin-top: 50px;">
+        <p><strong>Authorized E-Signature</strong></p>
+        ${signatureHtml}
+        <p>Date: ${new Date().toLocaleDateString()}</p>
+      </div>`;
+    }
+
+    // Use raw MongoDB command to bypass Prisma schema validation since we can't regenerate the client while the server is running
+    const response = await this.prisma.$runCommandRaw({
+      update: 'GeneratedDocument',
+      updates: [
+        {
+          q: { _id: id, tenantId },
+          u: {
+            $set: {
+              compiledHtml: updatedHtml,
+              status: 'signed',
+              signatureData: signatureData,
+              signedAt: { $date: new Date().toISOString() }
+            }
+          }
+        }
+      ]
+    });
+
+    // Fetch and return the updated document
+    return this.prisma.generatedDocument.findFirst({
+      where: { id, tenantId },
+    });
+  }
 }

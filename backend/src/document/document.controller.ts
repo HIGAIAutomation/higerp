@@ -88,4 +88,17 @@ export class DocumentController {
   async getDocument(@Param('id') id: string, @Request() req: any) {
     return this.documentService.getDocument(req.user.tenantId, id);
   }
+
+  @Post('/:id/sign')
+  async signDocument(@Param('id') id: string, @Body() body: { signatureData: string }, @Request() req: any) {
+    if (!body.signatureData) {
+      throw new Error('Signature data is required');
+    }
+    try {
+      return await this.documentService.signDocument(req.user.tenantId, id, body.signatureData);
+    } catch (error: any) {
+      console.error('Error signing document in backend:', error);
+      throw error;
+    }
+  }
 }

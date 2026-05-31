@@ -8,7 +8,7 @@ async function main() {
         include: { template: true }
     });
     console.log("=== Generated Documents ===");
-    console.log(JSON.stringify(docs.map(d => ({
+    console.log(JSON.stringify(docs.map((d) => ({
         id: d.id,
         entityId: d.entityId,
         entityType: d.entityType,

@@ -31,6 +31,8 @@ export declare class CrmService {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     }>;
     getLeads(tenantId: string): Promise<({

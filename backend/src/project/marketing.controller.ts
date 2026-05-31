@@ -81,4 +81,27 @@ export class MarketingController {
   async upsertSpecialDayPoster(@Param('projectId') projectId: string, @Body() body: any, @Request() req: any) {
     return this.marketingService.upsertSpecialDayPoster(req.user.tenantId, projectId, body, req.user.username);
   }
+
+  @Get(':projectId/sheets')
+  @Roles('admin', 'project_manager', 'user', 'superadmin')
+  async getContentSheet(
+    @Param('projectId') projectId: string,
+    @Query('month') month: string,
+    @Request() req: any,
+  ) {
+    const sheet = await this.marketingService.getContentSheet(req.user.tenantId, projectId, month);
+    return sheet || { items: [], statuses: {}, campaigns: {} };
+  }
+
+  @Post(':projectId/sheets')
+  @Roles('admin', 'project_manager', 'user', 'superadmin')
+  async upsertContentSheet(
+    @Param('projectId') projectId: string,
+    @Query('month') month: string,
+    @Body() body: any,
+    @Request() req: any,
+  ) {
+    return this.marketingService.upsertContentSheet(req.user.tenantId, projectId, month, body);
+  }
 }
+

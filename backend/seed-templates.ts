@@ -251,7 +251,6 @@ async function main() {
     <p>CLIENT AGREEMENT | Effective Date: {{startDate}}</p>
   </div>
   
-  {{#if (or isWebProject isAutomation)}}
   <div class="section">
     <p>This Non-Disclosure Agreement (“Agreement”) is entered into on <strong>{{startDate}}</strong>, by and between:</p>
     <p><strong>HIG AI AUTOMATION LLP</strong>, with offices at PPCQ+XH5, 6, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002 (hereinafter referred to as “Service Provider” or “Company”)</p>
@@ -381,64 +380,12 @@ async function main() {
     <h2>13. Entire Agreement</h2>
     <p>This document represents the complete understanding between the Parties regarding confidentiality and supersedes any prior discussions or agreements.</p>
   </div>
-  {{else}}
-  
-  {{#if isDigitalMarketing}}
-  <div class="section">
-    <h2>1. Purpose of Agreement</h2>
-    <p>This Mutual Non-Disclosure Agreement ("Agreement") is entered into between <strong>{{companyName}}</strong> ("Agency") and <strong>{{clientName}}</strong> ("Client") to protect sensitive business, technical, and marketing information shared in connection with the digital marketing, ad optimization, content management, and brand growth campaign: <strong>{{projectName}}</strong>.</p>
-  </div>
-
-  <div class="section">
-    <h2>2. Definition of Confidential Information</h2>
-    <p>"Confidential Information" refers to any proprietary information disclosed by either party, including but not limited to:</p>
-    <ul>
-      <li>Social media account credentials, logins, admin tokens, passwords, and access protocols.</li>
-      <li>Customer lead lists, email registers, phone numbers, and leads generated via digital promotional campaigns.</li>
-      <li>Raw videography footage, unedited reel files, brand assets, aesthetic guides, and designs.</li>
-      <li>Marketing calendars, content sheets, campaign ad configurations, and custom target audience structures.</li>
-      <li>Financial strategies, pricing catalogs, business indicators, and metrics.</li>
-    </ul>
-  </div>
-
-  <div class="section">
-    <h2>3. Obligations of Confidentiality</h2>
-    <p>The receiving Party agrees to: (a) keep the disclosing Party's Confidential Information strictly confidential; (b) use it solely for executing the marketing scope; and (c) restrict access to employees or representatives who have signed written obligations of confidentiality at least as restrictive as those contained herein. The Agency will implement secure, encrypted password-vault practices for all client-provided administrative social logins.</p>
-  </div>
-
-  <div class="section">
-    <h2>4. Term and Returns</h2>
-    <p>This Agreement and the obligations hereunder will remain in effect for a period of five (5) years from the Effective Date. Upon termination of the marketing project, the Agency agrees to securely delete and purge all client social login tokens, passwords, and administrative access records from its systems, unless otherwise mandated by legal compliance.</p>
-  </div>
-  {{/if}}
 
   {{#if isAiDevelopment}}
   <div class="section">
-    <h2>1. Purpose of Agreement</h2>
-    <p>This Mutual Non-Disclosure Agreement ("Agreement") is entered into between <strong>{{companyName}}</strong> ("Agency") and <strong>{{clientName}}</strong> ("Client") to protect proprietary neural net configurations, data training sets, algorithm specifications, and machine learning models shared in connection with the artificial intelligence development project: <strong>{{projectName}}</strong>.</p>
+    <h2>14. AI Specific Purpose & Obligations</h2>
+    <p>This Agreement specifically protects proprietary neural net configurations, data training sets, algorithm specifications, and machine learning models shared in connection with the artificial intelligence development project. The Agency will implement strict sandboxed storage protocols to ensure training datasets are only processed on secure, encrypted computing environments. Upon project completion, all raw training datasets, customized weights libraries, and dataset duplicates will be securely destroyed or transferred to the Client's storage.</p>
   </div>
-
-  <div class="section">
-    <h2>2. Definition of Confidential Information</h2>
-    <p>"Confidential Information" refers to any proprietary information disclosed by either party, including but not limited to:</p>
-    <ul>
-      <li>Data training pipelines, neural network weights, hyperparameter sheets, and custom algorithms.</li>
-      <li>Source datasets, curated labels, validation data matrices, and raw database exports used for training.</li>
-      <li>ML model hosting configurations, REST API endpoints, API gateway keys, and inference performance logs.</li>
-    </ul>
-  </div>
-
-  <div class="section">
-    <h2>3. Obligations of Confidentiality</h2>
-    <p>The receiving Party agrees to safeguard all training datasets and ML configurations. The Agency will implement strict sandboxed storage protocols to ensure training datasets are only processed on secure, encrypted computing environments.</p>
-  </div>
-
-  <div class="section">
-    <h2>4. Term and Returns</h2>
-    <p>This Agreement remains in effect for five (5) years. Upon project completion, all raw training datasets, customized weights libraries, and dataset duplicates will be securely destroyed or transferred to the Client's storage.</p>
-  </div>
-  {{/if}}
-
   {{/if}}
 
   <div class="signatures">
@@ -492,7 +439,7 @@ async function main() {
 
   <div class="section">
     <h2>1. PURPOSE OF AGREEMENT</h2>
-    <p>This Agreement establishes the general terms and conditions governing all services provided by HIG AI AUTOMATION LLP to the Client, including but not limited to:</p>
+    <p>This Agreement establishes the general terms and conditions governing all software development, AI automation, smart factory integrations, and consulting services provided by HIG AI AUTOMATION LLP to the Client, including but not limited to:</p>
     <ul>
       {{#if moduleDetails.length}}
         {{#each moduleDetails}}
@@ -523,37 +470,22 @@ async function main() {
 
   <div class="section">
     <h2>2. SCOPE OF SERVICES</h2>
-    <p>HIG AI AUTOMATION LLP shall provide services including:</p>
+    <p>HIG AI AUTOMATION LLP shall provide high-quality engineering and transformation services including:</p>
     <h3>2.1 Software Development</h3>
     <ul>
-      <li>ERP systems</li>
-      <li>Web applications</li>
-      <li>Mobile applications</li>
-      <li>Admin dashboards</li>
-      <li>AI-based systems</li>
+      <li>ERP systems, Web portals, Mobile applications, Admin dashboards, and Custom AI-based systems.</li>
     </ul>
     <h3>2.2 Automation Services</h3>
     <ul>
-      <li>AI workflow automation</li>
-      <li>WhatsApp automation</li>
-      <li>Reporting automation</li>
-      <li>Business process automation</li>
+      <li>AI workflow automation, WhatsApp API automation, and Business process reporting pipelines.</li>
     </ul>
     <h3>2.3 Smart Factory & IoT</h3>
     <ul>
-      <li>Production monitoring</li>
-      <li>QR tracking</li>
-      <li>Sensor integrations</li>
-      <li>GPS tracking</li>
-      <li>Predictive maintenance</li>
+      <li>Production monitoring, QR tracking, Sensor integrations, GPS tracking, and Predictive maintenance.</li>
     </ul>
     <h3>2.4 Technical Support</h3>
     <ul>
-      <li>Bug fixing</li>
-      <li>Maintenance</li>
-      <li>Server support</li>
-      <li>Security updates</li>
-      <li>System monitoring</li>
+      <li>Bug fixing, codebase maintenance, server support, security updates, and system monitoring.</li>
     </ul>
   </div>
 
@@ -598,13 +530,6 @@ async function main() {
       <li><strong>25% Part 1 Milestone</strong>: Generated automatically once 33% of the target modules are completed on staging.</li>
       <li><strong>25% Part 2 Milestone</strong>: Generated automatically once 66% of the target modules are completed on staging.</li>
       <li><strong>25% Part 3 Milestone</strong>: Generated automatically once 100% of the target modules are completed and signed off.</li>
-    </ul>
-    {{/if}}
-    {{#if isDigitalMarketing}}
-    <ul>
-      <li><strong>Monthly Management Charge</strong>: Fixed service charge of <strong>{{price}}</strong> per month, billed at the end of each calendar month.</li>
-      <li><strong>Direct Ad Budget</strong>: Billed directly to the client's registered card on target ad networks.</li>
-      <li><strong>Performance Trial Guarantee</strong>: Standard 3-month trial period applies.</li>
     </ul>
     {{/if}}
     {{#if isAutomation}}
@@ -761,15 +686,6 @@ async function main() {
       <li><strong>Target Interactive Media Support</strong>: Provisioning for up to {{postCount}} image assets and {{videoCount}} video integrations embedded/optimized within the platform.</li>
     </ul>
     {{/if}}
-    {{#if isDigitalMarketing}}
-    <p>This Statement of Work (SOW) details the deliverables, campaigns, and creative workflows for project: <strong>{{projectName}}</strong>. The Agency shall execute the following recurring monthly campaign assets:</p>
-    <ul>
-      <li><strong>{{postCount}} Customized Brand Posters</strong>: Standard graphic designs delivered per month, highlighting offers, testimonials, and features.</li>
-      <li><strong>{{videoCount}} Professionally Edited Reels / Short Videos</strong>: Engaging, trend-conscious, vertical video edits per month.</li>
-      <li><strong>Special Day Holiday Promotion Posters</strong>: Complementary graphic assets delivered for every nationally recognized or industry-relevant special holiday falling in the calendar month.</li>
-      <li><strong>2 Active Ad Campaigns</strong>: Run and optimized per month on Meta Platforms to acquire active, qualified leads.</li>
-    </ul>
-    {{/if}}
     {{#if isAutomation}}
     <p>This SOW details the automation workflows and API mappings to build for: <strong>{{projectName}}</strong>. The Agency shall build and test the following automation pipelines:</p>
     <ul>
@@ -796,15 +712,6 @@ async function main() {
       <li><strong>Architecture and Wireframe Delivery</strong>: The Agency will share the comprehensive project wireframes and database architecture schemas for client feedback prior to core engineering.</li>
       <li><strong>Revision & Approval Phase</strong>: Before code is locked, the Agency will accept layout and design feedback. The client agrees to complete review and provide approval within <strong>three (3) working days</strong>.</li>
       <li><strong>Code Freeze & Staging Deployment</strong>: Once a module is deployed to staging, the client has exactly <strong>three (3) days</strong> to test functionality and sign off on completion.</li>
-    </ol>
-    {{/if}}
-    {{#if isDigitalMarketing}}
-    <p>To maintain high consistency and optimal brand tone, both parties agree to follow this strict monthly planning schedule:</p>
-    <ol>
-      <li><strong>Content Calendar Delivery</strong>: The Agency will share the comprehensive content sheet for the upcoming month on the <strong>30th of the previous month</strong> to the Client for verification.</li>
-      <li><strong>Revision & Approval Phase</strong>: Before the client approves, the Agency will accept feedback and change the content accordingly. The client agrees to complete the verification and provide final sign-off within <strong>two (2) days</strong> of receiving the sheet.</li>
-      <li><strong>Content Freeze</strong>: Once the content sheet is approved by the Client, no further design plans or calendar revisions will be made for that month, ensuring the scheduling remains uninterrupted.</li>
-      <li><strong>Respective Delivery Approval</strong>: Posters are scheduled for specific calendar days. To guarantee daily publications, individual poster files shared for daily review must be verified and approved by the Client within approximately <strong>three (3) hours</strong> of submission.</li>
     </ol>
     {{/if}}
     {{#if isAutomation}}
@@ -1409,19 +1316,301 @@ async function main() {
 </div>
       `,
     },
+    {
+      name: 'Non-Disclosure Agreement (NDA) - Digital Marketing',
+      category: 'PROJECT',
+      contentHtml: documentStyles + `
+<div class="contract-container">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
+    <h1>MUTUAL NON-DISCLOSURE AGREEMENT (NDA) - DIGITAL MARKETING</h1>
+    <p>CLIENT AGREEMENT | Effective Date: {{startDate}}</p>
+  </div>
+  
+  <div class="section">
+    <p>This Non-Disclosure Agreement (“Agreement”) is entered into on <strong>{{startDate}}</strong>, by and between:</p>
+    <p><strong>HIG AI AUTOMATION LLP</strong>, with offices at PPCQ+XH5, 6, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002 (hereinafter referred to as “Service Provider” or “Company”)</p>
+    <p>AND</p>
+    <p><strong>{{clientName}}</strong> (hereinafter referred to as “Client”)</p>
+    <p>Both parties collectively referred to as the “Parties”.</p>
+  </div>
+
+  <div class="section">
+    <h2>1. Purpose of Agreement</h2>
+    <p>This Mutual Non-Disclosure Agreement ("Agreement") is entered into between the Parties to protect sensitive business, technical, and marketing information shared in connection with the digital marketing, ad optimization, content management, and brand growth campaign: <strong>{{projectName}}</strong>.</p>
+  </div>
+
+  <div class="section">
+    <h2>2. Definition of Confidential Information</h2>
+    <p>"Confidential Information" refers to any proprietary information disclosed by either party, including but not limited to:</p>
+    <ul>
+      <li>Social media account credentials, logins, admin tokens, passwords, and access protocols.</li>
+      <li>Customer lead lists, email registers, phone numbers, and leads generated via digital promotional campaigns.</li>
+      <li>Raw videography footage, unedited reel files, brand assets, aesthetic guides, and designs.</li>
+      <li>Marketing calendars, content sheets, campaign ad configurations, and custom target audience structures.</li>
+      <li>Financial strategies, pricing catalogs, business indicators, and metrics.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>3. Obligations of Confidentiality</h2>
+    <p>The receiving Party agrees to: (a) keep the disclosing Party's Confidential Information strictly confidential; (b) use it solely for executing the marketing scope; and (c) restrict access to employees or representatives who have signed written obligations of confidentiality at least as restrictive as those contained herein. The Agency will implement secure, encrypted password-vault practices for all client-provided administrative social logins.</p>
+  </div>
+
+  <div class="section">
+    <h2>4. Term and Returns</h2>
+    <p>This Agreement and the obligations hereunder will remain in effect for a period of one (1) year from the Effective Date. Upon termination of the marketing project, the Agency agrees to securely delete and purge all client social login tokens, passwords, and administrative access records from its systems, unless otherwise mandated by legal compliance.</p>
+  </div>
+
+  <div class="signatures">
+    <div class="sig-col">
+      <p>For: <strong>HIG AI AUTOMATION LLP</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized Signature</p>
+      <p>Date: ______________</p>
+    </div>
+    <div class="sig-col">
+      <p>For: <strong>{{clientName}}</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized Signature</p>
+      <p>Date: ______________</p>
+    </div>
+  </div>
+</div>
+      `,
+    },
+    {
+      name: 'Master Service Agreement (MSA) - Digital Marketing',
+      category: 'PROJECT',
+      contentHtml: documentStyles + `
+<div class="contract-container">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
+    <h1>MASTER SERVICE AGREEMENT (MSA) - DIGITAL MARKETING</h1>
+    <p>For Digital Campaigns, Social Media Management & Brand Growth</p>
+    <p>Effective Date: {{startDate}}</p>
+  </div>
+
+  <div class="section">
+    <p>This Master Service Agreement (“Agreement” or “MSA”) is entered into on <strong>{{startDate}}</strong>, by and between:</p>
+    <p><strong>HIG AI AUTOMATION LLP</strong>, a company engaged in Digital Transformation and Marketing Services (hereinafter referred to as “Service Provider” or “HIG AI”)</p>
+    <p>AND</p>
+    <p><strong>{{clientName}}</strong> (hereinafter referred to as “Client”)</p>
+  </div>
+
+  <div class="section">
+    <h2>1. PURPOSE OF AGREEMENT</h2>
+    <p>This Agreement establishes the general terms and conditions governing all digital marketing, brand growth strategy, lead generation, paid advertisement optimization, search engine optimization, graphic poster creation, and professional videography/reel editing services provided by HIG AI AUTOMATION LLP to the Client for the brand: <strong>{{projectName}}</strong>.</p>
+  </div>
+
+  <div class="section">
+    <h2>2. SCOPE OF SERVICES</h2>
+    <p>The Agency shall provide comprehensive marketing and campaign optimization services including:</p>
+    <h3>2.1 Social Media Management (SMM)</h3>
+    <ul>
+      <li>Grid layout planning, caption copywriting, hashtag strategy, and scheduling across target social networks.</li>
+      <li>Interactivity management, follower engagement strategies, and online brand presence enhancement.</li>
+    </ul>
+    <h3>2.2 Creative Media Production</h3>
+    <ul>
+      <li>Design of brand posters, promotional banners, custom graphics, and special day/holiday campaign graphics.</li>
+      <li>Professional post-production and editing of short-form vertical videos (Reels, TikToks) using client-supplied raw footages.</li>
+    </ul>
+    <h3>2.3 Paid Ad Optimization (PPC)</h3>
+    <ul>
+      <li>Formulating and configuring paid lead-generation campaigns on Meta Ads Manager.</li>
+      <li>Auditing ad performance, performing audience A/B split-testing, and optimizing ad-spend efficiency.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>3. PAYMENT TERMS</h2>
+    <h3>3.1 Monthly Service Fees</h3>
+    <p>The Client shall pay a fixed service charge of <strong>{{price}}</strong> per month, billed at the starting of each calendar month (starting from the 15th).</p>
+    <h3>3.2 Direct Ad Budget</h3>
+    <p>The budget for paid advertising (Meta Ads, Google Ads) is separate from the Agency fee and will be billed directly to the Client's registered card on target ad networks.</p>
+    <h3>3.3 Performance Trial Guarantee</h3>
+    <p>A standard 3-month trial period applies. Both parties may evaluate the ad conversion metrics over this period.</p>
+    <h3>3.4 Taxes & Late Fees</h3>
+    <p>Applicable GST shall be paid by the Client. Late payments beyond 7 days may attract service suspension.</p>
+  </div>
+
+  <div class="section">
+    <h2>4. INTELLECTUAL PROPERTY RIGHTS</h2>
+    <h3>4.1 Client Creative Media</h3>
+    <p>Upon receipt of full payment, all custom creative assets specifically developed for and delivered to the Client (including graphic brand posters, edited reels, copywriting scripts, and promotional media) shall become the exclusive property of the Client.</p>
+    <h3>4.2 Agency Proprietary Tools</h3>
+    <p>The Agency retains all ownership, rights, and interests in any reusable design templates, generic marketing templates, campaign targeting strategies, automation scripts, and analytical dashboards used to manage the campaign.</p>
+  </div>
+
+  <div class="section">
+    <h2>5. WARRANTIES & LIMITATIONS</h2>
+    <p>The Agency warrants that marketing services will be performed in a professional and timely manner. However, the Agency does not warrant or guarantee specific target lead conversion numbers, sales volume, search rank improvements, or algorithm stability on third-party networks (e.g. Meta Ads, Instagram API) as these are dependent on external market forces and platform policies.</p>
+    <p>The Agency shall not be liable for indirect damages, business interruption, profit loss, or ad account bans enforced by third-party social media platforms.</p>
+  </div>
+
+  <div class="section">
+    <h2>6. SUPPORT & MAINTENANCE</h2>
+    <p>Support terms include creative asset revisions, graphic modifications, prompt assistance with ad suspension issues, direct coordination for campaign optimization, and account access troubleshooting.</p>
+  </div>
+
+  <div class="section">
+    <h2>7. TERM & TERMINATION</h2>
+    <p>This Agreement remains valid until terminated by either Party. Either Party may terminate with 30 days written notice. Immediate termination may occur in cases of payment default or breach of confidentiality.</p>
+  </div>
+
+  <div class="section">
+    <h2>8. GOVERNING LAW</h2>
+    <p>This Agreement shall be governed under the laws of India. Jurisdiction shall lie exclusively in the courts of Tamil Nadu, India.</p>
+  </div>
+
+  {{#if inclusions.length}}
+  <div class="section">
+    <h2>9. ADDITIONAL TERMS & PROJECT INCLUSIONS</h2>
+    <ul>
+      {{#each inclusions}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  <div class="signatures">
+    <div class="sig-col">
+      <p>For: <strong>HIG AI AUTOMATION LLP</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized Signatory</p>
+      <p>Date: ______________</p>
+    </div>
+    <div class="sig-col">
+      <p>For: <strong>{{clientName}}</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized Signatory</p>
+      <p>Date: ______________</p>
+    </div>
+  </div>
+</div>
+      `,
+    },
+    {
+      name: 'Statement of Work (SOW) - Digital Marketing',
+      category: 'PROJECT',
+      contentHtml: documentStyles + `
+<div class="contract-container">
+  <div class="document-header">
+    <div class="header-branding">
+      <img src="/logo.png" alt="HIGAI Automation Logo" class="company-logo" onerror="this.style.display='none'" />
+      <div class="company-details">
+        <div class="company-name">HIGAI Automation LLP</div>
+        <div class="company-meta">PPCQ+XH5, 6, S Bazaar, Palayamkottai</div>
+        <div class="company-meta">Tirunelveli, Tamil Nadu 627002</div>
+        <div class="company-meta">Phone: 63817 26852</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="header-title-block">
+    <h1>Statement of Work (SOW) - Digital Marketing</h1>
+    <p>Project: {{projectName}} | Parent Agreement: MSA</p>
+  </div>
+  
+  <div class="section">
+    <h2>1. Executive Summary & Deliverables</h2>
+    <p>This Statement of Work (SOW) details the deliverables, campaigns, and creative workflows for project: <strong>{{projectName}}</strong>. The Agency shall execute the following recurring monthly campaign assets:</p>
+    <ul>
+      <li><strong>{{postCount}} Customized Brand Posters</strong>: Standard graphic designs delivered per month, highlighting offers, testimonials, and features.</li>
+      <li><strong>{{videoCount}} Professionally Edited Reels / Short Videos</strong>: Engaging, trend-conscious, vertical video edits per month.</li>
+      <li><strong>Special Day Holiday Promotion Posters</strong>: Complementary graphic assets delivered for every nationally recognized or industry-relevant special holiday falling in the calendar month.</li>
+      <li><strong>2 Active Ad Campaigns</strong>: Run and optimized per month on Meta Platforms to acquire active, qualified leads.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>2. Production & Approval Pipelines</h2>
+    <p>To maintain high consistency and optimal brand tone, both parties agree to follow this strict monthly planning schedule:</p>
+    <ol>
+      <li><strong>Content Calendar Delivery</strong>: The Agency will share the comprehensive content sheet for the upcoming month on the <strong>30th of the previous month</strong> to the Client for verification.</li>
+      <li><strong>Revision & Approval Phase</strong>: Before the client approves, the Agency will accept feedback and change the content accordingly. The client agrees to complete the verification and provide final sign-off within <strong>two (2) days</strong> of receiving the sheet.</li>
+      <li><strong>Content Freeze</strong>: Once the content sheet is approved by the Client, no further design plans or calendar revisions will be made for that month, ensuring the scheduling remains uninterrupted.</li>
+      <li><strong>Respective Delivery Approval</strong>: Posters are scheduled for specific calendar days. To guarantee daily publications, individual poster files shared for daily review must be verified and approved by the Client within approximately <strong>three (3) hours</strong> of submission.</li>
+    </ol>
+  </div>
+
+  {{#if inclusions.length}}
+  <div class="section">
+    <h2>3. ADDITIONAL TERMS & PROJECT INCLUSIONS</h2>
+    <ul>
+      {{#each inclusions}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  <div class="signatures">
+    <div class="sig-col">
+      <p>For: <strong>{{companyName}}</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized Lead</p>
+      <p>Date: ______________</p>
+    </div>
+    <div class="sig-col">
+      <p>For: <strong>{{clientName}}</strong></p>
+      <div class="sig-line"></div>
+      <p class="sig-label">Authorized Representative</p>
+      <p>Date: ______________</p>
+    </div>
+  </div>
+</div>
+      `,
+    }
   ];
 
   for (const t of templates) {
-    await prisma.documentTemplate.upsert({
-      where: { id: t.name + tenantId, tenantId, name: t.name }, // Use name as pseudo-id for seed
-      update: { contentHtml: t.contentHtml },
-      create: {
-        tenantId,
-        name: t.name,
-        category: t.category,
-        contentHtml: t.contentHtml,
-      },
+    const existing = await prisma.documentTemplate.findFirst({
+      where: { tenantId, name: t.name }
     });
+
+    if (existing) {
+      await prisma.documentTemplate.update({
+        where: { id: existing.id },
+        data: { contentHtml: t.contentHtml, category: t.category }
+      });
+    } else {
+      await prisma.documentTemplate.create({
+        data: {
+          tenantId,
+          name: t.name,
+          category: t.category,
+          contentHtml: t.contentHtml,
+        }
+      });
+    }
   }
 
   console.log('Seed templates created successfully!');

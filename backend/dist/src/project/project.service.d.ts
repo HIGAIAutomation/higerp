@@ -19,23 +19,23 @@ export declare class ProjectService {
             name: string;
             startDate: Date;
             endDate: Date | null;
-            projectId: string;
-            spend: number;
+            updatedAt: Date;
             leads: number;
             updatedBy: string;
-            updatedAt: Date;
+            projectId: string;
+            spend: number;
         }[];
     } & {
         id: string;
         tenantId: string;
+        status: string;
         name: string;
+        category: string;
         clientId: string | null;
         clientName: string | null;
-        category: string;
         description: string | null;
         startDate: Date | null;
         endDate: Date | null;
-        status: string;
         whatsappNumber: string | null;
         price: number;
         modules: string | null;
@@ -50,19 +50,23 @@ export declare class ProjectService {
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
+        clientEmail: string | null;
+        clientAddress: string | null;
+        gstinNumber: string | null;
+        clientOccupation: string | null;
     })[]>;
     updateProject(id: string, tenantId: string, data: any, clientIdFilter?: string): Promise<any>;
     deleteProject(id: string, tenantId: string): Promise<{
         id: string;
         tenantId: string;
+        status: string;
         name: string;
+        category: string;
         clientId: string | null;
         clientName: string | null;
-        category: string;
         description: string | null;
         startDate: Date | null;
         endDate: Date | null;
-        status: string;
         whatsappNumber: string | null;
         price: number;
         modules: string | null;
@@ -77,5 +81,9 @@ export declare class ProjectService {
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
+        clientEmail: string | null;
+        clientAddress: string | null;
+        gstinNumber: string | null;
+        clientOccupation: string | null;
     }>;
 }

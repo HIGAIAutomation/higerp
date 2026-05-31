@@ -7,8 +7,8 @@ export declare class SupportService {
         tenantId: string;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
         description: string;
+        updatedAt: Date;
         assignedTo: string | null;
         title: string;
         priority: string;
@@ -21,8 +21,8 @@ export declare class SupportService {
         tenantId: string;
         status: string;
         createdAt: Date;
-        updatedAt: Date;
         description: string;
+        updatedAt: Date;
         assignedTo: string | null;
         title: string;
         priority: string;

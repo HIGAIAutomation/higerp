@@ -17,23 +17,23 @@ export declare class ProjectController {
             name: string;
             startDate: Date;
             endDate: Date | null;
-            projectId: string;
-            spend: number;
+            updatedAt: Date;
             leads: number;
             updatedBy: string;
-            updatedAt: Date;
+            projectId: string;
+            spend: number;
         }[];
     } & {
         id: string;
         tenantId: string;
+        status: string;
         name: string;
+        category: string;
         clientId: string | null;
         clientName: string | null;
-        category: string;
         description: string | null;
         startDate: Date | null;
         endDate: Date | null;
-        status: string;
         whatsappNumber: string | null;
         price: number;
         modules: string | null;
@@ -48,19 +48,23 @@ export declare class ProjectController {
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
+        clientEmail: string | null;
+        clientAddress: string | null;
+        gstinNumber: string | null;
+        clientOccupation: string | null;
     })[]>;
     updateProject(id: string, body: any, req: any): Promise<any>;
     deleteProject(id: string, req: any): Promise<{
         id: string;
         tenantId: string;
+        status: string;
         name: string;
+        category: string;
         clientId: string | null;
         clientName: string | null;
-        category: string;
         description: string | null;
         startDate: Date | null;
         endDate: Date | null;
-        status: string;
         whatsappNumber: string | null;
         price: number;
         modules: string | null;
@@ -75,5 +79,9 @@ export declare class ProjectController {
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
+        clientEmail: string | null;
+        clientAddress: string | null;
+        gstinNumber: string | null;
+        clientOccupation: string | null;
     }>;
 }
