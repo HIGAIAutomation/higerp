@@ -128,6 +128,12 @@ let DocumentService = class DocumentService {
               color: #0f172a !important;
               background-color: transparent !important;
             }
+            .doc-header-logo {
+              height: 48px;
+              width: auto;
+              border-radius: 10px;
+              object-fit: contain;
+            }
             @media print {
               body {
                 padding: 0;
@@ -137,14 +143,19 @@ let DocumentService = class DocumentService {
         </head>
         <body>
           <div class="legal-document-wrapper">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2E9EDE; padding-bottom: 12px; margin-bottom: 25px;">
-              <div style="text-align: left;">
-                <span style="font-family: sans-serif; font-size: 16px; font-weight: 800; color: #1e293b; letter-spacing: 0.5px;">HIG ENTERPRISE</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2E9EDE; padding-bottom: 14px; margin-bottom: 28px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="http://localhost:3001/logo.png" class="doc-header-logo" alt="HIG AI Automation LLP" />
+                <div>
+                  <div style="font-family: sans-serif; font-size: 15px; font-weight: 800; color: #0f172a; letter-spacing: 0.3px; line-height: 1.2;">HIG AI AUTOMATION LLP</div>
+                  <div style="font-family: sans-serif; font-size: 9px; font-weight: 600; color: #64748b; margin-top: 2px;">PPCQ+XH5, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002</div>
+                  <div style="font-family: sans-serif; font-size: 9px; font-weight: 700; color: #2E9EDE; margin-top: 1px;">LLPIN: AAY-0857 &nbsp;|&nbsp; GSTIN: 33ACFHH7098M1ZK</div>
+                </div>
               </div>
               <div style="text-align: right;">
-                <span style="font-family: sans-serif; font-size: 10px; font-weight: 800; color: #1e293b; letter-spacing: 0.5px;">HIG ENTERPRISE PORTAL</span>
+                <span style="font-family: sans-serif; font-size: 10px; font-weight: 800; color: #1e293b; letter-spacing: 0.5px;">OFFICIAL DOCUMENT</span>
                 <br/>
-                <span style="font-family: sans-serif; font-size: 8px; font-weight: 600; color: #64748b; tracking: 0.5px;">OFFICIAL SECURE DOCUMENT</span>
+                <span style="font-family: sans-serif; font-size: 8px; font-weight: 600; color: #64748b; tracking: 0.5px;">CONFIDENTIAL &amp; SECURE</span>
               </div>
             </div>
             ${doc.compiledHtml}

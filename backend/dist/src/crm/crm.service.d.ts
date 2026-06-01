@@ -6,17 +6,17 @@ export declare class CrmService {
     constructor(prisma: PrismaService, documentService: DocumentService);
     createLead(tenantId: string, data: any): Promise<{
         id: string;
-        tenantId: string;
-        status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        tenantId: string;
     }>;
     createPackage(tenantId: string, data: any): Promise<{
         id: string;
@@ -26,15 +26,16 @@ export declare class CrmService {
         basePrice: number;
         isActive: boolean;
     }>;
+    private ensureSalesQuotationTemplate;
     generateQuote(tenantId: string, leadId: string, packageId: string): Promise<{
         id: string;
+        status: string;
         tenantId: string;
         templateId: string | null;
         entityType: string;
         entityId: string;
         filePath: string | null;
         compiledHtml: string | null;
-        status: string;
         createdAt: Date;
     }>;
     getLeads(tenantId: string): Promise<({
@@ -56,45 +57,45 @@ export declare class CrmService {
         }[];
     } & {
         id: string;
-        tenantId: string;
-        status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        tenantId: string;
     })[]>;
     updateLead(tenantId: string, id: string, data: any): Promise<{
         id: string;
-        tenantId: string;
-        status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        tenantId: string;
     }>;
     deleteLead(tenantId: string, id: string): Promise<{
         id: string;
-        tenantId: string;
-        status: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         companyName: string | null;
         contact: string | null;
         source: string | null;
+        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        tenantId: string;
     }>;
     getPackages(tenantId: string): Promise<({
         tiers: {
@@ -130,30 +131,30 @@ export declare class CrmService {
     }>;
     generateClientRequirementDocument(tenantId: string, leadId: string): Promise<{
         id: string;
+        status: string;
         tenantId: string;
         templateId: string | null;
         entityType: string;
         entityId: string;
         filePath: string | null;
         compiledHtml: string | null;
-        status: string;
         createdAt: Date;
     } | undefined>;
     sendGoogleCalendarInvite(followUp: any): Promise<void>;
     createFollowUp(tenantId: string, data: any): Promise<({
         lead: {
             id: string;
-            tenantId: string;
-            status: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             companyName: string | null;
             contact: string | null;
             source: string | null;
+            status: string;
             assignedTo: string | null;
             valEstimate: number | null;
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            tenantId: string;
         };
     } & {
         id: string;
@@ -167,17 +168,17 @@ export declare class CrmService {
     getFollowUps(tenantId: string): Promise<({
         lead: {
             id: string;
-            tenantId: string;
-            status: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             companyName: string | null;
             contact: string | null;
             source: string | null;
+            status: string;
             assignedTo: string | null;
             valEstimate: number | null;
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            tenantId: string;
         };
     } & {
         id: string;

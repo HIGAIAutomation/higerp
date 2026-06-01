@@ -6,38 +6,38 @@ export declare class ProjectService {
     constructor(prisma: PrismaService, documentService: DocumentService);
     createProject(tenantId: string, data: any): Promise<any>;
     getProjects(tenantId: string): Promise<({
-        adCampaigns: {
-            id: string;
-            tenantId: string;
-            createdAt: Date;
-            name: string;
-            updatedAt: Date;
-            leads: number;
-            startDate: Date;
-            endDate: Date | null;
-            updatedBy: string;
-            projectId: string;
-            spend: number;
-        }[];
         client: {
             id: string;
             email: string | null;
             username: string;
             role: string;
         } | null;
+        adCampaigns: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedBy: string;
+            updatedAt: Date;
+            projectId: string;
+            startDate: Date;
+            endDate: Date | null;
+            leads: number;
+            spend: number;
+        }[];
     } & {
         id: string;
         tenantId: string;
         status: string;
         name: string;
         category: string;
-        description: string | null;
-        price: number;
         clientId: string | null;
         clientName: string | null;
+        description: string | null;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
+        price: number;
         modules: string | null;
         platforms: string | null;
         deliveryCode: boolean;
@@ -58,13 +58,13 @@ export declare class ProjectService {
         status: string;
         name: string;
         category: string;
-        description: string | null;
-        price: number;
         clientId: string | null;
         clientName: string | null;
+        description: string | null;
         startDate: Date | null;
         endDate: Date | null;
         whatsappNumber: string | null;
+        price: number;
         modules: string | null;
         platforms: string | null;
         deliveryCode: boolean;

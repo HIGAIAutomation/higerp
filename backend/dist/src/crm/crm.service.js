@@ -58,7 +58,70 @@ let CrmService = class CrmService {
             },
         });
     }
+    async ensureSalesQuotationTemplate(tenantId) {
+        const LOGO_URL = 'http://localhost:3001/logo.png';
+        const contentHtml = `
+<div style="font-family:'Inter',sans-serif;padding:20px;line-height:1.7;color:#1e293b;">
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #2E9EDE;padding-bottom:14px;margin-bottom:28px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img src="${LOGO_URL}" alt="HIG AI Automation LLP" style="height:52px;width:auto;border-radius:10px;flex-shrink:0;" />
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#0f172a;">HIG AI AUTOMATION LLP</div>
+        <div style="font-size:9px;color:#64748b;margin-top:2px;">PPCQ+XH5, 6, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002</div>
+        <div style="font-size:9px;font-weight:700;color:#2E9EDE;margin-top:1px;">LLPIN: AAY-0857 &amp;nbsp;|&amp;nbsp; GSTIN: 33ACFHH7098M1ZK</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:18px;font-weight:800;color:#0f172a;">SALES QUOTATION</div>
+      <div style="font-size:11px;color:#64748b;">Valid Until: {{validUntil}}</div>
+    </div>
+  </div>
+
+  <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:20px;">
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <tr><td style="padding:5px 0;font-weight:600;width:180px;">Prepared For:</td><td style="font-weight:700;">{{clientName}}</td></tr>
+      <tr><td style="padding:5px 0;font-weight:600;">Package:</td><td>{{packageName}}</td></tr>
+      <tr><td style="padding:5px 0;font-weight:600;">Base Investment:</td><td style="font-weight:700;color:#2e9ede;">₹{{basePrice}}</td></tr>
+    </table>
+  </div>
+
+  <h3 style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px;">Pricing Tiers</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <thead>
+      <tr style="background:#f1f5f9;border-bottom:2px solid #cbd5e1;">
+        <th style="padding:10px;text-align:left;font-weight:700;">Tier</th>
+        <th style="padding:10px;text-align:right;font-weight:700;">Price (INR)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each tiers}}
+      <tr style="border-bottom:1px solid #e2e8f0;">
+        <td style="padding:10px;font-weight:600;">{{name}}</td>
+        <td style="padding:10px;text-align:right;font-weight:700;color:#2e9ede;">₹{{price}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <p style="font-size:11px;color:#94a3b8;margin-top:24px;text-align:center;">This quotation is issued by HIG AI Automation LLP and is valid until the date stated above.</p>
+</div>`;
+        const existing = await this.prisma.documentTemplate.findFirst({
+            where: { name: 'Sales Quotation', tenantId }
+        });
+        if (!existing) {
+            await this.prisma.documentTemplate.create({
+                data: { tenantId, name: 'Sales Quotation', category: 'CRM', contentHtml }
+            });
+        }
+        else {
+            await this.prisma.documentTemplate.update({
+                where: { id: existing.id },
+                data: { contentHtml }
+            });
+        }
+    }
     async generateQuote(tenantId, leadId, packageId) {
+        await this.ensureSalesQuotationTemplate(tenantId);
         const lead = await this.prisma.lead.findUnique({ where: { id: leadId } });
         const pkg = await this.prisma.package.findUnique({
             where: { id: packageId },
@@ -160,22 +223,15 @@ let CrmService = class CrmService {
         });
         const contentHtml = `
 <div style="font-family: 'Inter', sans-serif; padding: 20px; line-height: 1.6; color: #334155;">
-  <!-- Premium Brand Header -->
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #2E9EDE; padding-bottom: 20px;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <!-- Modern Styled SVG Logo for HIG AI Automation -->
-      <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
-        <rect width="100" height="100" rx="24" fill="#0F172A"/>
-        <path d="M30 30H42V70H30V30Z" fill="#2E9EDE"/>
-        <path d="M58 30H70V70H58V30Z" fill="#2E9EDE"/>
-        <path d="M42 45H58V55H42V45Z" fill="#2E9EDE"/>
-      </svg>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 3px solid #2E9EDE; padding-bottom: 20px;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <img src="http://localhost:3001/logo.png" alt="HIG AI Automation LLP" style="height: 55px; width: auto; border-radius: 10px; flex-shrink: 0;" />
       <div>
         <h2 style="color: #0f172a; margin: 0; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.2;">HIG AI AUTOMATION LLP</h2>
-        <p style="margin: 3px 0 0 0; font-size: 9px; color: #64748b; font-weight: 500; max-width: 320px; line-height: 1.3;">
+        <p style="margin: 4px 0 0 0; font-size: 9px; color: #64748b; font-weight: 500; max-width: 320px; line-height: 1.4;">
           PPCQ+XH5, 6, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002
           <br/>
-          <span style="font-weight: 700; color: #2e9ede; margin-top: 2px; display: inline-block;">Reg No / LLPIN: AAY-0857</span>
+          <span style="font-weight: 700; color: #2e9ede; margin-top: 2px; display: inline-block;">LLPIN: AAY-0857 &nbsp;|&nbsp; GSTIN: 33ACFHH7098M1ZK</span>
         </p>
       </div>
     </div>
