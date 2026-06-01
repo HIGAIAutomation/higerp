@@ -21,6 +21,12 @@ export class PaymentController {
     return this.paymentService.generateBill(req.user.tenantId, body);
   }
 
+  @Get('client')
+  @Roles('client', 'user')
+  async getClientPayments(@Request() req: any) {
+    return this.paymentService.getClientPayments(req.user.tenantId, req.user.userId);
+  }
+
   @Put(':id/pay')
   @Roles('superadmin')
   async markAsPaid(@Param('id') id: string, @Request() req: any) {

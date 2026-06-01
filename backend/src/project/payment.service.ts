@@ -70,4 +70,24 @@ export class PaymentService {
       },
     });
   }
+
+  async getClientPayments(tenantId: string, clientId: string) {
+    return this.prisma.projectPayment.findMany({
+      where: {
+        tenantId,
+        project: {
+          clientId: clientId,
+        },
+      },
+      include: {
+        project: {
+          select: {
+            name: true,
+            whatsappNumber: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

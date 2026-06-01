@@ -1,0 +1,243 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import DashboardLayout from '@/components/layout/dashboard-layout';
+import { fetchWithAuth } from '@/lib/api';
+import { 
+  CreditCard,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Download
+} from 'lucide-react';
+import HIGLogo from '@/components/logo';
+
+interface PaymentInvoice {
+  id: string;
+  invoiceNumber: string;
+  amount: string;
+  dueDate: string;
+  status: string;
+  createdAt: string;
+  project: {
+    name: string;
+    whatsappNumber?: string;
+  };
+}
+
+export default function ClientPaymentsPage() {
+  const [payments, setPayments] = useState<PaymentInvoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [downloadingInvId, setDownloadingInvId] = useState<string | null>(null);
+
+  const fetchClientPayments = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchWithAuth('/project-payments/client');
+      setPayments(data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load your payment history. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClientPayments();
+  }, []);
+
+  const handleDownloadInvoice = async (p: PaymentInvoice) => {
+    setDownloadingInvId(p.id);
+    try {
+      const invoiceHtml = `
+        <html>
+        <head>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: 'Inter', sans-serif; color: #1e293b; background: #fff; padding: 40px; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+            .company { font-size: 24px; font-weight: 800; color: #1e293b; letter-spacing: 1px; }
+            .company-sub { font-size: 10px; font-weight: 600; color: #64748b; margin-top: 4px; }
+            .invoice-title { font-size: 28px; font-weight: 800; color: #2563eb; text-align: right; }
+            .invoice-number { font-size: 12px; font-weight: 600; color: #64748b; text-align: right; margin-top: 4px; }
+            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+            .meta-block label { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 4px; }
+            .meta-block span { font-size: 14px; font-weight: 600; color: #1e293b; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            thead th { background: #f1f5f9; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+            tbody td { padding: 14px 16px; font-size: 13px; font-weight: 500; color: #334155; border-bottom: 1px solid #f1f5f9; }
+            .total-row td { font-weight: 800; font-size: 15px; color: #1e293b; background: #f8fafc; border-top: 2px solid #2563eb; }
+            .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+            .status-paid { background: #d1fae5; color: #059669; }
+            .status-pending { background: #fef3c7; color: #d97706; }
+            .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="company">HIG AI AUTOMATION LLP</div>
+              <div class="company-sub">Enterprise Resource Planning Portal</div>
+            </div>
+            <div>
+              <div class="invoice-title">INVOICE</div>
+              <div class="invoice-number">${p.invoiceNumber}</div>
+            </div>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-block">
+              <label>Bill To / Project</label>
+              <span>${p.project.name}</span>
+            </div>
+            <div class="meta-block">
+              <label>Invoice Number</label>
+              <span>${p.invoiceNumber}</span>
+            </div>
+            <div class="meta-block">
+              <label>Issue Date</label>
+              <span>${p.createdAt.split('T')[0]}</span>
+            </div>
+            <div class="meta-block">
+              <label>Due Date</label>
+              <span>${p.dueDate.split('T')[0]}</span>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Status</th>
+                <th style="text-align:right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Project services for ${p.project.name}</td>
+                <td><span class="status-badge ${p.status === 'paid' ? 'status-paid' : 'status-pending'}">${p.status}</span></td>
+                <td style="text-align:right">Rs. ${parseFloat(p.amount).toLocaleString()}</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="2" style="text-align:right">Total Payable:</td>
+                <td style="text-align:right">Rs. ${parseFloat(p.amount).toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <p>This is a computer-generated invoice from HIG Enterprise Portal.</p>
+            <p style="margin-top:4px;">HIG AI Automation LLP &bull; All Rights Reserved &copy; ${new Date().getFullYear()}</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const { downloadPdfFromHtml } = await import('@/lib/download-pdf');
+      await downloadPdfFromHtml(invoiceHtml, `Invoice_${p.invoiceNumber.replace(/\//g, '-')}`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to download invoice PDF.');
+    } finally {
+      setDownloadingInvId(null);
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="font-sans min-h-screen pb-16">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold text-primary tracking-tight">My Payments & Invoices</h1>
+            <p className="text-sm text-muted-foreground mt-2 font-medium">View your project invoice statements and verify payment clearance status.</p>
+          </div>
+          <HIGLogo size={48} className="hidden md:block rounded-xl border border-border shadow-sm" />
+        </div>
+
+        {error && (
+          <div className="mb-8 p-4 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center border border-rose-500/20">
+            <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0" />
+            <p className="text-sm font-semibold">{error}</p>
+          </div>
+        )}
+
+        <div className="bg-card rounded-[32px] p-8 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+          <div className="flex items-center space-x-3 mb-6">
+            <CreditCard className="h-6 w-6 text-indigo-500" />
+            <h2 className="text-2xl font-bold text-primary tracking-tight">Invoice History Ledger</h2>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-secondary/30 rounded-2xl border border-border">
+              <Loader2 className="h-8 w-8 animate-spin text-accent mb-3" />
+              <p className="text-xs text-muted-foreground font-semibold">Generating your financial statements...</p>
+            </div>
+          ) : payments.length === 0 ? (
+            <div className="text-center py-16 bg-secondary/30 rounded-[24px] border border-dashed border-border">
+              <CreditCard className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground font-semibold">No invoices generated yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-widest pb-3">
+                    <th className="pb-3">Bill Number</th>
+                    <th className="pb-3">Project</th>
+                    <th className="pb-3">Amount</th>
+                    <th className="pb-3">Due Date</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border text-xs font-semibold text-foreground/85">
+                  {payments.map((p) => (
+                    <tr key={p.id} className="hover:bg-secondary/20 transition-colors">
+                      <td className="py-4 font-bold text-foreground">{p.invoiceNumber}</td>
+                      <td className="py-4 text-foreground/90">{p.project.name}</td>
+                      <td className="py-4 text-accent font-bold">Rs. {parseFloat(p.amount).toLocaleString()}</td>
+                      <td className="py-4 flex items-center gap-1.5 text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
+                        {p.dueDate.split('T')[0]}
+                      </td>
+                      <td className="py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                          p.status === 'paid'
+                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                        }`}>
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="py-4 text-right">
+                        <button
+                          type="button"
+                          disabled={downloadingInvId === p.id}
+                          onClick={() => handleDownloadInvoice(p)}
+                          className="px-2.5 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 rounded-lg transition-all font-bold hover:scale-105 cursor-pointer disabled:opacity-50 text-[10px] uppercase tracking-wider border border-sky-500/20 inline-flex items-center gap-1"
+                          title="Download Invoice"
+                        >
+                          {downloadingInvId === p.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Download className="h-3 w-3" />
+                          )}
+                          Download PDF
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
