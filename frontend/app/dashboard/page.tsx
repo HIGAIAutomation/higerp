@@ -617,6 +617,33 @@ export default function DashboardPage() {
   const [editForm, setEditForm] = useState<Partial<ContentSheetItem>>({});
   const [campaignStatuses, setCampaignStatuses] = useState<Record<string, 'inprogress' | 'running'>>({});
 
+  const [webAppModules, setWebAppModules] = useState<any[]>([]);
+  const [newModuleModalOpen, setNewModuleModalOpen] = useState(false);
+  const [newModuleForm, setNewModuleForm] = useState({ name: '', description: '' });
+  const [isUpdatingModule, setIsUpdatingModule] = useState(false);
+
+  // Sync web app modules when project changes
+  useEffect(() => {
+    if (activeProject && activeProject.category === 'Web/App Development') {
+      const modules = (activeProject as any).moduleDetails || [];
+      // Assign default statuses/phases if they are missing
+      const enrichedModules = modules.map((m: any, idx: number) => {
+        // Fallback phase calculation for legacy modules (chunk into 4)
+        const total = modules.length;
+        const chunkSize = Math.ceil(total / 4) || 1;
+        const defaultPhase = Math.floor(idx / chunkSize) + 1;
+        
+        return {
+          ...m,
+          status: m.status || 'new',
+          phase: m.phase || defaultPhase,
+          id: m.id || `mod_${idx}`
+        };
+      });
+      setWebAppModules(enrichedModules);
+    }
+  }, [activeProject]);
+
   const saveStateToStorage = async (
     items: ContentSheetItem[],
     statuses: Record<string, 'inprogress' | 'completed' | 'posted'>,
@@ -1136,6 +1163,273 @@ export default function DashboardPage() {
         [id]: !prev[id]
       }));
     };
+
+    const handleUpdateModuleStatus = async (moduleId: string, newStatus: string) => {
+      if (!activeProject) return;
+      try {
+        setIsUpdatingModule(true);
+        const updatedModules = webAppModules.map(m => 
+          m.id === moduleId ? { ...m, status: newStatus } : m
+        );
+        
+        const payload = { moduleDetails: updatedModules };
+        
+        await fetchWithAuth(`/projects/${activeProject.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        
+        setWebAppModules(updatedModules);
+      } catch (err) {
+        console.error("Failed to update module status:", err);
+        alert("Error updating module status.");
+      } finally {
+        setIsUpdatingModule(false);
+      }
+    };
+
+    const handleAddNewModule = async () => {
+      if (!activeProject || !newModuleForm.name) return;
+      try {
+        setIsUpdatingModule(true);
+        
+        // Find highest phase number
+        const maxPhase = webAppModules.reduce((max, m) => Math.max(max, m.phase || 0), 0);
+        const newPhase = Math.max(maxPhase + 1, 5); // Minimum phase 5 for custom add-ons
+
+        const newModule = {
+          id: `mod_${Date.now()}`,
+          name: newModuleForm.name,
+          description: newModuleForm.description,
+          price: null, // Price pending admin approval
+          status: 'new',
+          phase: newPhase,
+          isNewRequest: true,
+          addedByClient: true
+        };
+
+        const updatedModules = [...webAppModules, newModule];
+        const payload = { moduleDetails: updatedModules };
+        
+        await fetchWithAuth(`/projects/${activeProject.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        
+        setWebAppModules(updatedModules);
+        setNewModuleModalOpen(false);
+        setNewModuleForm({ name: '', description: '' });
+      } catch (err) {
+        console.error("Failed to add new module:", err);
+        alert("Error adding new module request.");
+      } finally {
+        setIsUpdatingModule(false);
+      }
+    };
+
+    const renderWebAppDashboard = () => {
+      if (!activeProject) return null;
+      
+      const techStack = (activeProject as any).techStack || {};
+      
+      // Group modules by phase
+      const phaseGroups: Record<number, any[]> = {};
+      webAppModules.forEach(m => {
+        const p = m.phase || 1;
+        if (!phaseGroups[p]) phaseGroups[p] = [];
+        phaseGroups[p].push(m);
+      });
+      
+      const sortedPhases = Object.keys(phaseGroups).map(Number).sort((a, b) => a - b);
+
+      return (
+        <DashboardLayout fullWidth={true}>
+          {renderBirthdayModal()}
+          
+          {/* New Module Modal */}
+          {newModuleModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+                <button 
+                  onClick={() => setNewModuleModalOpen(false)}
+                  className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Add New Feature</h3>
+                <p className="text-sm text-slate-500 mb-6">Request a new module for your project. An admin will review and assign a price.</p>
+                
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Feature Name</label>
+                    <input 
+                      type="text" 
+                      value={newModuleForm.name}
+                      onChange={(e) => setNewModuleForm({...newModuleForm, name: e.target.value})}
+                      placeholder="e.g. Chat Integration"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Description</label>
+                    <textarea 
+                      value={newModuleForm.description}
+                      onChange={(e) => setNewModuleForm({...newModuleForm, description: e.target.value})}
+                      placeholder="Describe what you need..."
+                      rows={3}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 resize-none"
+                    />
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={handleAddNewModule}
+                  disabled={isUpdatingModule || !newModuleForm.name}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl py-3.5 font-bold shadow-md transition-colors flex items-center justify-center"
+                >
+                  {isUpdatingModule ? <Loader2 className="h-5 w-5 animate-spin" /> : "Submit Request"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="font-sans min-h-screen pb-12 space-y-8 bg-slate-50 -mx-8 -my-8 p-8 text-slate-800 border-l border-slate-200">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+              <div>
+                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+                  <Sparkles className="h-8 w-8 text-indigo-600 animate-pulse" />
+                  Project Pipeline
+                </h1>
+                <p className="text-sm text-slate-500 mt-2 font-medium">
+                  Welcome back, <span className="font-bold text-indigo-600">{user?.username}</span>. Track the development phases of your Web/App project below.
+                </p>
+              </div>
+              
+              <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-sm">
+                <div className="relative flex items-center justify-center h-3 w-3">
+                  <span className="h-3 w-3 rounded-full bg-emerald-500 animate-ping absolute" />
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 relative" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Scope</p>
+                  <p className="text-sm font-black text-slate-850">{activeProject.name}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tech Stack Info */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Architecture & Tech Stack</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Frontend</p>
+                  <p className="text-sm font-bold text-slate-800">{techStack.frontend || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Backend</p>
+                  <p className="text-sm font-bold text-slate-800">{techStack.backend || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Database</p>
+                  <p className="text-sm font-bold text-slate-800">{techStack.database || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Hosting</p>
+                  <p className="text-sm font-bold text-slate-800">{techStack.hosting || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Phase Tracking */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-900">Development Phases</h3>
+                <button 
+                  onClick={() => setNewModuleModalOpen(true)}
+                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 border border-indigo-200"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Feature
+                </button>
+              </div>
+
+              {sortedPhases.map(phaseNum => (
+                <div key={phaseNum} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                  <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs">
+                        {phaseNum}
+                      </span>
+                      Phase {phaseNum} Delivery
+                    </h4>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {phaseGroups[phaseNum].map((mod: any) => (
+                      <div key={mod.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h5 className="font-bold text-slate-900 text-base">{mod.name}</h5>
+                            {mod.isNewRequest && (
+                              <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                                New Request
+                              </span>
+                            )}
+                          </div>
+                          {mod.description && (
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-2xl">{mod.description}</p>
+                          )}
+                          <div className="mt-3 flex items-center gap-4">
+                            <span className="text-xs font-bold text-slate-400">
+                              Price: {mod.price ? `Rs. ${Number(mod.price).toLocaleString()}` : <span className="text-amber-500">Pending Admin Approval</span>}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Status</label>
+                          <select 
+                            value={mod.status}
+                            onChange={(e) => handleUpdateModuleStatus(mod.id, e.target.value)}
+                            disabled={isUpdatingModule || user?.role === 'client'}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border focus:outline-none appearance-none pr-8 relative ${
+                              mod.status === 'live' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                              mod.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                              mod.status === 'ready_for_testing' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                              mod.status === 'in_progress' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                              'bg-slate-100 text-slate-600 border-slate-200'
+                            }`}
+                          >
+                            <option value="new">New</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="ready_for_testing">Ready for Testing</option>
+                            <option value="completed">Completed</option>
+                            <option value="live">Live</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {webAppModules.length === 0 && (
+                <div className="text-center py-16 bg-white rounded-[32px] border border-dashed border-slate-300">
+                  <Briefcase className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-sm font-bold text-slate-500">No modules found for this project.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </DashboardLayout>
+      );
+    };
+
+    if (activeProject?.category === 'Web/App Development') {
+      return renderWebAppDashboard();
+    }
 
     return (
       <DashboardLayout fullWidth={true}>

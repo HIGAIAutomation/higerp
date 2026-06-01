@@ -118,7 +118,7 @@ export default function ProjectsPage() {
   const [newModulePrice, setNewModulePrice] = useState('');
   const [newModuleDescription, setNewModuleDescription] = useState('');
 
-  const [editModuleInputs, setEditModuleInputs] = useState<{ name: string; price: string; description: string; completed: boolean }[]>([]);
+  const [editModuleInputs, setEditModuleInputs] = useState<any[]>([]);
   const [newEditModuleName, setNewEditModuleName] = useState('');
   const [newEditModulePrice, setNewEditModulePrice] = useState('');
   const [newEditModuleDescription, setNewEditModuleDescription] = useState('');
@@ -162,10 +162,21 @@ export default function ProjectsPage() {
     const trimmedDesc = newEditModuleDescription.trim();
     if (!trimmedName || isNaN(parsedPrice)) return;
     
-    const updatedInputs = [...editModuleInputs, { name: trimmedName, price: String(parsedPrice), description: trimmedDesc, completed: false }];
+    // Find max phase and id if needed
+    const maxPhase = editModuleInputs.reduce((max, m) => Math.max(max, m.phase || 1), 1);
+    const newModule = { 
+      id: `mod_${Date.now()}`,
+      name: trimmedName, 
+      price: String(parsedPrice), 
+      description: trimmedDesc, 
+      completed: false,
+      status: 'new',
+      phase: maxPhase
+    };
+    const updatedInputs = [...editModuleInputs, newModule];
     setEditModuleInputs(updatedInputs);
     
-    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
     setEditForm(prev => ({
       ...prev,
       price: String(totalPrice),
@@ -610,11 +621,9 @@ export default function ProjectsPage() {
     });
     
     const details = proj.moduleDetails || [];
-    setEditModuleInputs(details.map(m => ({
-      name: m.name,
-      price: String(m.price),
-      description: m.description || '',
-      completed: !!m.completed
+    setEditModuleInputs(details.map((m: any) => ({
+      ...m,
+      price: m.price ? String(m.price) : ''
     })));
   };
 
@@ -670,7 +679,7 @@ export default function ProjectsPage() {
         method: 'PUT',
         body: JSON.stringify({
           ...editForm,
-          moduleDetails: editForm.category !== 'Digital Marketing' ? editModuleInputs.map(m => ({ name: m.name, price: parseFloat(m.price), description: m.description, completed: m.completed })) : undefined
+          moduleDetails: editForm.category !== 'Digital Marketing' ? editModuleInputs.map(m => ({ ...m, price: m.price ? parseFloat(m.price) : null })) : undefined
         }),
       });
       setEditingProject(null);
@@ -1798,11 +1807,39 @@ export default function ProjectsPage() {
                       {editModuleInputs.length > 0 && (
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {editModuleInputs.map((mod, idx) => (
-                            <div key={idx} className="bg-card p-3 rounded-xl border border-border text-xs space-y-1">
-                              <div className="flex items-center justify-between">
-                                <div className="font-semibold text-foreground">{mod.name}</div>
-                                <div className="flex items-center space-x-3">
-                                  <span className="font-bold text-accent">Rs. {Number(mod.price).toLocaleString()}</span>
+                            <div key={idx} className={`p-3 rounded-xl border text-xs space-y-2 ${mod.isNewRequest && !mod.price ? 'bg-amber-50/50 border-amber-200' : 'bg-card border-border'}`}>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-semibold text-foreground flex items-center gap-2">
+                                    {mod.name}
+                                    {mod.isNewRequest && !mod.price && (
+                                      <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider">New</span>
+                                    )}
+                                  </div>
+                                  {mod.description && (
+                                    <div className="text-[11px] text-muted-foreground font-medium leading-normal mt-1">{mod.description}</div>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-3 ml-4">
+                                  {mod.isNewRequest && !mod.price ? (
+                                    <input
+                                      type="number"
+                                      placeholder="Set Price"
+                                      value={mod.price || ''}
+                                      onChange={(e) => {
+                                        const next = [...editModuleInputs];
+                                        next[idx].price = e.target.value;
+                                        setEditModuleInputs(next);
+                                        // Update total price
+                                        const newTotal = next.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+                                        setEditForm(prev => ({ ...prev, price: String(newTotal) }));
+                                      }}
+                                      className="w-24 px-2 py-1 text-xs border border-amber-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white"
+                                    />
+                                  ) : (
+                                    <span className="font-bold text-accent">Rs. {Number(mod.price).toLocaleString()}</span>
+                                  )}
+                                  
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveEditModuleInput(idx)}
@@ -1812,9 +1849,6 @@ export default function ProjectsPage() {
                                   </button>
                                 </div>
                               </div>
-                              {mod.description && (
-                                <div className="text-[11px] text-muted-foreground font-medium leading-normal">{mod.description}</div>
-                              )}
                             </div>
                           ))}
                         </div>
