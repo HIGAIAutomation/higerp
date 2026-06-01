@@ -22,6 +22,7 @@ interface Project {
   startDate: string;
   endDate: string;
   status: string;
+  moduleDetails?: any;
 }
 
 interface GeneratedDoc {
@@ -96,6 +97,33 @@ export default function WebAppProjectsPage() {
     fetchProjects();
   }, []);
 
+  const handleUpdateModuleStatus = async (projectId: string, moduleId: string, newStatus: string) => {
+    try {
+      const proj = projects.find(p => p.id === projectId);
+      if (!proj) return;
+      
+      const modules = proj.moduleDetails || [];
+      const updatedModules = modules.map((m: any, idx: number) => {
+        const id = m.id || `mod_${idx}`;
+        if (id === moduleId) {
+          return { ...m, status: newStatus };
+        }
+        return m;
+      });
+
+      await fetchWithAuth(`/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleDetails: updatedModules }),
+      });
+      
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, moduleDetails: updatedModules } : p));
+    } catch (err) {
+      console.error("Failed to update module status:", err);
+      alert("Error updating module status.");
+    }
+  };
+
   const handleDownloadDoc = async (docId: string, docName: string) => {
     const { downloadPdf } = await import('@/lib/download-pdf');
     await downloadPdf(docId, docName, setDownloadingDocId);
@@ -155,36 +183,71 @@ export default function WebAppProjectsPage() {
                       <p className="text-sm text-muted-foreground mb-6 font-medium leading-relaxed">{proj.description}</p>
                     </div>
 
-                    <div className="pt-4 border-t border-border">
-                      <p className="text-[10px] font-bold text-muted-foreground mb-3 uppercase tracking-wider">PROJECT CONTRACTS</p>
-                      {docs.length === 0 ? (
-                        <p className="text-xs italic text-muted-foreground">No documents generated yet.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {docs.slice(0, 3).map((doc) => {
-                            const name = doc.template?.name || 'Agreement';
-                            const isDownloading = downloadingDocId === doc.id;
-                            return (
-                              <button
-                                key={doc.id}
-                                disabled={isDownloading}
-                                onClick={() => handleDownloadDoc(doc.id, name)}
-                                className="w-full flex items-center justify-between text-left p-3 rounded-xl border border-border bg-secondary/50 hover:bg-secondary transition-colors text-xs font-semibold text-foreground cursor-pointer disabled:opacity-70"
-                              >
-                                <span className="flex items-center truncate">
-                                  <FileCheck className="h-4 w-4 mr-2 text-emerald-500 flex-shrink-0" />
-                                  <span className="truncate">{name}</span>
-                                </span>
-                                {isDownloading ? (
-                                  <Loader2 className="h-3.5 w-3.5 text-accent animate-spin flex-shrink-0" />
-                                ) : (
-                                  <Download className="h-3.5 w-3.5 text-accent flex-shrink-0" />
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                    <div className="pt-4 border-t border-border flex-1 flex flex-col">
+                      <p className="text-[10px] font-bold text-muted-foreground mb-3 uppercase tracking-wider">PROJECT MODULES & PHASES</p>
+                      
+                      {(() => {
+                        const modules = proj.moduleDetails || [];
+                        if (modules.length === 0) {
+                          return <p className="text-xs italic text-muted-foreground">No modules assigned.</p>;
+                        }
+                        
+                        const phaseGroups: Record<number, any[]> = {};
+                        modules.forEach((m: any, idx: number) => {
+                          const total = modules.length;
+                          const chunkSize = Math.ceil(total / 4) || 1;
+                          const defaultPhase = Math.floor(idx / chunkSize) + 1;
+                          const phase = m.phase || defaultPhase;
+                          if (!phaseGroups[phase]) phaseGroups[phase] = [];
+                          phaseGroups[phase].push({ ...m, id: m.id || `mod_${idx}`, status: m.status || 'new' });
+                        });
+                        const sortedPhases = Object.keys(phaseGroups).map(Number).sort((a, b) => a - b);
+                        
+                        return (
+                          <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                            {sortedPhases.map(phaseNum => (
+                              <div key={phaseNum} className="space-y-2">
+                                <h4 className="text-[10px] font-black text-accent uppercase tracking-widest bg-secondary/50 p-1.5 rounded-lg border border-border inline-block">
+                                  Phase {phaseNum}
+                                </h4>
+                                <div className="space-y-2 pl-1 border-l-2 border-secondary ml-1">
+                                  {phaseGroups[phaseNum].map(mod => (
+                                    <div key={mod.id} className="bg-secondary/30 p-2.5 rounded-xl border border-border flex flex-col gap-2">
+                                      <div className="flex items-start justify-between">
+                                        <div className="flex-1 pr-2">
+                                          <div className="text-xs font-bold text-foreground flex items-center gap-2">
+                                            {mod.name}
+                                            {mod.isNewRequest && (
+                                              <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded-sm uppercase">New</span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <select 
+                                          value={mod.status}
+                                          onChange={(e) => handleUpdateModuleStatus(proj.id, mod.id, e.target.value)}
+                                          className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded cursor-pointer appearance-none outline-none border focus:ring-1 focus:ring-accent ${
+                                            mod.status === 'live' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                            mod.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                            mod.status === 'ready_for_testing' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                            mod.status === 'in_progress' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                            'bg-slate-100 text-slate-600 border-slate-200'
+                                          }`}
+                                        >
+                                          <option value="new">New</option>
+                                          <option value="in_progress">In Progress</option>
+                                          <option value="ready_for_testing">Ready Test</option>
+                                          <option value="completed">Completed</option>
+                                          <option value="live">Live</option>
+                                        </select>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 );

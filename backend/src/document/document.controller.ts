@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, Res, ForbiddenException } from '@nestjs/common';
 import { DocumentService } from './document.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -6,6 +6,39 @@ import { AuthGuard } from '@nestjs/passport';
 @UseGuards(AuthGuard('jwt'))
 export class DocumentController {
   constructor(private documentService: DocumentService) {}
+
+  @Get('ceo-signature')
+  async getCeoSignature(@Request() req: any) {
+    if (req.user.role !== 'superadmin') {
+      throw new ForbiddenException('Only superadmin can perform this action');
+    }
+    const fs = require('fs');
+    const path = require('path');
+    const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+    if (fs.existsSync(signatureFilePath)) {
+      const signatureData = fs.readFileSync(signatureFilePath, 'utf8');
+      return { signatureData };
+    }
+    return { signatureData: null };
+  }
+
+  @Post('ceo-signature')
+  async saveCeoSignature(@Request() req: any, @Body() body: { signatureData: string }) {
+    if (req.user.role !== 'superadmin') {
+      throw new ForbiddenException('Only superadmin can perform this action');
+    }
+    const fs = require('fs');
+    const path = require('path');
+    const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+    if (body.signatureData) {
+      fs.writeFileSync(signatureFilePath, body.signatureData, 'utf8');
+    } else {
+      if (fs.existsSync(signatureFilePath)) {
+        fs.unlinkSync(signatureFilePath);
+      }
+    }
+    return { success: true };
+  }
 
   @Get('entity/:entityType/:entityId')
   async getDocumentsForEntity(
@@ -87,5 +120,27 @@ export class DocumentController {
   @Get('/:id')
   async getDocument(@Param('id') id: string, @Request() req: any) {
     return this.documentService.getDocument(req.user.tenantId, id);
+  }
+
+  @Post('/:id/sign')
+  async signDocument(@Param('id') id: string, @Body() body: { signatureData: string }, @Request() req: any) {
+    if (!body.signatureData) {
+      throw new Error('Signature data is required');
+    }
+    try {
+      return await this.documentService.signDocument(req.user.tenantId, id, body.signatureData);
+    } catch (error: any) {
+      console.error('Error signing document in backend:', error);
+      throw error;
+    }
+  }
+  @Post('/:id/unsign')
+  async unsignDocument(@Param('id') id: string, @Request() req: any) {
+    try {
+      return await this.documentService.unsignDocument(req.user.tenantId, id);
+    } catch (error: any) {
+      console.error('Error unsigning document in backend:', error);
+      throw error;
+    }
   }
 }

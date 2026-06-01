@@ -4,17 +4,17 @@ export declare class CrmController {
     constructor(crmService: CrmService);
     createLead(body: any, req: any): Promise<{
         id: string;
+        tenantId: string;
+        status: string;
         companyName: string | null;
         contact: string | null;
         source: string | null;
-        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        tenantId: string;
     }>;
     getLeads(req: any): Promise<({
         opportunities: {
@@ -35,60 +35,60 @@ export declare class CrmController {
         }[];
     } & {
         id: string;
+        tenantId: string;
+        status: string;
         companyName: string | null;
         contact: string | null;
         source: string | null;
-        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        tenantId: string;
     })[]>;
     updateLead(id: string, body: any, req: any): Promise<{
         id: string;
+        tenantId: string;
+        status: string;
         companyName: string | null;
         contact: string | null;
         source: string | null;
-        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        tenantId: string;
     }>;
     deleteLead(id: string, req: any): Promise<{
         id: string;
+        tenantId: string;
+        status: string;
         companyName: string | null;
         contact: string | null;
         source: string | null;
-        status: string;
         assignedTo: string | null;
         valEstimate: number | null;
         uniqueId: string | null;
         interestedService: string | null;
         requirements: string | null;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        tenantId: string;
     }>;
     createFollowUp(body: any, req: any): Promise<({
         lead: {
             id: string;
+            tenantId: string;
+            status: string;
             companyName: string | null;
             contact: string | null;
             source: string | null;
-            status: string;
             assignedTo: string | null;
             valEstimate: number | null;
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            tenantId: string;
         };
     } & {
         id: string;
@@ -102,17 +102,17 @@ export declare class CrmController {
     getFollowUps(req: any): Promise<({
         lead: {
             id: string;
+            tenantId: string;
+            status: string;
             companyName: string | null;
             contact: string | null;
             source: string | null;
-            status: string;
             assignedTo: string | null;
             valEstimate: number | null;
             uniqueId: string | null;
             interestedService: string | null;
             requirements: string | null;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            tenantId: string;
         };
     } & {
         id: string;
@@ -174,13 +174,15 @@ export declare class CrmController {
     }>;
     generateQuote(leadId: string, packageId: string, req: any): Promise<{
         id: string;
-        status: string;
         tenantId: string;
         templateId: string | null;
         entityType: string;
         entityId: string;
         filePath: string | null;
         compiledHtml: string | null;
+        status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     }>;
 }

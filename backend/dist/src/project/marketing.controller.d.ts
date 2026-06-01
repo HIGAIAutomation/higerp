@@ -86,10 +86,10 @@ export declare class MarketingController {
         tenantId: string;
         createdAt: Date;
         name: string;
-        updatedAt: Date;
-        leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedAt: Date;
+        leads: number;
         updatedBy: string;
         projectId: string;
         spend: number;
@@ -99,10 +99,10 @@ export declare class MarketingController {
         tenantId: string;
         createdAt: Date;
         name: string;
-        updatedAt: Date;
-        leads: number;
         startDate: Date;
         endDate: Date | null;
+        updatedAt: Date;
+        leads: number;
         updatedBy: string;
         projectId: string;
         spend: number;
@@ -132,5 +132,31 @@ export declare class MarketingController {
         holidayName: string;
         scheduledDate: Date;
         isPlannedOnFirstDay: boolean;
+    }>;
+    getContentSheet(projectId: string, month: string, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        projectId: string;
+        month: string;
+        items: import("@prisma/client/runtime/library").JsonValue;
+        statuses: import("@prisma/client/runtime/library").JsonValue;
+        campaigns: import("@prisma/client/runtime/library").JsonValue;
+    } | {
+        items: never[];
+        statuses: {};
+        campaigns: {};
+    }>;
+    upsertContentSheet(projectId: string, month: string, body: any, req: any): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        projectId: string;
+        month: string;
+        items: import("@prisma/client/runtime/library").JsonValue;
+        statuses: import("@prisma/client/runtime/library").JsonValue;
+        campaigns: import("@prisma/client/runtime/library").JsonValue;
     }>;
 }

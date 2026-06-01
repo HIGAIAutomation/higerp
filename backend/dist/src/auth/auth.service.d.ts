@@ -14,6 +14,7 @@ export declare class AuthService {
             tenantId: any;
             dob: any;
             address: any;
+            whatsappNumber: any;
             designation: any;
             salary: any;
             pageAccess: any;
@@ -23,6 +24,7 @@ export declare class AuthService {
         id: string;
         tenantId: string;
         createdAt: Date;
+        whatsappNumber: string | null;
         email: string | null;
         username: string;
         role: string;
@@ -48,6 +50,7 @@ export declare class AuthService {
         id: string;
         tenantId: string;
         createdAt: Date;
+        whatsappNumber: string | null;
         email: string | null;
         username: string;
         role: string;
@@ -61,6 +64,7 @@ export declare class AuthService {
         id: string;
         tenantId: string;
         createdAt: Date;
+        whatsappNumber: string | null;
         email: string | null;
         username: string;
         password: string;
@@ -71,4 +75,18 @@ export declare class AuthService {
         salary: number | null;
         pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
     } | null>;
+    updateProfile(userId: string, tenantId: string, data: any): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        whatsappNumber: string | null;
+        email: string | null;
+        username: string;
+        role: string;
+        dob: string | null;
+        address: string | null;
+        designation: string | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
 }

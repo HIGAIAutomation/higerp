@@ -20,8 +20,11 @@ import {
   FileCheck,
   Edit2,
   Trash2,
-  X
+  X,
+  Eye
 } from 'lucide-react';
+
+import { DocumentPreviewModal } from '@/components/dashboard/DocumentPreviewModal';
 
 interface Project {
   id: string;
@@ -49,6 +52,11 @@ interface Project {
     email?: string;
   };
   moduleDetails?: { name: string; price: number; description?: string; completed: boolean }[];
+  clientEmail?: string;
+  clientAddress?: string;
+  gstinNumber?: string;
+  clientOccupation?: string;
+  techStack?: { frontend: string; backend: string; database: string; hosting: string };
 }
 
 interface GeneratedDoc {
@@ -56,13 +64,15 @@ interface GeneratedDoc {
   templateId: string;
   entityType: string;
   entityId: string;
-  filePath: string;
-  status: string;
   createdAt: string;
+  status: string;
   template?: {
     name: string;
     category: string;
   };
+  compiledHtml?: string;
+  signatureData?: string;
+  signedAt?: string;
 }
 
 interface PricingTier {
@@ -91,6 +101,7 @@ export default function ProjectsPage() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<GeneratedDoc | null>(null);
   const [activeFilter, setActiveFilter] = useState('All');
 
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -107,7 +118,7 @@ export default function ProjectsPage() {
   const [newModulePrice, setNewModulePrice] = useState('');
   const [newModuleDescription, setNewModuleDescription] = useState('');
 
-  const [editModuleInputs, setEditModuleInputs] = useState<{ name: string; price: string; description: string; completed: boolean }[]>([]);
+  const [editModuleInputs, setEditModuleInputs] = useState<any[]>([]);
   const [newEditModuleName, setNewEditModuleName] = useState('');
   const [newEditModulePrice, setNewEditModulePrice] = useState('');
   const [newEditModuleDescription, setNewEditModuleDescription] = useState('');
@@ -151,10 +162,21 @@ export default function ProjectsPage() {
     const trimmedDesc = newEditModuleDescription.trim();
     if (!trimmedName || isNaN(parsedPrice)) return;
     
-    const updatedInputs = [...editModuleInputs, { name: trimmedName, price: String(parsedPrice), description: trimmedDesc, completed: false }];
+    // Find max phase and id if needed
+    const maxPhase = editModuleInputs.reduce((max, m) => Math.max(max, m.phase || 1), 1);
+    const newModule = { 
+      id: `mod_${Date.now()}`,
+      name: trimmedName, 
+      price: String(parsedPrice), 
+      description: trimmedDesc, 
+      completed: false,
+      status: 'new',
+      phase: maxPhase
+    };
+    const updatedInputs = [...editModuleInputs, newModule];
     setEditModuleInputs(updatedInputs);
     
-    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
     setEditForm(prev => ({
       ...prev,
       price: String(totalPrice),
@@ -283,6 +305,11 @@ export default function ProjectsPage() {
     clientPassword: '',
     platforms: 'Instagram, Facebook, YouTube, LinkedIn',
     projectInclusions: '',
+    clientEmail: '',
+    clientAddress: '',
+    gstinNumber: '',
+    clientOccupation: '',
+    techStack: { frontend: '', backend: '', database: '', hosting: '' },
   });
 
   const [editForm, setEditForm] = useState({
@@ -307,6 +334,11 @@ export default function ProjectsPage() {
     clientPassword: '',
     platforms: '',
     projectInclusions: '',
+    clientEmail: '',
+    clientAddress: '',
+    gstinNumber: '',
+    clientOccupation: '',
+    techStack: { frontend: '', backend: '', database: '', hosting: '' },
   });
 
   const fetchProjects = async () => {
@@ -391,6 +423,122 @@ export default function ProjectsPage() {
     await downloadPdf(docId, docName, setDownloadingDocId);
   };
 
+  const handlePreviewDoc = async (doc: GeneratedDoc) => {
+    try {
+      setPreviewDoc(doc);
+      if (!doc.compiledHtml) {
+        // Fetch the full document including HTML if not loaded
+        const res = await fetchWithAuth(`/document/${doc.id}`);
+        const data = await res.json();
+        setPreviewDoc(data);
+      }
+    } catch (err) {
+      console.error('Preview error:', err);
+      alert('Failed to load document preview');
+      setPreviewDoc(null);
+    }
+  };
+
+  const getPreviewNavInfo = () => {
+    if (!previewDoc || !previewDoc.entityId) return { hasNext: false, hasPrev: false, index: -1, docs: [] };
+    const docs = projectDocs[previewDoc.entityId] || [];
+    const index = docs.findIndex(d => d.id === previewDoc.id);
+    return {
+      hasNext: index !== -1 && index < docs.length - 1,
+      hasPrev: index > 0,
+      index,
+      docs
+    };
+  };
+
+  const handleNextPreview = () => {
+    const { hasNext, index, docs } = getPreviewNavInfo();
+    if (hasNext) handlePreviewDoc(docs[index + 1]);
+  };
+
+  const handlePrevPreview = () => {
+    const { hasPrev, index, docs } = getPreviewNavInfo();
+    if (hasPrev) handlePreviewDoc(docs[index - 1]);
+  };
+
+  const handleSignDocument = async (signatureData: string, applyToAll: boolean = false) => {
+    if (!previewDoc) return;
+    try {
+      const entityId = previewDoc.entityId;
+      const docsToSign = applyToAll 
+        ? (projectDocs[entityId] || []).filter(d => d.status !== 'signed')
+        : [previewDoc];
+      
+      // Ensure we at least sign the current document if it was somehow skipped
+      if (applyToAll && !docsToSign.find(d => d.id === previewDoc.id)) {
+        docsToSign.push(previewDoc);
+      }
+
+      const signedDocs = await Promise.all(docsToSign.map(async (docToSign) => {
+        const updatedDoc = await fetchWithAuth(`/document/${docToSign.id}/sign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signatureData })
+        });
+        return updatedDoc;
+      }));
+      
+      // Update local state
+      const currentUpdated = signedDocs.find(d => d.id === previewDoc.id) || signedDocs[0];
+      setPreviewDoc(currentUpdated);
+      
+      // Update the documents list for this project
+      setProjectDocs(prev => {
+        const pDocs = prev[entityId] || [];
+        return {
+          ...prev,
+          [entityId]: pDocs.map(d => {
+            const updated = signedDocs.find(sd => sd.id === d.id);
+            return updated || d;
+          })
+        };
+      });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const handleUnsignDocument = async (applyToAll: boolean = false) => {
+    if (!previewDoc) return;
+    try {
+      const entityId = previewDoc.entityId;
+      const docsToUnsign = applyToAll 
+        ? (projectDocs[entityId] || []).filter(d => d.status === 'signed')
+        : [previewDoc];
+
+      if (docsToUnsign.length === 0) return;
+
+      const unsignedDocs = await Promise.all(docsToUnsign.map(async (doc) => {
+        return await fetchWithAuth(`/document/${doc.id}/unsign`, {
+          method: 'POST',
+        });
+      }));
+      
+      const currentUpdated = unsignedDocs.find(d => d.id === previewDoc.id) || unsignedDocs[0];
+      if (currentUpdated) setPreviewDoc(currentUpdated);
+      
+      setProjectDocs(prev => {
+        const pDocs = prev[entityId] || [];
+        return {
+          ...prev,
+          [entityId]: pDocs.map(d => {
+            const updated = unsignedDocs.find(ud => ud.id === d.id);
+            return updated || d;
+          })
+        };
+      });
+    } catch (error) {
+      console.error('Error removing signature:', error);
+      alert('Failed to remove signature from document');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -401,7 +549,7 @@ export default function ProjectsPage() {
         method: 'POST',
         body: JSON.stringify({
           ...form,
-          moduleDetails: form.category === 'Web/App Development' ? moduleInputs.map(m => ({ name: m.name, price: parseFloat(m.price), description: m.description, completed: m.completed })) : undefined
+          moduleDetails: form.category !== 'Digital Marketing' ? moduleInputs.map(m => ({ name: m.name, price: parseFloat(m.price), description: m.description, completed: m.completed })) : undefined
         }),
       });
 
@@ -422,6 +570,11 @@ export default function ProjectsPage() {
         clientPassword: '',
         platforms: 'Instagram, Facebook, YouTube, LinkedIn',
         projectInclusions: '',
+        clientEmail: '',
+        clientAddress: '',
+        gstinNumber: '',
+        clientOccupation: '',
+        techStack: { frontend: '', backend: '', database: '', hosting: '' },
       });
       setModuleInputs([]);
       setSelectedPackageId('');
@@ -460,14 +613,17 @@ export default function ProjectsPage() {
       clientPassword: '',
       platforms: proj.platforms || '',
       projectInclusions: (proj as any).projectInclusions || '',
+      clientEmail: proj.clientEmail || '',
+      clientAddress: proj.clientAddress || '',
+      gstinNumber: proj.gstinNumber || '',
+      clientOccupation: proj.clientOccupation || '',
+      techStack: proj.techStack || { frontend: '', backend: '', database: '', hosting: '' },
     });
     
     const details = proj.moduleDetails || [];
-    setEditModuleInputs(details.map(m => ({
-      name: m.name,
-      price: String(m.price),
-      description: m.description || '',
-      completed: !!m.completed
+    setEditModuleInputs(details.map((m: any) => ({
+      ...m,
+      price: m.price ? String(m.price) : ''
     })));
   };
 
@@ -503,7 +659,7 @@ export default function ProjectsPage() {
       }
     }
 
-    if (editForm.status === 'completed') {
+    if (editForm.status === 'completed' && editForm.category !== 'Digital Marketing') {
       if (
         !editForm.deliveryCode ||
         !editForm.deliveryDocs ||
@@ -523,7 +679,7 @@ export default function ProjectsPage() {
         method: 'PUT',
         body: JSON.stringify({
           ...editForm,
-          moduleDetails: editForm.category === 'Web/App Development' ? editModuleInputs.map(m => ({ name: m.name, price: parseFloat(m.price), description: m.description, completed: m.completed })) : undefined
+          moduleDetails: editForm.category !== 'Digital Marketing' ? editModuleInputs.map(m => ({ ...m, price: m.price ? parseFloat(m.price) : null })) : undefined
         }),
       });
       setEditingProject(null);
@@ -627,7 +783,7 @@ export default function ProjectsPage() {
   );
 
   return (
-    <DashboardLayout>
+    <DashboardLayout fullWidth={true}>
       <div className="font-sans min-h-screen pb-12">
         {error && (
           <div className="mb-8 p-4 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center border border-rose-500/20 animate-in fade-in">
@@ -722,6 +878,7 @@ export default function ProjectsPage() {
                   <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT USERNAME (PORTAL ACCESS)</label>
                   <input
                     type="text"
+                    autoComplete="off"
                     placeholder="e.g. client123"
                     value={form.clientUsername}
                     onChange={(e) => setForm({ ...form, clientUsername: e.target.value })}
@@ -733,9 +890,58 @@ export default function ProjectsPage() {
                   <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT PASSWORD (PORTAL ACCESS)</label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="e.g. password123"
                     value={form.clientPassword}
                     onChange={(e) => setForm({ ...form, clientPassword: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT EMAIL</label>
+                  <input
+                    type="email"
+                    placeholder="e.g. client@spacey.com"
+                    value={form.clientEmail}
+                    onChange={(e) => setForm({ ...form, clientEmail: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT ADDRESS</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 123 Main St, NY"
+                    value={form.clientAddress}
+                    onChange={(e) => setForm({ ...form, clientAddress: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">GSTIN NUMBER</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 22AAAAA0000A1Z5"
+                    value={form.gstinNumber}
+                    onChange={(e) => setForm({ ...form, gstinNumber: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT OCCUPATION (OPTIONAL)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Director, Business Owner"
+                    value={form.clientOccupation}
+                    onChange={(e) => setForm({ ...form, clientOccupation: e.target.value })}
                     className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
                   />
                 </div>
@@ -768,6 +974,50 @@ export default function ProjectsPage() {
                   </div>
                 </div>
               </div>
+
+              {form.category === 'Web/App Development' && (
+                <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                  <label className="block text-xs font-bold text-accent uppercase tracking-wider">Technology Stack (For Documents)</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Frontend (e.g. React, Next.js)"
+                        value={form.techStack.frontend}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, frontend: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Backend (e.g. Node.js, Python)"
+                        value={form.techStack.backend}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, backend: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Database (e.g. MongoDB, PostgreSQL)"
+                        value={form.techStack.database}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, database: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Hosting (e.g. AWS, Vercel)"
+                        value={form.techStack.hosting}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, hosting: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">DESCRIPTION</label>
@@ -805,7 +1055,7 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              {form.category === 'Web/App Development' ? (
+              {form.category !== 'Digital Marketing' && (
                 <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
                   <label className="block text-xs font-bold text-accent uppercase tracking-wider">Project Modules & Pricing</label>
                   
@@ -873,17 +1123,6 @@ export default function ProjectsPage() {
                     </button>
                   </div>
                 </div>
-              ) : form.category !== 'Digital Marketing' && (
-                <div>
-                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Auth, Dashboard, API Integration"
-                    value={form.modules}
-                    onChange={(e) => setForm({ ...form, modules: e.target.value })}
-                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                  />
-                </div>
               )}
 
               {form.category === 'Digital Marketing' && (
@@ -950,16 +1189,18 @@ export default function ProjectsPage() {
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">ADDITIONAL DOCUMENT DETAILS / INCLUSIONS (ONE PER LINE)</label>
-                <textarea
-                  rows={4}
-                  placeholder={`e.g. Special training session for staff\nAll server deployment credentials included\nSupport SLA extended by 30 days`}
-                  value={form.projectInclusions}
-                  onChange={(e) => setForm({ ...form, projectInclusions: e.target.value })}
-                  className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold resize-none leading-relaxed"
-                />
-              </div>
+              {form.category !== 'Digital Marketing' && (
+                <div>
+                  <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">ADDITIONAL DOCUMENT DETAILS / INCLUSIONS (ONE PER LINE)</label>
+                  <textarea
+                    rows={4}
+                    placeholder={`e.g. Special training session for staff\nAll server deployment credentials included\nSupport SLA extended by 30 days`}
+                    value={form.projectInclusions}
+                    onChange={(e) => setForm({ ...form, projectInclusions: e.target.value })}
+                    className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold resize-none leading-relaxed"
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1091,6 +1332,14 @@ export default function ProjectsPage() {
                         {/* Project Details Panel (Price, WhatsApp, Modules, Deliveries) */}
                         <div className="grid grid-cols-2 gap-4 mb-6 bg-card p-5 rounded-2xl border border-border text-xs font-semibold text-muted-foreground">
                           <div>
+                            <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Project ID</span>
+                            <span className="text-foreground text-sm font-bold uppercase">{proj.id.replace(/-/g, '/')}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Client ID</span>
+                            <span className="text-foreground text-sm font-bold uppercase">{proj.client?.id ? proj.client.id.replace(/-/g, '/') : 'Not Provided'}</span>
+                          </div>
+                          <div>
                             <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Project Price</span>
                             <span className="text-foreground text-sm font-bold">Rs. {proj.price !== undefined ? Number(proj.price).toLocaleString() : '0'}</span>
                           </div>
@@ -1098,39 +1347,65 @@ export default function ProjectsPage() {
                             <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">WhatsApp Contact</span>
                             <span className="text-foreground text-sm font-bold">{proj.whatsappNumber || 'Not Provided'}</span>
                           </div>
-                          <div className="col-span-2">
-                            <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-2 font-bold">Modules & Progress</span>
-                            {proj.category === 'Web/App Development' && proj.moduleDetails && proj.moduleDetails.length > 0 ? (
-                              <div className="space-y-2 bg-secondary/30 p-4 rounded-xl border border-border/60">
-                                {proj.moduleDetails.map((mod, idx) => (
-                                  <label key={idx} className="flex items-center justify-between cursor-pointer group">
-                                    <div className="flex items-center space-x-3">
-                                      <input
-                                        type="checkbox"
-                                        checked={!!mod.completed}
-                                        onChange={() => handleToggleModuleCompletion(proj, idx)}
-                                        className="h-4 w-4 rounded text-accent border-border bg-card focus:ring-accent/20 cursor-pointer"
-                                      />
-                                      <span className={`text-xs ${mod.completed ? 'line-through text-muted-foreground/70 font-semibold' : 'text-foreground font-semibold'}`}>
-                                        {mod.name}
-                                      </span>
-                                    </div>
-                                    <span className="text-[10.5px] text-accent font-bold">Rs. {Number(mod.price).toLocaleString()}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            ) : proj.modules ? (
-                              <div className="flex flex-wrap gap-1">
-                                {proj.modules.split(',').map((m, idx) => (
-                                  <span key={idx} className="bg-secondary text-foreground px-2.5 py-0.5 rounded-lg text-[10.5px] border border-border font-medium">
-                                    {m.trim()}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground italic text-[11px]">No modules specified</span>
-                            )}
-                          </div>
+                          {proj.clientEmail && (
+                            <div>
+                              <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Client Email</span>
+                              <span className="text-foreground text-sm font-bold">{proj.clientEmail}</span>
+                            </div>
+                          )}
+                          {proj.clientOccupation && (
+                            <div>
+                              <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Client Occupation</span>
+                              <span className="text-foreground text-sm font-bold">{proj.clientOccupation}</span>
+                            </div>
+                          )}
+                          {proj.clientAddress && (
+                            <div className="col-span-2">
+                              <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">Client Address</span>
+                              <span className="text-foreground text-sm font-bold">{proj.clientAddress}</span>
+                            </div>
+                          )}
+                          {proj.gstinNumber && (
+                            <div className="col-span-2">
+                              <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-0.5">GSTIN Number</span>
+                              <span className="text-foreground text-sm font-bold uppercase">{proj.gstinNumber}</span>
+                            </div>
+                          )}
+                          {proj.category !== 'Digital Marketing' && (
+                            <div className="col-span-2">
+                              <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-2 font-bold">Modules & Progress</span>
+                              {proj.category !== 'Digital Marketing' && proj.moduleDetails && proj.moduleDetails.length > 0 ? (
+                                <div className="space-y-2 bg-secondary/30 p-4 rounded-xl border border-border/60">
+                                  {proj.moduleDetails.map((mod, idx) => (
+                                    <label key={idx} className="flex items-center justify-between cursor-pointer group">
+                                      <div className="flex items-center space-x-3">
+                                        <input
+                                          type="checkbox"
+                                          checked={!!mod.completed}
+                                          onChange={() => handleToggleModuleCompletion(proj, idx)}
+                                          className="h-4 w-4 rounded text-accent border-border bg-card focus:ring-accent/20 cursor-pointer"
+                                        />
+                                        <span className={`text-xs ${mod.completed ? 'line-through text-muted-foreground/70 font-semibold' : 'text-foreground font-semibold'}`}>
+                                          {mod.name}
+                                        </span>
+                                      </div>
+                                      <span className="text-[10.5px] text-accent font-bold">Rs. {Number(mod.price).toLocaleString()}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              ) : proj.modules ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {proj.modules.split(',').map((m, idx) => (
+                                    <span key={idx} className="bg-secondary text-foreground px-2.5 py-0.5 rounded-lg text-[10.5px] border border-border font-medium">
+                                      {m.trim()}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground italic text-[11px]">No modules specified</span>
+                              )}
+                            </div>
+                          )}
                           
                             {proj.category === 'Digital Marketing' && (
                               <div className="col-span-2 grid grid-cols-2 gap-4 pt-3 border-t border-border">
@@ -1146,27 +1421,9 @@ export default function ProjectsPage() {
                             )}
 
                           {/* Checklist Status Indicator */}
-                          <div className="col-span-2 pt-3 border-t border-border">
-                            <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-1.5 font-bold">Deliveries</span>
-                            {proj.category === 'Digital Marketing' ? (
-                              <div className="grid grid-cols-5 gap-1.5 text-[10px] font-bold text-center">
-                                <div className={`p-1.5 rounded-lg border transition-colors ${proj.deliveryCode ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
-                                  Strategy
-                                </div>
-                                <div className={`p-1.5 rounded-lg border transition-colors ${proj.deliveryDocs ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
-                                  Content
-                                </div>
-                                <div className={`p-1.5 rounded-lg border transition-colors ${proj.deliveryDb ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
-                                  Design
-                                </div>
-                                <div className={`p-1.5 rounded-lg border transition-colors ${proj.deliveryQa ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
-                                  Schedule
-                                </div>
-                                <div className={`p-1.5 rounded-lg border transition-colors ${proj.deliveryPayment ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
-                                  Report
-                                </div>
-                              </div>
-                            ) : (
+                          {proj.category !== 'Digital Marketing' && (
+                            <div className="col-span-2 pt-3 border-t border-border">
+                              <span className="text-[10px] text-muted-foreground/75 block uppercase tracking-wider mb-1.5 font-bold">Deliveries</span>
                               <div className="grid grid-cols-5 gap-1.5 text-[10px] font-bold text-center">
                                 <div className={`p-1.5 rounded-lg border transition-colors ${proj.deliveryCode ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'}`}>
                                   Code
@@ -1184,8 +1441,8 @@ export default function ProjectsPage() {
                                   Pay
                                 </div>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Sleek Progress Bar */}
@@ -1219,22 +1476,43 @@ export default function ProjectsPage() {
                                 const isDownloading = downloadingDocId === doc.id;
                                 
                                 return (
-                                  <button
+                                  <div
                                     key={doc.id}
-                                    disabled={isDownloading}
-                                    onClick={() => handleDownloadDoc(doc.id, name)}
-                                    className="w-full flex items-center justify-between text-left p-4 rounded-2xl border border-border bg-card hover:bg-secondary/40 hover:shadow-sm transition-all text-sm font-semibold text-emerald-500 cursor-pointer disabled:opacity-75"
+                                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-border bg-card hover:bg-secondary/40 hover:shadow-sm transition-all"
                                   >
-                                    <span className="flex items-center truncate">
+                                    <div className="flex items-center truncate max-w-[70%]">
                                       <FileCheck className="h-5 w-5 mr-3 text-emerald-500 flex-shrink-0" />
-                                      <span className="truncate pr-2">{name}</span>
-                                    </span>
-                                    {isDownloading ? (
-                                      <Loader2 className="h-4 w-4 text-accent animate-spin flex-shrink-0" />
-                                    ) : (
-                                      <Download className="h-4 w-4 text-accent flex-shrink-0 hover:scale-110 transition-transform" />
-                                    )}
-                                  </button>
+                                      <div className="flex flex-col truncate">
+                                        <span className="truncate pr-2 text-sm font-semibold text-emerald-500">{name}</span>
+                                        {doc.status === 'signed' && (
+                                          <span className="text-[10px] text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full w-fit mt-1">
+                                            Signed on {new Date(doc.signedAt!).toLocaleDateString()}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => handlePreviewDoc(doc)}
+                                        className="p-2 text-muted-foreground hover:text-accent hover:bg-accent/10 rounded-full transition-colors"
+                                        title="Preview and Sign"
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        disabled={isDownloading}
+                                        onClick={() => handleDownloadDoc(doc.id, name)}
+                                        className="p-2 text-accent hover:text-accent/80 hover:bg-accent/10 rounded-full transition-colors disabled:opacity-50"
+                                        title="Download PDF"
+                                      >
+                                        {isDownloading ? (
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                          <Download className="h-4 w-4" />
+                                        )}
+                                      </button>
+                                    </div>
+                                  </div>
                                 );
                               })}
                             </div>
@@ -1276,7 +1554,7 @@ export default function ProjectsPage() {
             editForm.deliveryDb &&
             editForm.deliveryQa &&
             editForm.deliveryPayment;
-          const showDeliveryWarning = isCompleting && !allDeliveriesChecked;
+          const showDeliveryWarning = editForm.category !== 'Digital Marketing' && isCompleting && !allDeliveriesChecked;
 
           return (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
@@ -1324,6 +1602,7 @@ export default function ProjectsPage() {
                       <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT USERNAME (PORTAL ACCESS)</label>
                       <input
                         type="text"
+                        autoComplete="off"
                         placeholder="e.g. client123"
                         value={editForm.clientUsername}
                         onChange={(e) => setEditForm({ ...editForm, clientUsername: e.target.value })}
@@ -1335,9 +1614,58 @@ export default function ProjectsPage() {
                       <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">NEW CLIENT PASSWORD</label>
                       <input
                         type="password"
+                        autoComplete="new-password"
                         placeholder="Leave blank to keep same"
                         value={editForm.clientPassword}
                         onChange={(e) => setEditForm({ ...editForm, clientPassword: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT EMAIL</label>
+                      <input
+                        type="email"
+                        placeholder="e.g. client@spacey.com"
+                        value={editForm.clientEmail}
+                        onChange={(e) => setEditForm({ ...editForm, clientEmail: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT ADDRESS</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 123 Main St, NY"
+                        value={editForm.clientAddress}
+                        onChange={(e) => setEditForm({ ...editForm, clientAddress: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">GSTIN NUMBER</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 22AAAAA0000A1Z5"
+                        value={editForm.gstinNumber}
+                        onChange={(e) => setEditForm({ ...editForm, gstinNumber: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">CLIENT OCCUPATION (OPTIONAL)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Director, Business Owner"
+                        value={editForm.clientOccupation}
+                        onChange={(e) => setEditForm({ ...editForm, clientOccupation: e.target.value })}
                         className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
                       />
                     </div>
@@ -1370,6 +1698,50 @@ export default function ProjectsPage() {
                       </div>
                     </div>
                   </div>
+
+                  {editForm.category === 'Web/App Development' && (
+                    <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                      <label className="block text-xs font-bold text-accent uppercase tracking-wider">Technology Stack (For Documents)</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Frontend (e.g. React, Next.js)"
+                            value={editForm.techStack.frontend}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, frontend: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Backend (e.g. Node.js, Python)"
+                            value={editForm.techStack.backend}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, backend: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Database (e.g. MongoDB, PostgreSQL)"
+                            value={editForm.techStack.database}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, database: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Hosting (e.g. AWS, Vercel)"
+                            value={editForm.techStack.hosting}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, hosting: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">PROJECT STATUS</label>
@@ -1428,18 +1800,46 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  {editForm.category === 'Web/App Development' ? (
+                  {editForm.category !== 'Digital Marketing' && (
                     <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
                       <label className="block text-xs font-bold text-accent uppercase tracking-wider">Project Modules & Pricing</label>
                       
                       {editModuleInputs.length > 0 && (
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {editModuleInputs.map((mod, idx) => (
-                            <div key={idx} className="bg-card p-3 rounded-xl border border-border text-xs space-y-1">
-                              <div className="flex items-center justify-between">
-                                <div className="font-semibold text-foreground">{mod.name}</div>
-                                <div className="flex items-center space-x-3">
-                                  <span className="font-bold text-accent">Rs. {Number(mod.price).toLocaleString()}</span>
+                            <div key={idx} className={`p-3 rounded-xl border text-xs space-y-2 ${mod.isNewRequest && !mod.price ? 'bg-amber-50/50 border-amber-200' : 'bg-card border-border'}`}>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-semibold text-foreground flex items-center gap-2">
+                                    {mod.name}
+                                    {mod.isNewRequest && !mod.price && (
+                                      <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider">New</span>
+                                    )}
+                                  </div>
+                                  {mod.description && (
+                                    <div className="text-[11px] text-muted-foreground font-medium leading-normal mt-1">{mod.description}</div>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-3 ml-4">
+                                  {mod.isNewRequest && !mod.price ? (
+                                    <input
+                                      type="number"
+                                      placeholder="Set Price"
+                                      value={mod.price || ''}
+                                      onChange={(e) => {
+                                        const next = [...editModuleInputs];
+                                        next[idx].price = e.target.value;
+                                        setEditModuleInputs(next);
+                                        // Update total price
+                                        const newTotal = next.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+                                        setEditForm(prev => ({ ...prev, price: String(newTotal) }));
+                                      }}
+                                      className="w-24 px-2 py-1 text-xs border border-amber-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white"
+                                    />
+                                  ) : (
+                                    <span className="font-bold text-accent">Rs. {Number(mod.price).toLocaleString()}</span>
+                                  )}
+                                  
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveEditModuleInput(idx)}
@@ -1449,9 +1849,6 @@ export default function ProjectsPage() {
                                   </button>
                                 </div>
                               </div>
-                              {mod.description && (
-                                <div className="text-[11px] text-muted-foreground font-medium leading-normal">{mod.description}</div>
-                              )}
                             </div>
                           ))}
                         </div>
@@ -1495,17 +1892,6 @@ export default function ProjectsPage() {
                           + Add Module
                         </button>
                       </div>
-                    </div>
-                  ) : editForm.category !== 'Digital Marketing' && (
-                    <div>
-                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">TARGET MODULES (COMMA SEPARATED)</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Auth, Dashboard, API Integration"
-                        value={editForm.modules}
-                        onChange={(e) => setEditForm({ ...editForm, modules: e.target.value })}
-                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold"
-                      />
                     </div>
                   )}
 
@@ -1573,83 +1959,23 @@ export default function ProjectsPage() {
                     </div>
                   )}
 
-                  <div>
-                    <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">ADDITIONAL DOCUMENT DETAILS / INCLUSIONS (ONE PER LINE)</label>
-                    <textarea
-                      rows={4}
-                      placeholder={`e.g. Special training session for staff\nAll server deployment credentials included\nSupport SLA extended by 30 days`}
-                      value={editForm.projectInclusions}
-                      onChange={(e) => setEditForm({ ...editForm, projectInclusions: e.target.value })}
-                      className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold resize-none leading-relaxed"
-                    />
-                  </div>
+                  {editForm.category !== 'Digital Marketing' && (
+                    <div>
+                      <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">ADDITIONAL DOCUMENT DETAILS / INCLUSIONS (ONE PER LINE)</label>
+                      <textarea
+                        rows={4}
+                        placeholder={`e.g. Special training session for staff\nAll server deployment credentials included\nSupport SLA extended by 30 days`}
+                        value={editForm.projectInclusions}
+                        onChange={(e) => setEditForm({ ...editForm, projectInclusions: e.target.value })}
+                        className="w-full px-5 py-4 bg-secondary border-none rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold resize-none leading-relaxed"
+                      />
+                    </div>
+                  )}
 
                   {/* Delivery Checklist - Category Specific */}
-                  <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
-                    <span className="block text-xs font-bold text-accent uppercase tracking-wider">PROJECT DELIVERY CHECKLIST</span>
-                    {editForm.category === 'Digital Marketing' ? (
-                      <div className="space-y-3">
-                        <label className="flex items-center space-x-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={editForm.deliveryCode}
-                            onChange={(e) => setEditForm({ ...editForm, deliveryCode: e.target.checked })}
-                            className="h-5 w-5 rounded text-accent border-border bg-secondary focus:ring-accent/20 cursor-pointer"
-                          />
-                          <span className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">
-                            Content Strategy Delivered
-                          </span>
-                        </label>
-                        
-                        <label className="flex items-center space-x-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={editForm.deliveryDocs}
-                            onChange={(e) => setEditForm({ ...editForm, deliveryDocs: e.target.checked })}
-                            className="h-5 w-5 rounded text-accent border-border bg-secondary focus:ring-accent/20 cursor-pointer"
-                          />
-                          <span className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">
-                            Content Created & Approved
-                          </span>
-                        </label>
-
-                        <label className="flex items-center space-x-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={editForm.deliveryDb}
-                            onChange={(e) => setEditForm({ ...editForm, deliveryDb: e.target.checked })}
-                            className="h-5 w-5 rounded text-accent border-border bg-secondary focus:ring-accent/20 cursor-pointer"
-                          />
-                          <span className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">
-                            Designs Completed
-                          </span>
-                        </label>
-
-                        <label className="flex items-center space-x-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={editForm.deliveryQa}
-                            onChange={(e) => setEditForm({ ...editForm, deliveryQa: e.target.checked })}
-                            className="h-5 w-5 rounded text-accent border-border bg-secondary focus:ring-accent/20 cursor-pointer"
-                          />
-                          <span className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">
-                            Posts Scheduled & Published
-                          </span>
-                        </label>
-
-                        <label className="flex items-center space-x-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={editForm.deliveryPayment}
-                            onChange={(e) => setEditForm({ ...editForm, deliveryPayment: e.target.checked })}
-                            className="h-5 w-5 rounded text-accent border-border bg-secondary focus:ring-accent/20 cursor-pointer"
-                          />
-                          <span className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors">
-                            Monthly Report Submitted
-                          </span>
-                        </label>
-                      </div>
-                    ) : (
+                  {editForm.category !== 'Digital Marketing' && (
+                    <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                      <span className="block text-xs font-bold text-accent uppercase tracking-wider">PROJECT DELIVERY CHECKLIST</span>
                       <div className="space-y-3">
                         <label className="flex items-center space-x-3 cursor-pointer group">
                           <input
@@ -1711,8 +2037,8 @@ export default function ProjectsPage() {
                           </span>
                         </label>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -1813,6 +2139,22 @@ export default function ProjectsPage() {
           </div>
         )}
       </div>
+      
+      {/* Document Preview Modal */}
+      <DocumentPreviewModal
+        isOpen={!!previewDoc}
+        onClose={() => setPreviewDoc(null)}
+        documentId={previewDoc?.id || ''}
+        documentName={previewDoc?.template?.name || 'Document'}
+        compiledHtml={previewDoc?.compiledHtml || null}
+        onSign={handleSignDocument}
+        onUnsign={handleUnsignDocument}
+        status={previewDoc?.status}
+        onNext={handleNextPreview}
+        onPrev={handlePrevPreview}
+        hasNext={getPreviewNavInfo().hasNext}
+        hasPrev={getPreviewNavInfo().hasPrev}
+      />
     </DashboardLayout>
   );
 }

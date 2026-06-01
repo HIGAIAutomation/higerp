@@ -5,8 +5,10 @@ import { Search, Bell, Command } from "lucide-react";
 
 export default function DashboardLayout({
   children,
+  fullWidth = false,
 }: {
   children: React.ReactNode;
+  fullWidth?: boolean;
 }) {
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
@@ -39,7 +41,7 @@ export default function DashboardLayout({
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-8 scrollbar-hide">
-          <div className="max-w-7xl mx-auto">
+          <div className={fullWidth ? "w-full" : "max-w-7xl mx-auto"}>
             {children}
           </div>
         </main>

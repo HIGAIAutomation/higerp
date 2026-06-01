@@ -19,8 +19,11 @@ import {
   Shield,
   Activity,
   ChevronRight,
-  Filter
+  Filter,
+  Download,
+  Loader2
 } from 'lucide-react';
+import { fetchWithAuth } from '@/lib/api';
 
 interface ClientLog {
   id: string;
@@ -139,7 +142,10 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [logTypeTab, setLogTypeTab] = useState<'daily' | 'weekly'>('daily');
+  const [logTypeTab, setLogTypeTab] = useState<'daily' | 'weekly' | 'documents'>('daily');
+  const [clientDocs, setClientDocs] = useState<any[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(false);
+  const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
   
   // Modals / Forms
   const [showAddClientForm, setShowAddClientForm] = useState(false);
@@ -162,28 +168,76 @@ export default function ClientsPage() {
     budgetStatus: 'on-track' as ClientLog['budgetStatus'],
   });
 
-  // Load clients from localStorage or seed
+  // Load clients from API
   useEffect(() => {
-    const stored = localStorage.getItem('hig_clients_data');
-    if (stored) {
+    const loadRealClients = async () => {
       try {
-        setClients(JSON.parse(stored));
-      } catch (_) {
+        const projects = await fetchWithAuth('/projects');
+        
+        // Merge with existing localStorage logs if any
+        const stored = localStorage.getItem('hig_clients_data');
+        let storedLogs: Record<string, ClientLog[]> = {};
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            parsed.forEach((c: Client) => {
+              storedLogs[c.id] = c.logs || [];
+            });
+          } catch (_) {}
+        }
+
+        const mappedClients: Client[] = projects.map((p: any) => ({
+          id: p.id,
+          companyName: p.clientName || p.name,
+          contactName: p.clientEmail ? p.clientEmail.split('@')[0] : 'N/A',
+          contactEmail: p.clientEmail || 'N/A',
+          valEstimate: p.price || 0,
+          status: p.status === 'active' ? 'active' : 'onboarding',
+          health: 'good',
+          assignedManager: 'Admin',
+          logs: storedLogs[p.id] || [],
+        }));
+        setClients(mappedClients.length > 0 ? mappedClients : SEED_CLIENTS);
+      } catch (err) {
+        console.error("Failed to load projects", err);
         setClients(SEED_CLIENTS);
       }
-    } else {
-      setClients(SEED_CLIENTS);
-      localStorage.setItem('hig_clients_data', JSON.stringify(SEED_CLIENTS));
-    }
+    };
+    loadRealClients();
   }, []);
+
+  useEffect(() => {
+    if (selectedClient && logTypeTab === 'documents') {
+      const loadDocs = async () => {
+        setLoadingDocs(true);
+        try {
+          const docs = await fetchWithAuth(`/document/entity/PROJECT/${selectedClient.id}`);
+          setClientDocs(docs);
+        } catch (e) {
+          console.error(e);
+          setClientDocs([]);
+        } finally {
+          setLoadingDocs(false);
+        }
+      };
+      loadDocs();
+    }
+  }, [selectedClient, logTypeTab]);
 
   const saveToStorage = (updated: Client[]) => {
     setClients(updated);
-    localStorage.setItem('hig_clients_data', JSON.stringify(updated));
+    // Only save logs to localStorage
+    const logsOnly = updated.map(c => ({ id: c.id, logs: c.logs }));
+    localStorage.setItem('hig_clients_data', JSON.stringify(logsOnly));
     if (selectedClient) {
       const reselected = updated.find(c => c.id === selectedClient.id);
       if (reselected) setSelectedClient(reselected);
     }
+  };
+
+  const handleDownloadDoc = async (docId: string, docName: string) => {
+    const { downloadPdf } = await import('@/lib/download-pdf');
+    await downloadPdf(docId, docName, setDownloadingDocId);
   };
 
   // Add Client
@@ -226,7 +280,7 @@ export default function ClientsPage() {
 
     const createdLog: ClientLog = {
       id: 'l_' + Date.now(),
-      type: logTypeTab,
+      type: logTypeTab as 'daily' | 'weekly',
       date: new Date().toISOString().split('T')[0],
       content: newLog.content,
       rating: logTypeTab === 'daily' ? Number(newLog.rating) : undefined,
@@ -426,7 +480,7 @@ export default function ClientsPage() {
                   <h3 className="text-lg font-bold text-primary truncate">{selectedClient.companyName}</h3>
                   <p className="text-xs text-muted-foreground font-inter mt-1 truncate">Logs & Reporting Pipeline</p>
 
-                  {/* Tabs: Daily vs Weekly */}
+                  {/* Tabs: Daily vs Weekly vs Documents */}
                   <div className="flex mt-4 bg-secondary p-1 rounded-xl">
                     <button
                       onClick={() => setLogTypeTab('daily')}
@@ -448,6 +502,16 @@ export default function ClientsPage() {
                     >
                       Weekly Reports
                     </button>
+                    <button
+                      onClick={() => setLogTypeTab('documents')}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        logTypeTab === 'documents' 
+                          ? 'bg-card text-foreground shadow-sm' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Documents
+                    </button>
                   </div>
                 </div>
 
@@ -455,17 +519,65 @@ export default function ClientsPage() {
                 <div className="p-6 flex-1 overflow-y-auto max-h-[350px] space-y-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-bold text-primary uppercase tracking-wider">
-                      {logTypeTab === 'daily' ? 'Daily Check-Ins' : 'Weekly Milestones'}
+                      {logTypeTab === 'daily' ? 'Daily Check-Ins' : logTypeTab === 'weekly' ? 'Weekly Milestones' : 'Project Documents'}
                     </h4>
-                    <button
-                      onClick={() => setShowAddLogForm(true)}
-                      className="text-xs font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Write Entry
-                    </button>
+                    {logTypeTab !== 'documents' && (
+                      <button
+                        onClick={() => setShowAddLogForm(true)}
+                        className="text-xs font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Write Entry
+                      </button>
+                    )}
                   </div>
 
-                  {selectedClient.logs.filter(l => l.type === logTypeTab).length === 0 ? (
+                  {logTypeTab === 'documents' ? (
+                    loadingDocs ? (
+                      <div className="py-8 flex justify-center">
+                        <Loader2 className="h-6 w-6 text-accent animate-spin" />
+                      </div>
+                    ) : clientDocs.length === 0 ? (
+                      <div className="py-8 text-center text-muted-foreground">
+                        <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                        <p className="text-xs italic font-inter">No documents generated yet.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {clientDocs.map(doc => (
+                          <div key={doc.id} className="p-4 rounded-2xl bg-secondary/50 border border-border flex items-center justify-between hover:bg-secondary transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-card border border-border rounded-lg text-primary">
+                                <FileText className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-primary truncate max-w-[150px] sm:max-w-[200px]" title={doc.template?.name}>
+                                  {doc.template?.name || "Project Document"}
+                                </h4>
+                                <span className={`inline-flex items-center mt-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border ${
+                                  doc.status === 'signed' 
+                                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                                    : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                }`}>
+                                  {doc.status === 'signed' ? 'Signed' : 'Pending'}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDownloadDoc(doc.id, doc.template?.name || 'Document')}
+                              disabled={downloadingDocId === doc.id}
+                              className="p-2 rounded-xl bg-card border border-border hover:border-accent text-accent transition-all disabled:opacity-50"
+                            >
+                              {downloadingDocId === doc.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  ) : selectedClient.logs.filter(l => l.type === logTypeTab).length === 0 ? (
                     <div className="py-8 text-center text-muted-foreground">
                       <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
                       <p className="text-xs italic font-inter">No {logTypeTab} entries recorded yet.</p>

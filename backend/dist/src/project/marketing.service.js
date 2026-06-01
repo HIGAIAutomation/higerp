@@ -181,6 +181,47 @@ let MarketingService = class MarketingService {
             });
         }
     }
+    async getContentSheet(tenantId, projectId, month) {
+        return this.prisma.marketingContentSheet.findFirst({
+            where: {
+                tenantId,
+                projectId,
+                month,
+            },
+        });
+    }
+    async upsertContentSheet(tenantId, projectId, month, data) {
+        const { items, statuses, campaigns } = data;
+        const existing = await this.prisma.marketingContentSheet.findFirst({
+            where: {
+                tenantId,
+                projectId,
+                month,
+            },
+        });
+        if (existing) {
+            return this.prisma.marketingContentSheet.update({
+                where: { id: existing.id },
+                data: {
+                    items: items !== undefined ? items : existing.items,
+                    statuses: statuses !== undefined ? statuses : existing.statuses,
+                    campaigns: campaigns !== undefined ? campaigns : existing.campaigns,
+                },
+            });
+        }
+        else {
+            return this.prisma.marketingContentSheet.create({
+                data: {
+                    tenantId,
+                    projectId,
+                    month,
+                    items: items || [],
+                    statuses: statuses || {},
+                    campaigns: campaigns || {},
+                },
+            });
+        }
+    }
 };
 exports.MarketingService = MarketingService;
 exports.MarketingService = MarketingService = __decorate([

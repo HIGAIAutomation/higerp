@@ -36,6 +36,7 @@ model Tenant {
   adCampaigns         AdCampaign[]
   specialDayPosters   SpecialDayPoster[]
   projectPayments     ProjectPayment[]
+  marketingContentSheets MarketingContentSheet[]
 }
 
 model User {
@@ -47,6 +48,7 @@ model User {
   role        String   @default("user")
   dob         String?
   address     String?
+  whatsappNumber String?
   designation String?
   salary      Float?
   pageAccess  Json?
@@ -106,6 +108,8 @@ model GeneratedDocument {
   filePath    String?
   compiledHtml String?
   status      String   @default("draft")
+  signatureData String? // Base64 signature image
+  signedAt    DateTime?
   createdAt   DateTime @default(now())
   
   tenant      Tenant            @relation(fields: [tenantId], references: [id])
@@ -202,7 +206,12 @@ model Project {
   videoCount         Int      @default(0)
   socialCredentials  Json?
   moduleDetails      Json?
+  techStack          Json?
   projectInclusions  String?
+  clientEmail        String?
+  clientAddress      String?
+  gstinNumber        String?
+  clientOccupation   String?
   
   tenant             Tenant   @relation(fields: [tenantId], references: [id])
   marketingPosts     MarketingPost[]
@@ -210,6 +219,7 @@ model Project {
   adCampaigns        AdCampaign[]
   specialDayPosters  SpecialDayPoster[]
   projectPayments    ProjectPayment[]
+  marketingContentSheets MarketingContentSheet[]
 }
 
 model Invoice {
@@ -382,3 +392,19 @@ model ProjectPayment {
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tenant        Tenant   @relation(fields: [tenantId], references: [id])
 }
+
+model MarketingContentSheet {
+  id         String   @id @default(uuid()) @map("_id")
+  tenantId   String
+  projectId  String
+  month      String   // YYYY-MM
+  items      Json     // Array of ContentSheetItem
+  statuses   Json     // Record<string, string>
+  campaigns  Json     // Record<string, string>
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+}
+

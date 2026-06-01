@@ -2,6 +2,14 @@ import { DocumentService } from './document.service';
 export declare class DocumentController {
     private documentService;
     constructor(documentService: DocumentService);
+    getCeoSignature(req: any): Promise<{
+        signatureData: any;
+    }>;
+    saveCeoSignature(req: any, body: {
+        signatureData: string;
+    }): Promise<{
+        success: boolean;
+    }>;
     getDocumentsForEntity(entityType: string, entityId: string, req: any): Promise<({
         template: {
             id: string;
@@ -20,6 +28,8 @@ export declare class DocumentController {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     })[]>;
     downloadDocument(id: string, req: any, res: any): Promise<void>;
@@ -46,6 +56,54 @@ export declare class DocumentController {
         filePath: string | null;
         compiledHtml: string | null;
         status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
+        createdAt: Date;
+    }) | null>;
+    signDocument(id: string, body: {
+        signatureData: string;
+    }, req: any): Promise<({
+        template: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            category: string;
+            contentHtml: string;
+        } | null;
+    } & {
+        id: string;
+        tenantId: string;
+        templateId: string | null;
+        entityType: string;
+        entityId: string;
+        filePath: string | null;
+        compiledHtml: string | null;
+        status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
+        createdAt: Date;
+    }) | null>;
+    unsignDocument(id: string, req: any): Promise<({
+        template: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            category: string;
+            contentHtml: string;
+        } | null;
+    } & {
+        id: string;
+        tenantId: string;
+        templateId: string | null;
+        entityType: string;
+        entityId: string;
+        filePath: string | null;
+        compiledHtml: string | null;
+        status: string;
+        signatureData: string | null;
+        signedAt: Date | null;
         createdAt: Date;
     }) | null>;
 }

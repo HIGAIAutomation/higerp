@@ -11,6 +11,7 @@ export declare class AuthController {
             tenantId: any;
             dob: any;
             address: any;
+            whatsappNumber: any;
             designation: any;
             salary: any;
             pageAccess: any;
@@ -20,6 +21,7 @@ export declare class AuthController {
         id: string;
         tenantId: string;
         createdAt: Date;
+        whatsappNumber: string | null;
         email: string | null;
         username: string;
         role: string;
@@ -33,6 +35,7 @@ export declare class AuthController {
         id: string;
         tenantId: string;
         createdAt: Date;
+        whatsappNumber: string | null;
         email: string | null;
         username: string;
         role: string;
@@ -58,6 +61,21 @@ export declare class AuthController {
         id: string;
         tenantId: string;
         createdAt: Date;
+        whatsappNumber: string | null;
+        email: string | null;
+        username: string;
+        role: string;
+        dob: string | null;
+        address: string | null;
+        designation: string | null;
+        salary: number | null;
+        pageAccess: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
+    updateProfile(req: any, body: any): Promise<{
+        id: string;
+        tenantId: string;
+        createdAt: Date;
+        whatsappNumber: string | null;
         email: string | null;
         username: string;
         role: string;

@@ -15,12 +15,12 @@ export declare class ProjectController {
             tenantId: string;
             createdAt: Date;
             name: string;
-            updatedBy: string;
-            updatedAt: Date;
-            projectId: string;
             startDate: Date;
             endDate: Date | null;
+            updatedAt: Date;
             leads: number;
+            updatedBy: string;
+            projectId: string;
             spend: number;
         }[];
     } & {
@@ -47,7 +47,12 @@ export declare class ProjectController {
         videoCount: number;
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
+        techStack: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
+        clientEmail: string | null;
+        clientAddress: string | null;
+        gstinNumber: string | null;
+        clientOccupation: string | null;
     })[]>;
     updateProject(id: string, body: any, req: any): Promise<any>;
     deleteProject(id: string, req: any): Promise<{
@@ -74,6 +79,11 @@ export declare class ProjectController {
         videoCount: number;
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
+        techStack: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
+        clientEmail: string | null;
+        clientAddress: string | null;
+        gstinNumber: string | null;
+        clientOccupation: string | null;
     }>;
 }

@@ -21,6 +21,36 @@ let DocumentController = class DocumentController {
     constructor(documentService) {
         this.documentService = documentService;
     }
+    async getCeoSignature(req) {
+        if (req.user.role !== 'superadmin') {
+            throw new common_1.ForbiddenException('Only superadmin can perform this action');
+        }
+        const fs = require('fs');
+        const path = require('path');
+        const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+        if (fs.existsSync(signatureFilePath)) {
+            const signatureData = fs.readFileSync(signatureFilePath, 'utf8');
+            return { signatureData };
+        }
+        return { signatureData: null };
+    }
+    async saveCeoSignature(req, body) {
+        if (req.user.role !== 'superadmin') {
+            throw new common_1.ForbiddenException('Only superadmin can perform this action');
+        }
+        const fs = require('fs');
+        const path = require('path');
+        const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+        if (body.signatureData) {
+            fs.writeFileSync(signatureFilePath, body.signatureData, 'utf8');
+        }
+        else {
+            if (fs.existsSync(signatureFilePath)) {
+                fs.unlinkSync(signatureFilePath);
+            }
+        }
+        return { success: true };
+    }
     async getDocumentsForEntity(entityType, entityId, req) {
         return this.documentService.getDocumentsForEntity(req.user.tenantId, entityId, entityType.toUpperCase());
     }
@@ -86,8 +116,44 @@ let DocumentController = class DocumentController {
     async getDocument(id, req) {
         return this.documentService.getDocument(req.user.tenantId, id);
     }
+    async signDocument(id, body, req) {
+        if (!body.signatureData) {
+            throw new Error('Signature data is required');
+        }
+        try {
+            return await this.documentService.signDocument(req.user.tenantId, id, body.signatureData);
+        }
+        catch (error) {
+            console.error('Error signing document in backend:', error);
+            throw error;
+        }
+    }
+    async unsignDocument(id, req) {
+        try {
+            return await this.documentService.unsignDocument(req.user.tenantId, id);
+        }
+        catch (error) {
+            console.error('Error unsigning document in backend:', error);
+            throw error;
+        }
+    }
 };
 exports.DocumentController = DocumentController;
+__decorate([
+    (0, common_1.Get)('ceo-signature'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "getCeoSignature", null);
+__decorate([
+    (0, common_1.Post)('ceo-signature'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "saveCeoSignature", null);
 __decorate([
     (0, common_1.Get)('entity/:entityType/:entityId'),
     __param(0, (0, common_1.Param)('entityType')),
@@ -131,6 +197,23 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], DocumentController.prototype, "getDocument", null);
+__decorate([
+    (0, common_1.Post)('/:id/sign'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "signDocument", null);
+__decorate([
+    (0, common_1.Post)('/:id/unsign'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "unsignDocument", null);
 exports.DocumentController = DocumentController = __decorate([
     (0, common_1.Controller)('document'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

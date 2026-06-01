@@ -55,6 +55,29 @@ let ProjectService = class ProjectService {
         this.documentService = documentService;
     }
     async createProject(tenantId, data) {
+        const startDateObj = data.startDate ? new Date(data.startDate) : new Date();
+        const year = startDateObj.getFullYear();
+        const month = startDateObj.getMonth() + 1;
+        let fyStart;
+        let fyEnd;
+        if (month >= 4) {
+            fyStart = year;
+            fyEnd = year + 1;
+        }
+        else {
+            fyStart = year - 1;
+            fyEnd = year;
+        }
+        const fyStr = `${String(fyStart).slice(-2)}-${String(fyEnd).slice(-2)}`;
+        const count = await this.prisma.project.count({
+            where: { tenantId }
+        });
+        let sequence = count + 1;
+        let customId = `higp-${String(sequence).padStart(3, '0')}-${fyStr}`;
+        while (await this.prisma.project.findFirst({ where: { id: customId, tenantId } })) {
+            sequence++;
+            customId = `higp-${String(sequence).padStart(3, '0')}-${fyStr}`;
+        }
         let clientId = null;
         if (data.clientUsername) {
             const existingUser = await this.prisma.user.findFirst({
@@ -68,13 +91,28 @@ let ProjectService = class ProjectService {
                     throw new common_1.BadRequestException('Password is required for client account');
                 }
                 const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
+                const userCount = await this.prisma.user.count({
+                    where: {
+                        tenantId,
+                        id: { startsWith: 'higc-' }
+                    }
+                });
+                let userSeq = userCount + 1;
+                let customUserId = `higc-${String(userSeq).padStart(3, '0')}-${fyStr}`;
+                while (await this.prisma.user.findFirst({ where: { id: customUserId, tenantId } })) {
+                    userSeq++;
+                    customUserId = `higc-${String(userSeq).padStart(3, '0')}-${fyStr}`;
+                }
                 const clientUser = await this.prisma.user.create({
                     data: {
+                        id: customUserId,
                         tenantId,
-                        email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
+                        email: data.clientEmail || `${data.clientUsername.toLowerCase()}@hig-client.com`,
                         username: data.clientUsername,
                         password: hashedPassword,
                         role: 'user',
+                        address: data.clientAddress || null,
+                        designation: data.clientOccupation || null,
                         pageAccess: ['/dashboard', '/dashboard/projects'],
                     },
                 });
@@ -83,6 +121,7 @@ let ProjectService = class ProjectService {
         }
         const project = await this.prisma.project.create({
             data: {
+                id: customId,
                 tenantId,
                 clientId,
                 clientName: data.clientName || null,
@@ -106,9 +145,14 @@ let ProjectService = class ProjectService {
                 socialCredentials: data.socialCredentials || null,
                 moduleDetails: data.moduleDetails || null,
                 projectInclusions: data.projectInclusions || null,
+                clientEmail: data.clientEmail || null,
+                clientAddress: data.clientAddress || null,
+                gstinNumber: data.gstinNumber || null,
+                clientOccupation: data.clientOccupation || null,
+                techStack: data.techStack || null,
             },
         });
-        if (project.category === 'Web/App Development' && project.price > 0) {
+        if (project.category !== 'Digital Marketing' && project.price > 0) {
             const invoiceBase = `INV-PROJ-${project.id}`;
             await this.prisma.projectPayment.create({
                 data: {
@@ -122,15 +166,17 @@ let ProjectService = class ProjectService {
                 }
             });
         }
+        const isDM = project.category === 'Digital Marketing';
         const lifecycleDocs = [
-            'Non-Disclosure Agreement (NDA) - Client',
-            'Master Service Agreement (MSA)',
-            'Statement of Work (SOW)',
+            isDM ? 'Non-Disclosure Agreement (NDA) - Digital Marketing' : 'Non-Disclosure Agreement (NDA) - Client',
+            isDM ? 'Master Service Agreement (MSA) - Digital Marketing' : 'Master Service Agreement (MSA)',
+            isDM ? 'Statement of Work (SOW) - Digital Marketing' : 'Statement of Work (SOW)',
             'Project Proposal',
             'Service Level Agreement (SLA)',
             'Intellectual Property Agreement',
             'Data Processing Agreement (DPA)',
         ];
+        const docProjectId = project.id.replace(/-/g, '/');
         for (const docName of lifecycleDocs) {
             try {
                 let finalClientName = project.clientName || data.clientName;
@@ -144,6 +190,7 @@ let ProjectService = class ProjectService {
                     finalClientName = 'Valued Client';
                 }
                 await this.documentService.generateDocument(docName, tenantId, {
+                    projectId: docProjectId,
                     projectName: project.name,
                     clientName: finalClientName,
                     companyName: 'HIG AI Automation LLP',
@@ -159,6 +206,33 @@ let ProjectService = class ProjectService {
                     moduleDetails: project.moduleDetails || [],
                     projectInclusions: project.projectInclusions || '',
                     inclusions: project.projectInclusions ? project.projectInclusions.split(/[,\n]+/).map((x) => x.trim()).filter(Boolean) : [],
+                    clientEmail: project.clientEmail || data.clientEmail || '',
+                    clientAddress: project.clientAddress || data.clientAddress || '',
+                    gstinNumber: project.gstinNumber || data.gstinNumber || '',
+                    clientOccupation: project.clientOccupation || data.clientOccupation || '',
+                    techStack: project.techStack || null,
+                    phases: (() => {
+                        const phases = [];
+                        if (project.moduleDetails && Array.isArray(project.moduleDetails) && project.moduleDetails.length > 0) {
+                            const totalModules = project.moduleDetails.length;
+                            const phasePrice = (project.price || 0) * 0.25;
+                            const chunkSize = Math.ceil(totalModules / 4);
+                            let currentStart = 0;
+                            for (let i = 0; i < 4; i++) {
+                                const itemsInPhase = (i === 3) ? (totalModules - currentStart) : Math.floor(totalModules / 4) + (i < (totalModules % 4) ? 1 : 0);
+                                if (itemsInPhase > 0) {
+                                    const chunkModules = project.moduleDetails.slice(currentStart, currentStart + itemsInPhase);
+                                    phases.push({
+                                        phaseNumber: i + 1,
+                                        price: `₹${phasePrice.toLocaleString('en-IN')}`,
+                                        modules: chunkModules
+                                    });
+                                    currentStart += itemsInPhase;
+                                }
+                            }
+                        }
+                        return phases;
+                    })(),
                 }, 'PROJECT', project.id);
             }
             catch (error) {
@@ -225,8 +299,27 @@ let ProjectService = class ProjectService {
                         throw new common_1.BadRequestException('Password is required for a new client account');
                     }
                     const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
+                    const startDateObj = currentProject.startDate ? new Date(currentProject.startDate) : new Date();
+                    const year = startDateObj.getFullYear();
+                    const month = startDateObj.getMonth() + 1;
+                    let fyStart = month >= 4 ? year : year - 1;
+                    let fyEnd = month >= 4 ? year + 1 : year;
+                    const fyStr = `${String(fyStart).slice(-2)}-${String(fyEnd).slice(-2)}`;
+                    const userCount = await this.prisma.user.count({
+                        where: {
+                            tenantId,
+                            id: { startsWith: 'higc-' }
+                        }
+                    });
+                    let userSeq = userCount + 1;
+                    let customUserId = `higc-${String(userSeq).padStart(3, '0')}-${fyStr}`;
+                    while (await this.prisma.user.findFirst({ where: { id: customUserId, tenantId } })) {
+                        userSeq++;
+                        customUserId = `higc-${String(userSeq).padStart(3, '0')}-${fyStr}`;
+                    }
                     const clientUser = await this.prisma.user.create({
                         data: {
+                            id: customUserId,
                             tenantId,
                             email: `${data.clientUsername.toLowerCase()}@hig-client.com`,
                             username: data.clientUsername,
@@ -360,17 +453,24 @@ let ProjectService = class ProjectService {
                 socialCredentials: data.socialCredentials !== undefined ? data.socialCredentials : undefined,
                 moduleDetails: data.moduleDetails !== undefined ? data.moduleDetails : undefined,
                 projectInclusions: data.projectInclusions !== undefined ? data.projectInclusions : undefined,
+                clientEmail: data.clientEmail !== undefined ? data.clientEmail : undefined,
+                clientAddress: data.clientAddress !== undefined ? data.clientAddress : undefined,
+                gstinNumber: data.gstinNumber !== undefined ? data.gstinNumber : undefined,
+                clientOccupation: data.clientOccupation !== undefined ? data.clientOccupation : undefined,
+                techStack: data.techStack !== undefined ? data.techStack : undefined,
             },
         });
+        const isDM = updatedProject.category === 'Digital Marketing';
         const lifecycleDocs = [
-            'Non-Disclosure Agreement (NDA) - Client',
-            'Master Service Agreement (MSA)',
-            'Statement of Work (SOW)',
+            isDM ? 'Non-Disclosure Agreement (NDA) - Digital Marketing' : 'Non-Disclosure Agreement (NDA) - Client',
+            isDM ? 'Master Service Agreement (MSA) - Digital Marketing' : 'Master Service Agreement (MSA)',
+            isDM ? 'Statement of Work (SOW) - Digital Marketing' : 'Statement of Work (SOW)',
             'Project Proposal',
             'Service Level Agreement (SLA)',
             'Intellectual Property Agreement',
             'Data Processing Agreement (DPA)',
         ];
+        const docProjectId = updatedProject.id.replace(/-/g, '/');
         for (const docName of lifecycleDocs) {
             try {
                 let finalClientName = updatedProject.clientName;
@@ -384,6 +484,7 @@ let ProjectService = class ProjectService {
                     finalClientName = 'Valued Client';
                 }
                 await this.documentService.generateDocument(docName, tenantId, {
+                    projectId: docProjectId,
                     projectName: updatedProject.name,
                     clientName: finalClientName,
                     companyName: 'HIG AI Automation LLP',
@@ -399,6 +500,32 @@ let ProjectService = class ProjectService {
                     moduleDetails: updatedProject.moduleDetails || [],
                     projectInclusions: updatedProject.projectInclusions || '',
                     inclusions: updatedProject.projectInclusions ? updatedProject.projectInclusions.split(/[,\n]+/).map((x) => x.trim()).filter(Boolean) : [],
+                    clientEmail: updatedProject.clientEmail || data.clientEmail || '',
+                    clientAddress: updatedProject.clientAddress || data.clientAddress || '',
+                    gstinNumber: updatedProject.gstinNumber || data.gstinNumber || '',
+                    clientOccupation: updatedProject.clientOccupation || data.clientOccupation || '',
+                    techStack: updatedProject.techStack || null,
+                    phases: (() => {
+                        const phases = [];
+                        if (updatedProject.moduleDetails && Array.isArray(updatedProject.moduleDetails) && updatedProject.moduleDetails.length > 0) {
+                            const totalModules = updatedProject.moduleDetails.length;
+                            const phasePrice = (updatedProject.price || 0) * 0.25;
+                            let currentStart = 0;
+                            for (let i = 0; i < 4; i++) {
+                                const itemsInPhase = (i === 3) ? (totalModules - currentStart) : Math.floor(totalModules / 4) + (i < (totalModules % 4) ? 1 : 0);
+                                if (itemsInPhase > 0) {
+                                    const chunkModules = updatedProject.moduleDetails.slice(currentStart, currentStart + itemsInPhase);
+                                    phases.push({
+                                        phaseNumber: i + 1,
+                                        price: `₹${phasePrice.toLocaleString('en-IN')}`,
+                                        modules: chunkModules
+                                    });
+                                    currentStart += itemsInPhase;
+                                }
+                            }
+                        }
+                        return phases;
+                    })(),
                 }, 'PROJECT', updatedProject.id);
             }
             catch (error) {

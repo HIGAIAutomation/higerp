@@ -12,7 +12,13 @@ export class AuthService {
 
   async validateUser(username: string, pass: string, tenantId: string = '00000000-0000-0000-0000-000000000000'): Promise<any> {
     const user = await this.prisma.user.findFirst({
-      where: { username, tenantId },
+      where: { 
+        tenantId,
+        OR: [
+          { username },
+          { email: username }
+        ]
+      },
     });
     if (user && await bcrypt.compare(pass, user.password)) {
       const { password, ...result } = user;
@@ -32,6 +38,7 @@ export class AuthService {
         tenantId: user.tenantId,
         dob: user.dob,
         address: user.address,
+        whatsappNumber: user.whatsappNumber,
         designation: user.designation,
         salary: user.salary,
         pageAccess: user.pageAccess,
@@ -117,5 +124,27 @@ export class AuthService {
     return this.prisma.user.findFirst({
       where: { id: userId, tenantId },
     });
+  }
+
+  async updateProfile(userId: string, tenantId: string, data: any) {
+    const updateData: any = {};
+    if (data.username !== undefined) updateData.username = data.username;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.dob !== undefined) updateData.dob = data.dob;
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.whatsappNumber !== undefined) updateData.whatsappNumber = data.whatsappNumber;
+    if (data.phone !== undefined) updateData.whatsappNumber = data.phone;
+    
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+
+    const user = await this.prisma.user.update({
+      where: { id: userId, tenantId },
+      data: updateData,
+    });
+
+    const { password, ...result } = user;
+    return result;
   }
 }
