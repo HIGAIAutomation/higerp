@@ -56,6 +56,7 @@ interface Project {
   clientAddress?: string;
   gstinNumber?: string;
   clientOccupation?: string;
+  techStack?: { frontend: string; backend: string; database: string; hosting: string };
 }
 
 interface GeneratedDoc {
@@ -297,6 +298,7 @@ export default function ProjectsPage() {
     clientAddress: '',
     gstinNumber: '',
     clientOccupation: '',
+    techStack: { frontend: '', backend: '', database: '', hosting: '' },
   });
 
   const [editForm, setEditForm] = useState({
@@ -325,6 +327,7 @@ export default function ProjectsPage() {
     clientAddress: '',
     gstinNumber: '',
     clientOccupation: '',
+    techStack: { frontend: '', backend: '', database: '', hosting: '' },
   });
 
   const fetchProjects = async () => {
@@ -560,6 +563,7 @@ export default function ProjectsPage() {
         clientAddress: '',
         gstinNumber: '',
         clientOccupation: '',
+        techStack: { frontend: '', backend: '', database: '', hosting: '' },
       });
       setModuleInputs([]);
       setSelectedPackageId('');
@@ -602,6 +606,7 @@ export default function ProjectsPage() {
       clientAddress: proj.clientAddress || '',
       gstinNumber: proj.gstinNumber || '',
       clientOccupation: proj.clientOccupation || '',
+      techStack: proj.techStack || { frontend: '', backend: '', database: '', hosting: '' },
     });
     
     const details = proj.moduleDetails || [];
@@ -960,6 +965,50 @@ export default function ProjectsPage() {
                   </div>
                 </div>
               </div>
+
+              {form.category === 'Web/App Development' && (
+                <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                  <label className="block text-xs font-bold text-accent uppercase tracking-wider">Technology Stack (For Documents)</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Frontend (e.g. React, Next.js)"
+                        value={form.techStack.frontend}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, frontend: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Backend (e.g. Node.js, Python)"
+                        value={form.techStack.backend}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, backend: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Database (e.g. MongoDB, PostgreSQL)"
+                        value={form.techStack.database}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, database: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Hosting (e.g. AWS, Vercel)"
+                        value={form.techStack.hosting}
+                        onChange={(e) => setForm({ ...form, techStack: { ...form.techStack, hosting: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">DESCRIPTION</label>
@@ -1640,6 +1689,50 @@ export default function ProjectsPage() {
                       </div>
                     </div>
                   </div>
+
+                  {editForm.category === 'Web/App Development' && (
+                    <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                      <label className="block text-xs font-bold text-accent uppercase tracking-wider">Technology Stack (For Documents)</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Frontend (e.g. React, Next.js)"
+                            value={editForm.techStack.frontend}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, frontend: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Backend (e.g. Node.js, Python)"
+                            value={editForm.techStack.backend}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, backend: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Database (e.g. MongoDB, PostgreSQL)"
+                            value={editForm.techStack.database}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, database: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Hosting (e.g. AWS, Vercel)"
+                            value={editForm.techStack.hosting}
+                            onChange={(e) => setEditForm({ ...editForm, techStack: { ...editForm.techStack, hosting: e.target.value } })}
+                            className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">PROJECT STATUS</label>

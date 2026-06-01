@@ -525,12 +525,30 @@ async function main() {
     <h3>5.2 Payment Schedule</h3>
     <p>Payments are structured based on project category, advances, and deliverables:</p>
     {{#if isWebProject}}
+    <p>Payments are distributed across 4 project phases:</p>
     <ul>
-      <li><strong>25% Kickoff Advance</strong>: Invoiced immediately upon project creation, due before development begins.</li>
-      <li><strong>25% Part 1 Milestone</strong>: Generated automatically once 33% of the target modules are completed on staging.</li>
-      <li><strong>25% Part 2 Milestone</strong>: Generated automatically once 66% of the target modules are completed on staging.</li>
-      <li><strong>25% Part 3 Milestone</strong>: Generated automatically once 100% of the target modules are completed and signed off.</li>
+      <li><strong>Phase 1 Kickoff (25% Advance)</strong>: Invoiced immediately before development begins.</li>
+      {{#each phases}}
+      {{#if @index}}
+      <li><strong>Phase {{phaseNumber}} Delivery ({{price}})</strong>: 
+        <ul>
+        {{#each modules}}
+          <li>{{this.name}}</li>
+        {{/each}}
+        </ul>
+      </li>
+      {{/if}}
+      {{/each}}
     </ul>
+    {{#if techStack}}
+    <h3>5.3 Technology Stack</h3>
+    <ul>
+      <li><strong>Frontend</strong>: {{techStack.frontend}}</li>
+      <li><strong>Backend</strong>: {{techStack.backend}}</li>
+      <li><strong>Database</strong>: {{techStack.database}}</li>
+      <li><strong>Hosting</strong>: {{techStack.hosting}}</li>
+    </ul>
+    {{/if}}
     {{/if}}
     {{#if isAutomation}}
     <ul>
@@ -680,11 +698,26 @@ async function main() {
     {{#if isWebProject}}
     <p>This Statement of Work (SOW) details the deliverables, system components, modules, and software engineering workflows for project: <strong>{{projectName}}</strong>. The Agency shall design, develop, test, and deploy the following application components and modules:</p>
     <ul>
-      {{#each moduleDetails}}
-      <li><strong>{{this.name}}</strong> (Budget: {{this.price}}): {{this.description}}</li>
+      {{#each phases}}
+      <li><strong>Phase {{phaseNumber}} Delivery (Milestone Value: {{price}})</strong>
+        <ul>
+        {{#each modules}}
+          <li><strong>{{this.name}}</strong>: {{this.description}}</li>
+        {{/each}}
+        </ul>
+      </li>
       {{/each}}
       <li><strong>Target Interactive Media Support</strong>: Provisioning for up to {{postCount}} image assets and {{videoCount}} video integrations embedded/optimized within the platform.</li>
     </ul>
+    {{#if techStack}}
+    <p><strong>Proposed Technology Stack:</strong></p>
+    <ul>
+      <li><strong>Frontend Architecture:</strong> {{techStack.frontend}}</li>
+      <li><strong>Backend Architecture:</strong> {{techStack.backend}}</li>
+      <li><strong>Database System:</strong> {{techStack.database}}</li>
+      <li><strong>Cloud Infrastructure:</strong> {{techStack.hosting}}</li>
+    </ul>
+    {{/if}}
     {{/if}}
     {{#if isAutomation}}
     <p>This SOW details the automation workflows and API mappings to build for: <strong>{{projectName}}</strong>. The Agency shall build and test the following automation pipelines:</p>
@@ -918,13 +951,22 @@ async function main() {
   <div class="section">
     <h2>2. Project Deliverables & Modules</h2>
     {{#if isWebProject}}
-    <p>The engineering roadmap encompasses the following system modules and tools:</p>
+    <p>The engineering roadmap encompasses the following system modules and tools divided into phases:</p>
     <ul>
-      {{#each moduleDetails}}
-      <li><strong>{{this.name}}</strong> (Price: {{this.price}}): {{this.description}}</li>
+      {{#each phases}}
+      <li><strong>Phase {{phaseNumber}} Delivery ({{price}})</strong>
+        <ul>
+        {{#each modules}}
+          <li><strong>{{this.name}}</strong>: {{this.description}}</li>
+        {{/each}}
+        </ul>
+      </li>
       {{/each}}
       <li><strong>Media & Interactive Elements</strong>: Supporting up to {{postCount}} image assets and {{videoCount}} video integrations.</li>
     </ul>
+    {{#if techStack}}
+    <p><strong>Technology Stack:</strong> Frontend: {{techStack.frontend}} | Backend: {{techStack.backend}} | Database: {{techStack.database}} | Hosting: {{techStack.hosting}}</p>
+    {{/if}}
     {{/if}}
     {{#if isDigitalMarketing}}
     <p>The package contains the following high-value assets and execution strategies:</p>

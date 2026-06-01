@@ -21,6 +21,36 @@ let DocumentController = class DocumentController {
     constructor(documentService) {
         this.documentService = documentService;
     }
+    async getCeoSignature(req) {
+        if (req.user.role !== 'superadmin') {
+            throw new common_1.ForbiddenException('Only superadmin can perform this action');
+        }
+        const fs = require('fs');
+        const path = require('path');
+        const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+        if (fs.existsSync(signatureFilePath)) {
+            const signatureData = fs.readFileSync(signatureFilePath, 'utf8');
+            return { signatureData };
+        }
+        return { signatureData: null };
+    }
+    async saveCeoSignature(req, body) {
+        if (req.user.role !== 'superadmin') {
+            throw new common_1.ForbiddenException('Only superadmin can perform this action');
+        }
+        const fs = require('fs');
+        const path = require('path');
+        const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+        if (body.signatureData) {
+            fs.writeFileSync(signatureFilePath, body.signatureData, 'utf8');
+        }
+        else {
+            if (fs.existsSync(signatureFilePath)) {
+                fs.unlinkSync(signatureFilePath);
+            }
+        }
+        return { success: true };
+    }
     async getDocumentsForEntity(entityType, entityId, req) {
         return this.documentService.getDocumentsForEntity(req.user.tenantId, entityId, entityType.toUpperCase());
     }
@@ -109,6 +139,21 @@ let DocumentController = class DocumentController {
     }
 };
 exports.DocumentController = DocumentController;
+__decorate([
+    (0, common_1.Get)('ceo-signature'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "getCeoSignature", null);
+__decorate([
+    (0, common_1.Post)('ceo-signature'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], DocumentController.prototype, "saveCeoSignature", null);
 __decorate([
     (0, common_1.Get)('entity/:entityType/:entityId'),
     __param(0, (0, common_1.Param)('entityType')),

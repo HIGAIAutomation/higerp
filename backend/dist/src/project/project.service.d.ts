@@ -49,6 +49,7 @@ export declare class ProjectService {
         videoCount: number;
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
+        techStack: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
         clientEmail: string | null;
         clientAddress: string | null;
@@ -80,6 +81,7 @@ export declare class ProjectService {
         videoCount: number;
         socialCredentials: import("@prisma/client/runtime/library").JsonValue | null;
         moduleDetails: import("@prisma/client/runtime/library").JsonValue | null;
+        techStack: import("@prisma/client/runtime/library").JsonValue | null;
         projectInclusions: string | null;
         clientEmail: string | null;
         clientAddress: string | null;

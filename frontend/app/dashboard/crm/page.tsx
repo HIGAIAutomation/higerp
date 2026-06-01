@@ -30,6 +30,8 @@ interface Lead {
   source: string;
   valEstimate: string;
   status: string;
+  uniqueId?: string;
+  interestedService?: string;
 }
 
 interface Package {

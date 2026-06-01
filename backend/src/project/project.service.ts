@@ -111,6 +111,7 @@ export class ProjectService {
         clientAddress: data.clientAddress || null,
         gstinNumber: data.gstinNumber || null,
         clientOccupation: data.clientOccupation || null,
+        techStack: data.techStack || null,
       },
     });
 
@@ -180,6 +181,30 @@ export class ProjectService {
             clientAddress: project.clientAddress || data.clientAddress || '',
             gstinNumber: project.gstinNumber || data.gstinNumber || '',
             clientOccupation: project.clientOccupation || data.clientOccupation || '',
+            techStack: project.techStack || null,
+            phases: (() => {
+              const phases = [];
+              if (project.moduleDetails && Array.isArray(project.moduleDetails) && project.moduleDetails.length > 0) {
+                const totalModules = project.moduleDetails.length;
+                const phasePrice = (project.price || 0) * 0.25;
+                const chunkSize = Math.ceil(totalModules / 4);
+                let currentStart = 0;
+                for (let i = 0; i < 4; i++) {
+                  // Distribute evenly, remaining modules go to last phase
+                  const itemsInPhase = (i === 3) ? (totalModules - currentStart) : Math.floor(totalModules / 4) + (i < (totalModules % 4) ? 1 : 0);
+                  if (itemsInPhase > 0) {
+                    const chunkModules = project.moduleDetails.slice(currentStart, currentStart + itemsInPhase);
+                    phases.push({
+                      phaseNumber: i + 1,
+                      price: `₹${phasePrice.toLocaleString('en-IN')}`,
+                      modules: chunkModules
+                    });
+                    currentStart += itemsInPhase;
+                  }
+                }
+              }
+              return phases;
+            })(),
           },
           'PROJECT',
           project.id,
@@ -445,6 +470,7 @@ export class ProjectService {
         clientAddress: data.clientAddress !== undefined ? data.clientAddress : undefined,
         gstinNumber: data.gstinNumber !== undefined ? data.gstinNumber : undefined,
         clientOccupation: data.clientOccupation !== undefined ? data.clientOccupation : undefined,
+        techStack: data.techStack !== undefined ? data.techStack : undefined,
       },
     });
 
@@ -498,6 +524,28 @@ export class ProjectService {
             clientAddress: updatedProject.clientAddress || data.clientAddress || '',
             gstinNumber: updatedProject.gstinNumber || data.gstinNumber || '',
             clientOccupation: updatedProject.clientOccupation || data.clientOccupation || '',
+            techStack: updatedProject.techStack || null,
+            phases: (() => {
+              const phases = [];
+              if (updatedProject.moduleDetails && Array.isArray(updatedProject.moduleDetails) && updatedProject.moduleDetails.length > 0) {
+                const totalModules = updatedProject.moduleDetails.length;
+                const phasePrice = (updatedProject.price || 0) * 0.25;
+                let currentStart = 0;
+                for (let i = 0; i < 4; i++) {
+                  const itemsInPhase = (i === 3) ? (totalModules - currentStart) : Math.floor(totalModules / 4) + (i < (totalModules % 4) ? 1 : 0);
+                  if (itemsInPhase > 0) {
+                    const chunkModules = updatedProject.moduleDetails.slice(currentStart, currentStart + itemsInPhase);
+                    phases.push({
+                      phaseNumber: i + 1,
+                      price: `₹${phasePrice.toLocaleString('en-IN')}`,
+                      modules: chunkModules
+                    });
+                    currentStart += itemsInPhase;
+                  }
+                }
+              }
+              return phases;
+            })(),
           },
           'PROJECT',
           updatedProject.id,

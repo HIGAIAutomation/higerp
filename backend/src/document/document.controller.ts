@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, Res, ForbiddenException } from '@nestjs/common';
 import { DocumentService } from './document.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -6,6 +6,39 @@ import { AuthGuard } from '@nestjs/passport';
 @UseGuards(AuthGuard('jwt'))
 export class DocumentController {
   constructor(private documentService: DocumentService) {}
+
+  @Get('ceo-signature')
+  async getCeoSignature(@Request() req: any) {
+    if (req.user.role !== 'superadmin') {
+      throw new ForbiddenException('Only superadmin can perform this action');
+    }
+    const fs = require('fs');
+    const path = require('path');
+    const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+    if (fs.existsSync(signatureFilePath)) {
+      const signatureData = fs.readFileSync(signatureFilePath, 'utf8');
+      return { signatureData };
+    }
+    return { signatureData: null };
+  }
+
+  @Post('ceo-signature')
+  async saveCeoSignature(@Request() req: any, @Body() body: { signatureData: string }) {
+    if (req.user.role !== 'superadmin') {
+      throw new ForbiddenException('Only superadmin can perform this action');
+    }
+    const fs = require('fs');
+    const path = require('path');
+    const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
+    if (body.signatureData) {
+      fs.writeFileSync(signatureFilePath, body.signatureData, 'utf8');
+    } else {
+      if (fs.existsSync(signatureFilePath)) {
+        fs.unlinkSync(signatureFilePath);
+      }
+    }
+    return { success: true };
+  }
 
   @Get('entity/:entityType/:entityId')
   async getDocumentsForEntity(

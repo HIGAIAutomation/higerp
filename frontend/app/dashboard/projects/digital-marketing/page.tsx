@@ -658,6 +658,28 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
     fetchAllProjects();
   }, []);
 
+  const getSeededDataForMonth = (targetMonth: string): ContentSheetItem[] => {
+    return MAHARAJA_CATERING_DATA.map(item => {
+      const dayStr = item.date.split('-')[2] || '01';
+      const newDate = `${targetMonth}-${dayStr}`;
+      let newDay = item.day;
+      try {
+        const dateObj = new Date(newDate);
+        if (!isNaN(dateObj.getTime())) {
+          const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          newDay = daysOfWeek[dateObj.getDay()];
+        }
+      } catch (e) {
+        console.error("Error calculating day for", newDate, e);
+      }
+      return {
+        ...item,
+        date: newDate,
+        day: newDay
+      };
+    });
+  };
+
   // Fetch month-wise content sheet from database
   const fetchContentSheet = async (projectId: string, month: string) => {
     if (!projectId || !month) return;
@@ -673,34 +695,25 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
         // Fallback: check if Maharaja Catering is selected to seed initial demo data
         const currentProj = projects.find(p => p.id === projectId);
         if (currentProj?.name.toLowerCase().includes('catering') || projectId === 'maharaja-catering-fallback-id') {
-          setContentItems(MAHARAJA_CATERING_DATA);
+          const seededData = getSeededDataForMonth(month);
+          setContentItems(seededData);
           
-          // Seed initial realistic statuses
+          // Seed clean initial statuses (all in progress for a new month/clean slate)
           const initialMap: Record<string, 'inprogress' | 'completed' | 'posted'> = {};
           const initialCampMap: Record<string, 'inprogress' | 'running'> = {};
-          MAHARAJA_CATERING_DATA.forEach((item, idx) => {
-            if (idx < 5) {
-              initialMap[`${item.id}_instagram`] = 'posted';
-              initialMap[`${item.id}_fb`] = 'posted';
-              initialMap[`${item.id}_youtube`] = 'completed';
-            } else if (idx < 10) {
-              initialMap[`${item.id}_instagram`] = 'completed';
-              initialMap[`${item.id}_fb`] = 'inprogress';
-              initialMap[`${item.id}_youtube`] = 'inprogress';
-            } else {
-              initialMap[`${item.id}_instagram`] = 'inprogress';
-              initialMap[`${item.id}_fb`] = 'inprogress';
-              initialMap[`${item.id}_youtube`] = 'inprogress';
-            }
+          seededData.forEach((item) => {
+            initialMap[`${item.id}_instagram`] = 'inprogress';
+            initialMap[`${item.id}_fb`] = 'inprogress';
+            initialMap[`${item.id}_youtube`] = 'inprogress';
             if (item.runAdCampaign === 'YES') {
-              initialCampMap[item.id] = item.id === 'mc_1' || item.id === 'mc_2' ? 'running' : 'inprogress';
+              initialCampMap[item.id] = 'inprogress';
             }
           });
           setPlatformStatuses(initialMap);
           setCampaignStatuses(initialCampMap);
           
           // Save demo data to database so it exists there from now on
-          await saveStateToStorage(MAHARAJA_CATERING_DATA, initialMap, initialCampMap, projectId, month);
+          await saveStateToStorage(seededData, initialMap, initialCampMap, projectId, month);
         } else {
           setContentItems([]);
           setPlatformStatuses({});

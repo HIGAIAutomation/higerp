@@ -53,4 +53,15 @@ export class AuthController {
     }
     return this.authService.updateUserAccess(userId, req.user.tenantId, body);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('profile')
+  async updateProfile(
+    @Request() req: any,
+    @Body() body: any,
+  ) {
+    const userId = req.user.userId;
+    const tenantId = req.user.tenantId;
+    return this.authService.updateProfile(userId, tenantId, body);
+  }
 }

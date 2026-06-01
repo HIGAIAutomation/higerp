@@ -46,24 +46,24 @@ export function Sidebar() {
   const isSuperAdmin = user?.role === 'superadmin';
   const pageAccessList = user?.pageAccess || [];
 
+  const clientNavigation = [
+    { name: "My Profile", href: "/dashboard/profile", icon: UserCheck },
+    { name: "Project Tracking", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Payment", href: "/dashboard/payments", icon: CreditCard },
+  ];
+
   // Filter navigation links
-  const visibleNavigation = navigation
-    .map((item) => {
-      if (item.href === "/dashboard" && (user?.role === "user" || user?.role === "client")) {
-        return { ...item, name: "Project Track" };
-      }
-      return item;
-    })
-    .filter((item) => {
+  let visibleNavigation: typeof navigation = [];
+  
+  if (user?.role === "user" || user?.role === "client") {
+    visibleNavigation = clientNavigation;
+  } else {
+    visibleNavigation = navigation.filter((item) => {
       if (item.href === "/dashboard") return true; // Everyone sees Dashboard home
-      if (user?.role === "user") return false; // Standard user sees no other tabs
-      if (user?.role === "client") {
-        // Clients should only see tabs explicitly in their pageAccessList (e.g. /dashboard/projects)
-        return pageAccessList.includes(item.href);
-      }
       if (isSuperAdmin) return true; // Super Admin sees everything
       return pageAccessList.includes(item.href); // Normal users see what they are allowed
     });
+  }
 
   // If superadmin, add Access Control to the menu list
   if (isSuperAdmin) {
@@ -364,7 +364,11 @@ export function Sidebar() {
             {initials}
           </div>
           <div className="ml-3 overflow-hidden">
-            <p className="text-xs font-semibold truncate text-foreground">{user?.username || 'Guest'}</p>
+            <p className="text-xs font-semibold truncate text-foreground">
+              {user?.username 
+                ? user.username.replace(/([a-zA-Z]+)(\d+)/g, '$1 $2').split(/[\s_-]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') 
+                : 'Guest'}
+            </p>
             <p className="text-[10px] text-foreground/50 capitalize truncate">{user?.role || 'Guest'}</p>
           </div>
         </div>

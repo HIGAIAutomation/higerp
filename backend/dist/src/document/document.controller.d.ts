@@ -2,6 +2,14 @@ import { DocumentService } from './document.service';
 export declare class DocumentController {
     private documentService;
     constructor(documentService: DocumentService);
+    getCeoSignature(req: any): Promise<{
+        signatureData: any;
+    }>;
+    saveCeoSignature(req: any, body: {
+        signatureData: string;
+    }): Promise<{
+        success: boolean;
+    }>;
     getDocumentsForEntity(entityType: string, entityId: string, req: any): Promise<({
         template: {
             id: string;

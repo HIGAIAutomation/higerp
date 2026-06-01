@@ -205,7 +205,10 @@ export function DocumentPreviewModal({
             ) : (
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-foreground">Sign Document</h3>
+                  <h3 className="font-bold text-foreground flex items-center gap-1.5">
+                    <PenTool className="h-4 w-4 text-accent" />
+                    Sign Document
+                  </h3>
                   <button onClick={() => setIsSigning(false)} className="text-xs text-muted-foreground hover:text-foreground">
                     Cancel
                   </button>
@@ -228,10 +231,12 @@ export function DocumentPreviewModal({
 
                 {signMode === 'draw' ? (
                   <div className="flex flex-col gap-3 flex-1">
-                    <div className="border-2 border-dashed border-border rounded-xl bg-white overflow-hidden flex-1 min-h-[200px]">
+                    <div className="border-2 border-dashed border-border rounded-xl bg-white overflow-hidden h-[140px]">
                       <SignatureCanvas 
                         ref={sigCanvas}
                         canvasProps={{ className: 'w-full h-full' }}
+                        minWidth={0.8}
+                        maxWidth={2.2}
                         backgroundColor="white"
                       />
                     </div>
