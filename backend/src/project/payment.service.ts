@@ -21,12 +21,39 @@ export class PaymentService {
   }
 
   async generateBill(tenantId: string, data: any) {
+    let projectId = data.projectId;
+    
+    if (data.isManual) {
+      const count = await this.prisma.project.count({
+        where: { tenantId }
+      });
+      const sequence = count + 1;
+      const currentYear = new Date().getFullYear();
+      const fyStr = `${String(currentYear).slice(-2)}-${String(currentYear + 1).slice(-2)}`;
+      let customId = `higp-manual-${String(sequence).padStart(3, '0')}-${fyStr}`;
+      
+      const adhocProject = await this.prisma.project.create({
+        data: {
+          id: customId,
+          tenantId,
+          name: data.projectName || 'Manual Ad-hoc Project',
+          clientName: data.clientName || 'Ad-hoc Client',
+          category: data.category || 'Manual Billing',
+          whatsappNumber: data.whatsappNumber || null,
+          price: data.amount ? parseFloat(data.amount) : 0,
+          status: 'active',
+          description: 'Manually billed ad-hoc service/project',
+        }
+      });
+      projectId = adhocProject.id;
+    }
+
     return this.prisma.projectPayment.create({
       data: {
         tenantId,
-        projectId: data.projectId,
+        projectId,
         invoiceNumber: data.invoiceNumber,
-        amount: data.amount,
+        amount: parseFloat(data.amount),
         dueDate: new Date(data.dueDate),
         status: 'pending',
         whatsappSent: false,

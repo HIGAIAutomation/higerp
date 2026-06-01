@@ -72,6 +72,7 @@ export default function Home() {
             width={120}
             height={120}
             className="relative rounded-3xl shadow-2xl shadow-accent/30 border-4 border-white/10"
+            style={{ width: 'auto', height: 'auto' }}
             priority
           />
         </div>

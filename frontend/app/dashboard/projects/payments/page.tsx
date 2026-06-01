@@ -73,8 +73,32 @@ export default function PaymentsPage() {
   
   const [additionalPayment, setAdditionalPayment] = useState<number>(0);
 
+  // Manual Billing Mode States
+  const [isManual, setIsManual] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    projectName: '',
+    clientName: '',
+    category: 'Web/App Development',
+    whatsappNumber: ''
+  });
+
+  // Phase / Upfront Payment States (for Web/App Development)
+  type PaymentType = 'upfront' | 'phase';
+  const [paymentType, setPaymentType] = useState<PaymentType>('upfront');
+  const PHASES = [
+    { label: 'Phase 1 — Advance', pct: 30, description: 'Project initiation & planning' },
+    { label: 'Phase 2 — Development', pct: 40, description: 'Core build & milestones' },
+    { label: 'Phase 3 — Final Delivery', pct: 30, description: 'Testing, handover & deployment' },
+  ];
+  const [selectedPhaseIdx, setSelectedPhaseIdx] = useState<number>(0);
+
+  // Derive the active project for convenience
+  const selectedProject = projects.find(p => p.id === form.projectId);
+  const isWebApp = !isManual && selectedProject?.category === 'Web/App Development';
+
   // Auto-calculate billing amount based on selected project
   useEffect(() => {
+    if (isManual) return; // Skip auto-calculation in manual mode
     const selectedProj = projects.find(p => p.id === form.projectId);
     if (!selectedProj) return;
 
@@ -90,9 +114,15 @@ export default function PaymentsPage() {
       }
     }
 
-    const calculatedTotal = basePrice + campaignSpend + serviceCharge + Number(additionalPayment || 0);
-    setForm(f => ({ ...f, amount: calculatedTotal.toString() }));
-  }, [form.projectId, additionalPayment, projects]);
+    let subtotal = basePrice + campaignSpend + serviceCharge + Number(additionalPayment || 0);
+
+    // For Web/App Dev in phase mode, bill only the % for that phase
+    if (selectedProj.category === 'Web/App Development' && paymentType === 'phase') {
+      subtotal = Math.round((PHASES[selectedPhaseIdx].pct / 100) * subtotal);
+    }
+
+    setForm(f => ({ ...f, amount: subtotal.toString() }));
+  }, [form.projectId, additionalPayment, projects, isManual, paymentType, selectedPhaseIdx]);
 
   const generateNextInvoiceNumber = (existingPayments: PaymentInvoice[]) => {
     const currentYear = new Date().getFullYear();
@@ -166,28 +196,51 @@ export default function PaymentsPage() {
 
   const handleCreateBill = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.projectId) {
+    if (!isManual && !form.projectId) {
       alert('Please select a project first.');
+      return;
+    }
+    if (isManual && (!manualForm.projectName || !manualForm.clientName)) {
+      alert('Please fill in the project name and client name.');
       return;
     }
     setSubmittingBill(true);
     try {
+      const phaseLabel = isWebApp && paymentType === 'phase' ? PHASES[selectedPhaseIdx].label : null;
+      const payload = isManual ? {
+        isManual: true,
+        projectName: manualForm.projectName,
+        clientName: manualForm.clientName,
+        category: manualForm.category,
+        whatsappNumber: manualForm.whatsappNumber,
+        invoiceNumber: form.invoiceNumber,
+        amount: parseFloat(form.amount),
+        dueDate: form.dueDate
+      } : {
+        isManual: false,
+        projectId: form.projectId,
+        invoiceNumber: form.invoiceNumber,
+        amount: parseFloat(form.amount),
+        dueDate: form.dueDate,
+        paymentType: isWebApp ? paymentType : undefined,
+        phaseLabel: phaseLabel ?? undefined,
+      };
+
       const response = await fetchWithAuth('/project-payments', {
         method: 'POST',
-        body: JSON.stringify({
-          projectId: form.projectId,
-          invoiceNumber: form.invoiceNumber,
-          amount: parseFloat(form.amount),
-          dueDate: form.dueDate
-        })
+        body: JSON.stringify(payload)
       });
 
       // Automatically send bill to client WhatsApp number if available
-      const selectedProj = projects.find(p => p.id === form.projectId);
-      if (selectedProj && selectedProj.whatsappNumber) {
-        const message = `Dear Customer, a bill for your project "${selectedProj.name}" (Invoice: ${form.invoiceNumber}) of amount Rs. ${parseFloat(form.amount).toLocaleString()} has been generated. Due date: ${form.dueDate}. Please pay before the due date. Thank you!`;
+      const whatsappNumber = isManual ? manualForm.whatsappNumber : projects.find(p => p.id === form.projectId)?.whatsappNumber;
+      const projectName = isManual ? manualForm.projectName : projects.find(p => p.id === form.projectId)?.name;
+      
+      if (whatsappNumber) {
+        const phaseNote = isWebApp && paymentType === 'phase' ? ` (${PHASES[selectedPhaseIdx].label})` : '';
+        const payTypeNote = isWebApp && paymentType === 'upfront' ? ' (Full Upfront Payment)' : '';
+        const message = `Dear Customer, a bill for your project "${projectName}"${phaseNote}${payTypeNote} (Invoice: ${form.invoiceNumber}) of amount Rs. ${parseFloat(form.amount).toLocaleString()} has been generated. Due date: ${form.dueDate}. Please pay before the due date. Thank you! — HIG AI Automation LLP`;
         const encodedText = encodeURIComponent(message);
-        const phone = selectedProj.whatsappNumber.replace(/\D/g, '');
+        const phone = whatsappNumber.replace(/\D/g, '');
         window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodedText}`, '_blank');
       }
 
@@ -202,6 +255,15 @@ export default function PaymentsPage() {
         amount: '',
         dueDate: ''
       });
+      setManualForm({
+        projectName: '',
+        clientName: '',
+        category: 'Web/App Development',
+        whatsappNumber: ''
+      });
+      setIsManual(false);
+      setPaymentType('upfront');
+      setSelectedPhaseIdx(0);
     } catch (err) {
       console.error(err);
       alert('Failed to generate project invoice.');
@@ -472,41 +534,212 @@ export default function PaymentsPage() {
                 </div>
 
                 <form onSubmit={handleCreateBill} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Select Project/Client</label>
-                    <div className="relative">
-                      <select
-                        required
-                        value={form.projectId}
-                        onChange={(e) => setForm({ ...form, projectId: e.target.value })}
-                        className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold cursor-pointer appearance-none"
-                      >
-                        {projects.map((p) => (
-                          <option key={p.id} value={p.id}>{p.name} ({p.category})</option>
-                        ))}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                        </svg>
-                      </div>
-                    </div>
+                  {/* Manual Billing Mode Switch */}
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-secondary/30 border border-border/50 mb-2">
+                    <span className="text-xs font-bold text-foreground">Manual Billing Mode</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsManual(!isManual);
+                        if (!isManual) {
+                          // Clear amount so user can input manually
+                          setForm(f => ({ ...f, amount: '' }));
+                        } else {
+                          // Trigger recalculation on returning to project mode
+                          const selectedProj = projects.find(p => p.id === form.projectId);
+                          if (selectedProj) {
+                            const isDM = selectedProj.category === 'Digital Marketing';
+                            const basePrice = Number(selectedProj.price || 0);
+                            const campSpends = isDM ? (selectedProj.adCampaigns || []).reduce((acc, c) => acc + Number(c.spend || 0), 0) : 0;
+                            const serviceCharge = isDM && (selectedProj.adCampaigns || []).length > 2 ? 500 : 0;
+                            setForm(f => ({ ...f, amount: (basePrice + campSpends + serviceCharge + Number(additionalPayment || 0)).toString() }));
+                          }
+                        }
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isManual ? 'bg-accent' : 'bg-secondary'}`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isManual ? 'translate-x-5' : 'translate-x-0'}`}
+                      />
+                    </button>
                   </div>
 
+                  {!isManual ? (
+                    <div>
+                      <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Select Project/Client</label>
+                      <div className="relative">
+                        <select
+                          required
+                          value={form.projectId}
+                          onChange={(e) => setForm({ ...form, projectId: e.target.value })}
+                          className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold cursor-pointer appearance-none"
+                        >
+                          {projects.map((p) => (
+                            <option key={p.id} value={p.id}>{p.name} ({p.category})</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 border border-accent/20 p-4 rounded-2xl bg-accent/5">
+                      <h3 className="text-xs font-bold text-accent uppercase tracking-wider mb-2">Ad-hoc Billing Details</h3>
+                      
+                      <div>
+                        <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">Project/Service Name</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Logo Design, Ad-hoc Consulting"
+                          value={manualForm.projectName}
+                          onChange={(e) => setManualForm({ ...manualForm, projectName: e.target.value })}
+                          className="w-full px-4 py-2.5 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">Client Name</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Gopika Nair"
+                          value={manualForm.clientName}
+                          onChange={(e) => setManualForm({ ...manualForm, clientName: e.target.value })}
+                          className="w-full px-4 py-2.5 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">Project Category</label>
+                        <div className="relative">
+                          <select
+                            value={manualForm.category}
+                            onChange={(e) => setManualForm({ ...manualForm, category: e.target.value })}
+                            className="w-full px-4 py-2.5 bg-secondary border border-border rounded-xl text-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold cursor-pointer appearance-none"
+                          >
+                            <option value="Web/App Development">Web/App Development</option>
+                            <option value="Digital Marketing">Digital Marketing</option>
+                            <option value="Automation">Automation</option>
+                            <option value="AI Solutions">AI Solutions</option>
+                            <option value="Consulting">Consulting</option>
+                            <option value="Other">Other</option>
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wider">WhatsApp Number (Optional)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. +91 98765 43210"
+                          value={manualForm.whatsappNumber}
+                          onChange={(e) => setManualForm({ ...manualForm, whatsappNumber: e.target.value })}
+                          className="w-full px-4 py-2.5 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Phase / Upfront selector — only for Web/App Dev */}
+                  {isWebApp && (
+                    <div className="space-y-3">
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">Payment Structure</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentType('upfront')}
+                          className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${
+                            paymentType === 'upfront'
+                              ? 'bg-accent text-white border-accent shadow-lg shadow-accent/20'
+                              : 'bg-secondary border-border text-foreground/70 hover:border-accent/40'
+                          }`}
+                        >
+                          💳 Full Upfront
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentType('phase')}
+                          className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${
+                            paymentType === 'phase'
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
+                              : 'bg-secondary border-border text-foreground/70 hover:border-indigo-400/40'
+                          }`}
+                        >
+                          🔄 Phase Payment
+                        </button>
+                      </div>
+
+                      {/* Phase selector timeline */}
+                      {paymentType === 'phase' && (
+                        <div className="space-y-2 pt-1">
+                          {PHASES.map((phase, idx) => {
+                            const phasePct = phase.pct;
+                            const phaseAmt = Math.round((phasePct / 100) * Number(selectedProject?.price || 0));
+                            const isSelected = selectedPhaseIdx === idx;
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setSelectedPhaseIdx(idx)}
+                                className={`w-full text-left p-3 rounded-xl border transition-all ${
+                                  isSelected
+                                    ? 'bg-indigo-600/10 border-indigo-500/40 text-indigo-400'
+                                    : 'bg-secondary/50 border-border/50 text-foreground/60 hover:border-indigo-400/30'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`flex-shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center text-[9px] font-bold ${
+                                      isSelected ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-border text-muted-foreground'
+                                    }`}>
+                                      {idx + 1}
+                                    </span>
+                                    <div>
+                                      <p className="text-[11px] font-bold leading-tight">{phase.label}</p>
+                                      <p className="text-[9px] text-muted-foreground font-medium mt-0.5">{phase.description}</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-right flex-shrink-0">
+                                    <p className={`text-xs font-bold ${isSelected ? 'text-indigo-400' : 'text-foreground/60'}`}>{phasePct}%</p>
+                                    <p className="text-[9px] text-muted-foreground font-medium">Rs. {phaseAmt.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Math Breakdown Display */}
-                  {(() => {
+                  {!isManual && (() => {
                     const p = projects.find(proj => proj.id === form.projectId);
                     if (!p) return null;
                     const isDM = p.category === 'Digital Marketing';
+                    const isWA = p.category === 'Web/App Development';
                     const basePrice = Number(p.price || 0);
                     const campSpends = isDM ? (p.adCampaigns || []).reduce((acc, c) => acc + Number(c.spend || 0), 0) : 0;
                     const serviceCharge = isDM && (p.adCampaigns || []).length > 2 ? 500 : 0;
+                    const subtotal = basePrice + campSpends + serviceCharge;
+                    const billedAmt = isWA && paymentType === 'phase'
+                      ? Math.round((PHASES[selectedPhaseIdx].pct / 100) * subtotal)
+                      : subtotal;
 
                     return (
                       <div className="p-4 rounded-2xl bg-secondary/50 border border-border text-xs space-y-2 font-semibold">
                         <h4 className="font-bold text-primary flex items-center gap-1.5 mb-2">
                           <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                          Auto-calculated Invoice Estimate
+                          Invoice Breakdown
                         </h4>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Base Project Price:</span>
@@ -526,9 +759,15 @@ export default function PaymentsPage() {
                             )}
                           </>
                         )}
+                        {isWA && paymentType === 'phase' && (
+                          <div className="flex justify-between text-indigo-400">
+                            <span className="font-medium">{PHASES[selectedPhaseIdx].label} ({PHASES[selectedPhaseIdx].pct}% of total):</span>
+                            <span className="font-bold">Rs. {billedAmt.toLocaleString()}</span>
+                          </div>
+                        )}
                         <div className="border-t border-border/50 pt-2 flex justify-between font-bold text-accent">
-                          <span>Subtotal estimate:</span>
-                          <span>Rs. {(basePrice + campSpends + serviceCharge).toLocaleString()}</span>
+                          <span>{isWA && paymentType === 'phase' ? 'This Phase Bill:' : 'Subtotal estimate:'}</span>
+                          <span>Rs. {billedAmt.toLocaleString()}</span>
                         </div>
                       </div>
                     );
@@ -546,16 +785,18 @@ export default function PaymentsPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Additional Payments (Rs)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 1500 (extra requests, taxes, etc.)"
-                      value={additionalPayment || ''}
-                      onChange={(e) => setAdditionalPayment(Number(e.target.value))}
-                      className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold font-mono"
-                    />
-                  </div>
+                  {!isManual && (
+                    <div>
+                      <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Additional Payments (Rs)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 1500 (extra requests, taxes, etc.)"
+                        value={additionalPayment || ''}
+                        onChange={(e) => setAdditionalPayment(Number(e.target.value))}
+                        className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:bg-secondary/80 text-sm font-semibold font-mono"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Total Amount (Rs)</label>

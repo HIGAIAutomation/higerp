@@ -9,5 +9,9 @@
     "dev": "npx concurrently \"npm run dev:db\" \"npm run dev:frontend\" \"npm run dev:backend\"",
     "install:all": "npm install --prefix frontend && npm install --prefix backend",
     "build:all": "npm run build --prefix frontend && npm run build --prefix backend"
+  },
+  "dependencies": {
+    "@types/react-signature-canvas": "^1.0.7",
+    "react-signature-canvas": "^1.1.0-alpha.2"
   }
 }
