@@ -36,23 +36,15 @@ export default function RegisterPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await register(username, password, dob, address);
-      // generate HRMS record id
-      const raw = localStorage.getItem('hrms_records')
-      const records = raw ? JSON.parse(raw) : []
-      const nextEmpId = (records:any[]) => {
-        const emp = records.filter((r:any)=>r.type==='employee')
-        return `emp${String(emp.length+1).padStart(3,'0')}`
-      }
-      const id = role === 'employee' ? nextEmpId(records) : `int${String(records.filter((r:any)=>r.type==='intern').length+1).padStart(3,'0')}`
-      const record = { id, type: role, data: { username, dob, address, ...formData }, status: 'pending', createdAt: new Date().toISOString() }
-      records.push(record)
-      localStorage.setItem('hrms_records', JSON.stringify(records))
-      const arRaw = localStorage.getItem('access_requests')
-      const ars = arRaw ? JSON.parse(arRaw) : []
-      ars.push({ id, type: role, status: 'pending', requestedAt: new Date().toISOString() })
-      localStorage.setItem('access_requests', JSON.stringify(ars))
-      alert(`Registered and saved HR record ${id}. Awaiting super admin approval.`)
+      await register({
+        username,
+        password,
+        dob,
+        address,
+        roleType: role,
+        ...formData
+      });
+      alert(`Registered successfully. Awaiting super admin approval.`);
       setSuccess(true);
       setTimeout(() => {
         router.push('/login');

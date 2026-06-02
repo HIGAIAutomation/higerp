@@ -8,7 +8,7 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   login: (username: string, pass: string) => Promise<void>;
-  register: (username: string, pass: string, dob?: string, address?: string) => Promise<void>;
+  register: (formData: any) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
 }
@@ -88,18 +88,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (username: string, pass: string, dob?: string, address?: string) => {
+  const register = async (formData: any) => {
     setLoading(true);
     try {
       const response = await fetch('http://localhost:3001/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          password: pass,
-          dob: dob || null,
-          address: address || null,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {

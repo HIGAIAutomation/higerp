@@ -162,18 +162,7 @@ export default function AccessControlPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8 font-sans">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-primary tracking-tight">Access Control</h1>
-            <p className="text-muted-foreground mt-1 font-inter">
-              Manage user job profiles, salaries, roles, and page permissions.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 text-accent font-semibold text-sm">
-            <Shield className="h-4 w-4" />
-            Superadmin Mode
-          </div>
-        </div>
+        {/* Header removed as requested */}
 
         {error && (
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-sm font-inter">
@@ -188,9 +177,9 @@ export default function AccessControlPage() {
             <p className="text-muted-foreground font-inter text-sm">Loading users list...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+          <>
             {/* User List Table */}
-            <div className="xl:col-span-2 bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
+            <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-border bg-secondary/30 flex items-center justify-between">
                 <h3 className="font-bold text-primary flex items-center gap-2">
                   <Users className="h-5 w-5 text-muted-foreground" />
@@ -230,9 +219,12 @@ export default function AccessControlPage() {
                                 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' 
                                 : u.role === 'client'
                                 ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20'
+                                : u.role === 'pending'
+                                ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20 animate-pulse'
                                 : 'bg-secondary text-muted-foreground'
                             }`}>
                               {u.role === 'superadmin' && <Shield className="h-3 w-3" />}
+                              {u.role === 'pending' && <AlertCircle className="h-3 w-3" />}
                               {u.role}
                             </span>
                           </td>
@@ -284,11 +276,11 @@ export default function AccessControlPage() {
               </div>
             </div>
 
-            {/* Edit Panel / Form */}
-            <div className="xl:col-span-1">
-              {editingUser ? (
-                <div className="bg-card rounded-3xl border border-border shadow-md overflow-hidden animate-in slide-in-from-right-4 duration-200">
-                  <div className="px-6 py-5 border-b border-border bg-secondary/30 flex items-center justify-between">
+            {/* Edit Modal */}
+            {editingUser && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+                <div className="bg-card w-full max-w-lg rounded-3xl border border-border shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                  <div className="px-6 py-5 border-b border-border bg-secondary/30 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
                     <h3 className="font-bold text-primary flex items-center gap-2">
                       <Edit3 className="h-5 w-5 text-muted-foreground" />
                       Configure: {editingUser.username}
@@ -301,7 +293,7 @@ export default function AccessControlPage() {
                     </button>
                   </div>
                   
-                  <form onSubmit={handleSave} className="p-6 space-y-6 font-inter text-sm">
+                  <form onSubmit={handleSave} className="p-6 space-y-6 font-inter text-sm overflow-y-auto">
                     {saveSuccess ? (
                       <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
                         <div className="h-12 w-12 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-600">
@@ -426,6 +418,7 @@ export default function AccessControlPage() {
                             }}
                             className="w-full px-3.5 py-2.5 bg-secondary border border-border rounded-xl text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                           >
+                            <option value="pending">Pending (Awaiting Approval)</option>
                             <option value="user">User</option>
                             <option value="client">Client</option>
                             <option value="superadmin">Super Admin</option>
@@ -491,17 +484,9 @@ export default function AccessControlPage() {
                     )}
                   </form>
                 </div>
-              ) : (
-                <div className="bg-secondary/30 rounded-3xl border border-dashed border-border p-8 text-center text-muted-foreground">
-                  <Shield className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="font-semibold text-sm">Select a user to edit</p>
-                  <p className="text-xs mt-1">
-                    Click the edit icon on any user in the table to modify their job designation, salary parameters, and system page access.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>

@@ -1,41 +1,35 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { DashboardStats } from "@/components/dashboard/stats";
+import DashboardLayout from "@/components/layout/dashboard-layout";
 import { useAuth } from "@/components/providers/auth-provider";
 import { fetchWithAuth } from "@/lib/api";
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle2, 
-  Briefcase, 
-  DollarSign, 
-  Loader2, 
-  Key, 
-  ShieldCheck, 
-  Calendar, 
-  Download, 
-  Send,
-  FileCheck2,
-  Tv,
-  CheckCircle,
-  AlertCircle,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  Sparkles,
-  Play,
-  Image as ImageIcon,
-  IndianRupee,
-  Pencil,
-  X,
-  Save,
-  Undo,
-  Plus,
-  Trash2,
-  Upload
+import {
+    AlertCircle,
+    Briefcase,
+    Calendar,
+    CheckCircle2,
+    ChevronDown,
+    ChevronUp,
+    Clock,
+    Download,
+    FileText,
+    Image as ImageIcon,
+    IndianRupee,
+    Loader2,
+    Pencil,
+    Play,
+    Plus,
+    Save,
+    Search,
+    Sparkles,
+    Trash2,
+    Tv,
+    Undo,
+    Upload,
+    X
 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 // Native SVG Instagram Icon to avoid Lucide version export issues
 function InstagramIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -666,28 +660,6 @@ export default function DashboardPage() {
     }
   };
 
-  const getSeededDataForMonth = (targetMonth: string): ContentSheetItem[] => {
-    return MAHARAJA_CATERING_DATA.map(item => {
-      const dayStr = item.date.split('-')[2] || '01';
-      const newDate = `${targetMonth}-${dayStr}`;
-      let newDay = item.day;
-      try {
-        const dateObj = new Date(newDate);
-        if (!isNaN(dateObj.getTime())) {
-          const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-          newDay = daysOfWeek[dateObj.getDay()];
-        }
-      } catch (e) {
-        console.error("Error calculating day for", newDate, e);
-      }
-      return {
-        ...item,
-        date: newDate,
-        day: newDay
-      };
-    });
-  };
-
   // Sync Content Calendar data and statuses from backend for the active client project
   useEffect(() => {
     if (!activeProject) return;
@@ -696,40 +668,16 @@ export default function DashboardPage() {
       try {
         setLoading(true);
         const data = await fetchWithAuth(`/marketing/${activeProject.id}/sheets?month=${selectedMonth}`);
-        if (data && data.items && data.items.length > 0) {
-          setContentItems(data.items || []);
-          setPlatformStatuses(data.statuses || {});
-          setCampaignStatuses(data.campaigns || {});
-        } else {
-          // Fallback if no sheet in DB yet
-          if (activeProject.name.toLowerCase().includes('catering') || activeProject.id === 'maharaja-catering-fallback-id') {
-            const seededData = getSeededDataForMonth(selectedMonth);
-            setContentItems(seededData);
-            
-            // Seed clean initial statuses (all in progress for a new month/clean slate)
-            const initialMap: Record<string, 'inprogress' | 'completed' | 'posted'> = {};
-            const initialCampMap: Record<string, 'inprogress' | 'running'> = {};
-            seededData.forEach((item) => {
-              initialMap[`${item.id}_instagram`] = 'inprogress';
-              initialMap[`${item.id}_fb`] = 'inprogress';
-              initialMap[`${item.id}_youtube`] = 'inprogress';
-              if (item.runAdCampaign === 'YES') {
-                initialCampMap[item.id] = 'inprogress';
-              }
-            });
-            setPlatformStatuses(initialMap);
-            setCampaignStatuses(initialCampMap);
-            
-            // Proactively save to DB so it persists
-            await saveStateToStorage(seededData, initialMap, initialCampMap);
-          } else {
-            setContentItems([]);
-            setPlatformStatuses({});
-            setCampaignStatuses({});
-          }
-        }
+        // Fetch data from database only - no static fallback
+        setContentItems(data?.items || []);
+        setPlatformStatuses(data?.statuses || {});
+        setCampaignStatuses(data?.campaigns || {});
       } catch (err) {
         console.error("Failed to load sheet from backend:", err);
+        // On error, show empty state
+        setContentItems([]);
+        setPlatformStatuses({});
+        setCampaignStatuses({});
       } finally {
         setLoading(false);
       }

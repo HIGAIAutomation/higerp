@@ -1,6 +1,5 @@
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { UndoProvider } from "@/components/providers/undo-provider";
-import TopNav from "@/components/topnav/TopNav";
 import type { Metadata } from "next";
 import { Inter, Outfit, Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
@@ -44,7 +43,6 @@ export default function RootLayout({
       >
         <AuthProvider>
           <UndoProvider>
-            <TopNav />
             {children}
           </UndoProvider>
         </AuthProvider>

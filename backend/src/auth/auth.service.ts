@@ -21,6 +21,9 @@ export class AuthService {
       },
     });
     if (user && await bcrypt.compare(pass, user.password)) {
+      if (user.role === 'pending') {
+        throw new UnauthorizedException('Your account is pending approval from the Super Admin.');
+      }
       const { password, ...result } = user;
       return result;
     }
@@ -62,12 +65,15 @@ export class AuthService {
     });
 
     const isFirstUser = count === 0;
-    const role = isFirstUser ? 'superadmin' : 'user';
+    const role = isFirstUser ? 'superadmin' : 'pending';
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    const userEmail = data.email || `${data.username}@hig.ai`;
+    
     const user = await this.prisma.user.create({
       data: {
         username: data.username,
+        email: userEmail,
         password: hashedPassword,
         dob: data.dob || null,
         address: data.address || null,
@@ -76,6 +82,23 @@ export class AuthService {
         pageAccess: isFirstUser ? ['*'] : [],
       },
     });
+
+    if (data.roleType === 'employee' || data.roleType === 'intern') {
+      await this.prisma.employee.create({
+        data: {
+          tenantId,
+          firstName: data.firstName || data.studentName || data.username,
+          lastName: data.lastName || '',
+          email: userEmail,
+          designation: data.designation || data.domain || null,
+          salaryBasis: data.expectedSalary || data.price ? parseFloat(data.expectedSalary || data.price) : null,
+          joiningDate: data.startDate ? new Date(data.startDate) : new Date(),
+          profDocNumber: data.aadhar || data.pan || data.registerNumber || null,
+          status: 'pending',
+          metadata: data,
+        }
+      });
+    }
 
     const { password, ...result } = user;
     return result;
@@ -115,6 +138,19 @@ export class AuthService {
       where: { id: userId, tenantId },
       data: updateData,
     });
+
+    if (data.role && data.role !== 'pending') {
+      const empEmail = user.email || `${user.username}@hig.ai`;
+      const emp = await this.prisma.employee.findFirst({
+        where: { tenantId, email: empEmail }
+      });
+      if (emp && emp.status === 'pending') {
+        await this.prisma.employee.update({
+          where: { id: emp.id },
+          data: { status: 'active', designation: updateData.designation || emp.designation, salaryBasis: updateData.salary || emp.salaryBasis }
+        });
+      }
+    }
 
     const { password, ...result } = user;
     return result;
