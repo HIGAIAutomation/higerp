@@ -718,6 +718,31 @@ async function main() {
       <li><strong>Cloud Infrastructure:</strong> {{techStack.hosting}}</li>
     </ul>
     {{/if}}
+    {{#if apiList}}
+    <p><strong>API Integrations:</strong></p>
+    <ul>
+      {{#each apiList}}
+      <li><strong>{{this.name}}</strong> ({{this.chargeType}}: Rs. {{this.amount}})</li>
+      {{/each}}
+    </ul>
+    {{/if}}
+    {{#if domainDetails.name}}
+    <p><strong>Domain Details:</strong></p>
+    <ul>
+      <li><strong>Domain Name:</strong> {{domainDetails.name}}</li>
+      <li><strong>Domain Charge:</strong> {{domainDetails.charge}}</li>
+      <li><strong>Renewal Period:</strong> {{domainDetails.renewalPeriod}}</li>
+    </ul>
+    {{/if}}
+    {{#if serverDetails.name}}
+    <p><strong>Server & Hosting Details:</strong></p>
+    <ul>
+      <li><strong>Server Name:</strong> {{serverDetails.name}}</li>
+      <li><strong>Storage:</strong> {{serverDetails.storage}}</li>
+      <li><strong>Cost per Month:</strong> {{serverDetails.costPerMonth}}</li>
+    </ul>
+    {{/if}}
+    <p><em>Note: New module phases separate charge will be provided. Charge will be based on time and function based.</em></p>
     {{/if}}
     {{#if isAutomation}}
     <p>This SOW details the automation workflows and API mappings to build for: <strong>{{projectName}}</strong>. The Agency shall build and test the following automation pipelines:</p>

@@ -57,6 +57,9 @@ interface Project {
   gstinNumber?: string;
   clientOccupation?: string;
   techStack?: { frontend: string; backend: string; database: string; hosting: string };
+  apiList?: { name: string; chargeType: string; amount: string }[];
+  domainDetails?: { name: string; charge: string; renewalPeriod: string };
+  serverDetails?: { name: string; storage: string; costPerMonth: string };
 }
 
 interface GeneratedDoc {
@@ -103,6 +106,7 @@ export default function ProjectsPage() {
   const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
   const [previewDoc, setPreviewDoc] = useState<GeneratedDoc | null>(null);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
@@ -118,6 +122,27 @@ export default function ProjectsPage() {
   const [newModulePrice, setNewModulePrice] = useState('');
   const [newModuleDescription, setNewModuleDescription] = useState('');
 
+  const [newApiName, setNewApiName] = useState('');
+  const [newApiChargeType, setNewApiChargeType] = useState('Monthly');
+  const [newApiAmount, setNewApiAmount] = useState('');
+
+  const handleAddApiInput = () => {
+    if (!newApiName.trim()) return;
+    setForm(prev => ({
+      ...prev,
+      apiList: [...prev.apiList, { name: newApiName.trim(), chargeType: newApiChargeType, amount: newApiAmount.trim() }]
+    }));
+    setNewApiName('');
+    setNewApiAmount('');
+  };
+
+  const handleRemoveApiInput = (index: number) => {
+    setForm(prev => ({
+      ...prev,
+      apiList: prev.apiList.filter((_, i) => i !== index)
+    }));
+  };
+
   const [editModuleInputs, setEditModuleInputs] = useState<any[]>([]);
   const [newEditModuleName, setNewEditModuleName] = useState('');
   const [newEditModulePrice, setNewEditModulePrice] = useState('');
@@ -132,10 +157,8 @@ export default function ProjectsPage() {
     const updatedInputs = [...moduleInputs, { name: trimmedName, price: String(parsedPrice), description: trimmedDesc, completed: false }];
     setModuleInputs(updatedInputs);
     
-    const totalPrice = updatedInputs.reduce((sum, item) => sum + parseFloat(item.price), 0);
     setForm(prev => ({
       ...prev,
-      price: String(totalPrice),
       modules: updatedInputs.map(m => m.name).join(', ')
     }));
     
@@ -266,6 +289,8 @@ export default function ProjectsPage() {
     setEditForm({ ...editForm, platforms: updated.join(', ') });
   };
 
+
+
   const handleAddCustomPlatform = () => {
     const trimmed = newPlatformText.trim();
     if (!trimmed) return;
@@ -310,6 +335,9 @@ export default function ProjectsPage() {
     gstinNumber: '',
     clientOccupation: '',
     techStack: { frontend: '', backend: '', database: '', hosting: '' },
+    apiList: [] as { name: string; chargeType: string; amount: string }[],
+    domainDetails: { name: '', charge: '', renewalPeriod: '' },
+    serverDetails: { name: '', storage: '', costPerMonth: '' },
   });
 
   const [editForm, setEditForm] = useState({
@@ -339,7 +367,36 @@ export default function ProjectsPage() {
     gstinNumber: '',
     clientOccupation: '',
     techStack: { frontend: '', backend: '', database: '', hosting: '' },
+    apiList: [] as { name: string; chargeType: string; amount: string }[],
+    domainDetails: { name: '', charge: '', renewalPeriod: '' },
+    serverDetails: { name: '', storage: '', costPerMonth: '' },
   });
+
+  // Auto-calculate budget for Web/App Development
+  useEffect(() => {
+    if (form.category === 'Web/App Development') {
+      let total = 0;
+      // 1. Modules
+      moduleInputs.forEach(mod => {
+        total += parseFloat(mod.price) || 0;
+      });
+      // 2. Domain Charge
+      const domainVal = parseFloat((form.domainDetails?.charge || '').replace(/[^0-9.]/g, '')) || 0;
+      total += domainVal;
+      // 3. Server Cost
+      const serverVal = parseFloat((form.serverDetails?.costPerMonth || '').replace(/[^0-9.]/g, '')) || 0;
+      total += serverVal;
+      // 4. API initial charge
+      form.apiList?.forEach(api => {
+        total += parseFloat((api.amount || '').replace(/[^0-9.]/g, '')) || 0;
+      });
+      
+      setForm(prev => {
+        if (prev.price === String(total)) return prev;
+        return { ...prev, price: String(total) };
+      });
+    }
+  }, [moduleInputs, form.domainDetails?.charge, form.serverDetails?.costPerMonth, form.apiList, form.category]);
 
   const fetchProjects = async () => {
     try {
@@ -575,6 +632,9 @@ export default function ProjectsPage() {
         gstinNumber: '',
         clientOccupation: '',
         techStack: { frontend: '', backend: '', database: '', hosting: '' },
+        apiList: [],
+        domainDetails: { name: '', charge: '', renewalPeriod: '' },
+        serverDetails: { name: '', storage: '', costPerMonth: '' },
       });
       setModuleInputs([]);
       setSelectedPackageId('');
@@ -618,6 +678,9 @@ export default function ProjectsPage() {
       gstinNumber: proj.gstinNumber || '',
       clientOccupation: proj.clientOccupation || '',
       techStack: proj.techStack || { frontend: '', backend: '', database: '', hosting: '' },
+      apiList: proj.apiList || [],
+      domainDetails: proj.domainDetails || { name: '', charge: '', renewalPeriod: '' },
+      serverDetails: proj.serverDetails || { name: '', storage: '', costPerMonth: '' },
     });
     
     const details = proj.moduleDetails || [];
@@ -1019,6 +1082,134 @@ export default function ProjectsPage() {
                 </div>
               )}
 
+              {form.category === 'Web/App Development' && (
+                <div className="bg-secondary/40 p-6 rounded-2xl border border-border space-y-4">
+                  <label className="block text-xs font-bold text-accent uppercase tracking-wider">Domain & Server Details</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Domain Name (e.g. google.com)"
+                        value={form.domainDetails.name}
+                        onChange={(e) => setForm({ ...form, domainDetails: { ...form.domainDetails, name: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Domain Charge (e.g. Rs 1000)"
+                        value={form.domainDetails.charge}
+                        onChange={(e) => setForm({ ...form, domainDetails: { ...form.domainDetails, charge: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Renewal Period (e.g. Yearly)"
+                        value={form.domainDetails.renewalPeriod}
+                        onChange={(e) => setForm({ ...form, domainDetails: { ...form.domainDetails, renewalPeriod: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Server Name (e.g. AWS EC2)"
+                        value={form.serverDetails.name}
+                        onChange={(e) => setForm({ ...form, serverDetails: { ...form.serverDetails, name: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Storage (e.g. 50GB)"
+                        value={form.serverDetails.storage}
+                        onChange={(e) => setForm({ ...form, serverDetails: { ...form.serverDetails, storage: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Cost per Month (e.g. Rs 500)"
+                        value={form.serverDetails.costPerMonth}
+                        onChange={(e) => setForm({ ...form, serverDetails: { ...form.serverDetails, costPerMonth: e.target.value } })}
+                        className="w-full px-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <label className="block text-xs font-bold text-accent uppercase tracking-wider mb-4">API Integrations</label>
+                    {form.apiList.length > 0 && (
+                      <div className="space-y-2 mb-4">
+                        {form.apiList.map((api, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-card p-3 rounded-xl border border-border text-xs">
+                            <div>
+                              <span className="font-bold text-foreground">{api.name}</span>
+                              <span className="text-muted-foreground ml-2">({api.chargeType})</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveApiInput(idx)}
+                              className="text-muted-foreground hover:text-rose-500 transition-colors p-1"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-5 gap-3">
+                      <div className="col-span-2">
+                        <input
+                          type="text"
+                          placeholder="API Name (e.g. Stripe)"
+                          value={newApiName}
+                          onChange={(e) => setNewApiName(e.target.value)}
+                          className="w-full px-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <select
+                          value={newApiChargeType}
+                          onChange={(e) => setNewApiChargeType(e.target.value)}
+                          className="w-full px-4 py-3 bg-card border border-border rounded-xl text-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                        >
+                          <option value="Monthly">Monthly</option>
+                          <option value="Subscription">Subscription</option>
+                          <option value="One-time">One-time</option>
+                        </select>
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Amount"
+                          value={newApiAmount}
+                          onChange={(e) => setNewApiAmount(e.target.value)}
+                          className="w-full px-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition-all text-sm font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          onClick={handleAddApiInput}
+                          className="w-full py-3 bg-accent/10 hover:bg-accent/20 text-accent font-bold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+                        >
+                          Add API
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-accent mb-2 uppercase tracking-wider">DESCRIPTION</label>
                 <textarea
@@ -1255,7 +1446,7 @@ export default function ProjectsPage() {
                   <button
                     key={cat}
                     type="button"
-                    onClick={() => setActiveFilter(cat)}
+                    onClick={() => { setActiveFilter(cat); setSelectedProjectId(''); }}
                     className={`px-3 py-1.5 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
                       activeFilter === cat
                         ? 'bg-accent text-white shadow-sm'
@@ -1275,6 +1466,23 @@ export default function ProjectsPage() {
               </div>
             ) : (
               <div className="space-y-6">
+                {filteredProjects.length > 0 && (
+                  <div>
+                    <select
+                      value={selectedProjectId}
+                      onChange={(e) => setSelectedProjectId(e.target.value)}
+                      className="w-full px-5 py-4 bg-secondary border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all text-sm font-semibold cursor-pointer appearance-none"
+                    >
+                      <option value="">-- Select a Project to View Details --</option>
+                      {filteredProjects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} - {p.clientName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
                 {filteredProjects.length === 0 ? (
                   <div className="text-center py-16 bg-secondary/30 rounded-[24px] border border-dashed border-border">
                     <Briefcase className="h-12 w-12 text-muted-foreground/60 mx-auto mb-3" />
@@ -1282,8 +1490,15 @@ export default function ProjectsPage() {
                       {projects.length === 0 ? 'No active projects running.' : `No projects found under "${activeFilter}".`}
                     </p>
                   </div>
+                ) : !selectedProjectId || !filteredProjects.find(p => p.id === selectedProjectId) ? (
+                  <div className="text-center py-16 bg-secondary/30 rounded-[24px] border border-dashed border-border">
+                    <FolderOpen className="h-12 w-12 text-muted-foreground/60 mx-auto mb-3" />
+                    <p className="text-sm text-muted-foreground font-semibold">
+                      Please select a project from the dropdown above to view its details.
+                    </p>
+                  </div>
                 ) : (
-                  filteredProjects.map((proj) => {
+                  [filteredProjects.find(p => p.id === selectedProjectId)!].map((proj) => {
                     const docs = projectDocs[proj.id] || [];
                     const progress = getProjectProgress(proj.startDate, proj.endDate);
                     

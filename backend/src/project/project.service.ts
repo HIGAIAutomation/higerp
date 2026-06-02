@@ -112,12 +112,21 @@ export class ProjectService {
         gstinNumber: data.gstinNumber || null,
         clientOccupation: data.clientOccupation || null,
         techStack: data.techStack || null,
+        apiList: data.apiList || null,
+        domainDetails: data.domainDetails || null,
+        serverDetails: data.serverDetails || null,
       },
     });
 
     // Kickoff 25% Advance payment for non-Digital Marketing categories (Web, AI, Automation)
     if (project.category !== 'Digital Marketing' && project.price > 0) {
-      const invoiceBase = `INV-PROJ-${project.id}`;
+      let invoiceBase = `INV-PROJ-${project.id}`;
+      if (project.id.startsWith('higp-')) {
+        const parts = project.id.split('-');
+        if (parts.length >= 4) {
+          invoiceBase = `p/${parts[1]}/${parts[2]}-${parts[3]}`;
+        }
+      }
       await this.prisma.projectPayment.create({
         data: {
           tenantId,
@@ -182,6 +191,9 @@ export class ProjectService {
             gstinNumber: project.gstinNumber || data.gstinNumber || '',
             clientOccupation: project.clientOccupation || data.clientOccupation || '',
             techStack: project.techStack || null,
+            apiList: project.apiList || data.apiList || null,
+            domainDetails: project.domainDetails || data.domainDetails || null,
+            serverDetails: project.serverDetails || data.serverDetails || null,
             phases: (() => {
               const phases = [];
               if (project.moduleDetails && Array.isArray(project.moduleDetails) && project.moduleDetails.length > 0) {
@@ -373,7 +385,13 @@ export class ProjectService {
       const completedModules = newModuleDetails.filter((m: any) => m.completed).length;
       const completionPercentage = completedModules / totalModules;
       const projectPrice = parseFloat(data.price || currentProject.price || 0);
-      const invoiceBase = `INV-PROJ-${id}`;
+      let invoiceBase = `INV-PROJ-${id}`;
+      if (id.startsWith('higp-')) {
+        const parts = id.split('-');
+        if (parts.length >= 4) {
+          invoiceBase = `p/${parts[1]}/${parts[2]}-${parts[3]}`;
+        }
+      }
 
       // 25% Advance payment is generated on startup.
       // The remaining 75% is divided into 3 milestones (25% of total project price each).
@@ -471,6 +489,9 @@ export class ProjectService {
         gstinNumber: data.gstinNumber !== undefined ? data.gstinNumber : undefined,
         clientOccupation: data.clientOccupation !== undefined ? data.clientOccupation : undefined,
         techStack: data.techStack !== undefined ? data.techStack : undefined,
+        apiList: data.apiList !== undefined ? data.apiList : undefined,
+        domainDetails: data.domainDetails !== undefined ? data.domainDetails : undefined,
+        serverDetails: data.serverDetails !== undefined ? data.serverDetails : undefined,
       },
     });
 
@@ -525,6 +546,9 @@ export class ProjectService {
             gstinNumber: updatedProject.gstinNumber || data.gstinNumber || '',
             clientOccupation: updatedProject.clientOccupation || data.clientOccupation || '',
             techStack: updatedProject.techStack || null,
+            apiList: updatedProject.apiList || data.apiList || null,
+            domainDetails: updatedProject.domainDetails || data.domainDetails || null,
+            serverDetails: updatedProject.serverDetails || data.serverDetails || null,
             phases: (() => {
               const phases = [];
               if (updatedProject.moduleDetails && Array.isArray(updatedProject.moduleDetails) && updatedProject.moduleDetails.length > 0) {

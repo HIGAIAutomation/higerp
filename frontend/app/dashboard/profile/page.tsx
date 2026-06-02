@@ -742,16 +742,18 @@ export default function ProfilePage() {
                       {activeProject.price ? Number(activeProject.price).toLocaleString('en-IN') : '0.00'}
                     </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Active Platforms</span>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {activeProject.platforms ? activeProject.platforms.split(',').map((plat, idx) => (
-                        <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[9px] font-bold uppercase">
-                          {plat.trim()}
-                        </span>
-                      )) : <span className="text-slate-400 italic">None specified</span>}
+                  {(!activeProject.category || activeProject.category === 'Digital Marketing') && (
+                    <div>
+                      <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Active Platforms</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {activeProject.platforms ? activeProject.platforms.split(',').map((plat, idx) => (
+                          <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[9px] font-bold uppercase">
+                            {plat.trim()}
+                          </span>
+                        )) : <span className="text-slate-400 italic">None specified</span>}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div>
                     <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Target Deliverables</span>
                     <div className="flex gap-4 mt-1 font-extrabold text-slate-800">
@@ -781,7 +783,8 @@ export default function ProfilePage() {
             </div>
 
             {/* Social Media Credentials Section */}
-            <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm mt-8 relative overflow-hidden">
+            {(!activeProject.category || activeProject.category === 'Digital Marketing') && (
+              <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm mt-8 relative overflow-hidden">
               <div className="mb-6">
                 <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
                   <Layers className="h-6 w-6 text-indigo-600" />
@@ -971,6 +974,7 @@ export default function ProfilePage() {
                 </div>
               </form>
             </div>
+            )}
 
             {/* Project Documents Section */}
             {projectDocs.length > 0 && (

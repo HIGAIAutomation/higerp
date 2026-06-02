@@ -1393,8 +1393,8 @@ export default function DashboardPage() {
                           <select 
                             value={mod.status}
                             onChange={(e) => handleUpdateModuleStatus(mod.id, e.target.value)}
-                            disabled={isUpdatingModule || user?.role === 'client'}
-                            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border focus:outline-none appearance-none pr-8 relative ${
+                            disabled={isUpdatingModule || isClient}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border focus:outline-none appearance-none pr-8 relative ${isClient ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'} ${
                               mod.status === 'live' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                               mod.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                               mod.status === 'ready_for_testing' ? 'bg-purple-50 text-purple-700 border-purple-200' :

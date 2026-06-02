@@ -124,7 +124,24 @@ export default function PaymentsPage() {
     setForm(f => ({ ...f, amount: subtotal.toString() }));
   }, [form.projectId, additionalPayment, projects, isManual, paymentType, selectedPhaseIdx]);
 
-  const generateNextInvoiceNumber = (existingPayments: PaymentInvoice[]) => {
+  const generateNextInvoiceNumber = (existingPayments: PaymentInvoice[], projId?: string, isMan?: boolean, ptType?: string, phIdx?: number) => {
+    if (!isMan && projId && projId.startsWith('higp-')) {
+      const parts = projId.split('-');
+      if (parts.length >= 4) {
+        let suffix = 'FULL';
+        if (ptType === 'upfront') suffix = 'ADVANCE';
+        if (ptType === 'phase' && phIdx !== undefined) suffix = `PHASE-${phIdx + 1}`;
+        
+        const base = `p/${parts[1]}/${parts[2]}-${parts[3]}-${suffix}`;
+        
+        const related = existingPayments.filter(p => p.invoiceNumber && p.invoiceNumber.startsWith(base));
+        if (related.length > 0) {
+          return `${base}-${String(related.length + 1).padStart(2, '0')}`;
+        }
+        return base;
+      }
+    }
+
     const currentYear = new Date().getFullYear();
     const prefix = `HIG/${currentYear}/`;
     
@@ -145,6 +162,13 @@ export default function PaymentsPage() {
     return `${prefix}${formattedNum}`;
   };
 
+  useEffect(() => {
+    if (payments.length > 0) {
+      const nextInv = generateNextInvoiceNumber(payments, form.projectId, isManual, paymentType, selectedPhaseIdx);
+      setForm(f => ({ ...f, invoiceNumber: nextInv }));
+    }
+  }, [form.projectId, isManual, paymentType, selectedPhaseIdx, payments]);
+
   const fetchData = async () => {
     if (!isSuperAdmin) return;
     try {
@@ -158,10 +182,33 @@ export default function PaymentsPage() {
       setPayments(paymentsData);
       setError(null);
 
-      const nextInv = generateNextInvoiceNumber(paymentsData);
+      // Check URL parameters for Ask Payment redirect
+      const params = new URLSearchParams(window.location.search);
+      const urlProjectId = params.get('projectId');
+      const urlPayType = params.get('paymentType');
+      const urlPhaseIdx = params.get('phaseIdx');
+
+      const defaultProjectId = (urlProjectId && projectsData.some((p: Project) => p.id === urlProjectId))
+        ? urlProjectId
+        : (projectsData[0]?.id || '');
+
+      let initialPayType = 'upfront' as PaymentType;
+      let initialPhaseIdx = 0;
+
+      if (urlProjectId && urlPayType === 'phase' && urlPhaseIdx !== null) {
+        initialPayType = 'phase';
+        initialPhaseIdx = Number(urlPhaseIdx);
+        setPaymentType(initialPayType);
+        setSelectedPhaseIdx(initialPhaseIdx);
+        setTimeout(() => {
+          document.getElementById('issue-bill-form-section')?.scrollIntoView({ behavior: 'smooth' });
+        }, 500);
+      }
+
+      const nextInv = generateNextInvoiceNumber(paymentsData, defaultProjectId, false, initialPayType, initialPhaseIdx);
       setForm(f => ({
         ...f,
-        projectId: projectsData[0]?.id || '',
+        projectId: defaultProjectId,
         invoiceNumber: nextInv
       }));
     } catch (err) {
@@ -292,59 +339,93 @@ export default function PaymentsPage() {
   const handleDownloadInvoice = async (p: PaymentInvoice) => {
     setDownloadingInvId(p.id);
     try {
+      let ceoSignatureHtml = '';
+      try {
+        const sigRes = await fetchWithAuth('/document/ceo-signature');
+        if (sigRes && sigRes.signatureData) {
+          ceoSignatureHtml = `<img src="${sigRes.signatureData}" alt="CEO Signature" style="height: 60px; object-fit: contain; margin-bottom: 5px; display: inline-block;" />`;
+        }
+      } catch (err) {
+        console.error('No CEO signature found');
+      }
+
+      const client = p.project?.client || {};
+      const projId = p.project?.id || p.projectId || 'AD-HOC';
+      const projName = p.project?.name || p.projectName || 'Service Payment';
+      const projPrice = p.project?.price || p.amount || 0;
+      const amount = p.amount;
+      const pendingAmount = Number(projPrice) - Number(amount);
+      const isPhase = p.invoiceNumber.includes('PHASE') || p.invoiceNumber.includes('ADVANCE');
+      const phaseName = isPhase ? p.invoiceNumber.split('-').slice(3).join('-') : (p.projectId ? 'Full Project' : 'Ad-hoc Billing');
+      
       const invoiceHtml = `
         <html>
         <head>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
             * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: 'Inter', sans-serif; color: #1e293b; background: #fff; padding: 40px; }
-            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
-            .company { font-size: 24px; font-weight: 800; color: #1e293b; letter-spacing: 1px; }
-            .company-sub { font-size: 10px; font-weight: 600; color: #64748b; margin-top: 4px; }
-            .invoice-title { font-size: 28px; font-weight: 800; color: #2563eb; text-align: right; }
-            .invoice-number { font-size: 12px; font-weight: 600; color: #64748b; text-align: right; margin-top: 4px; }
-            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
-            .meta-block label { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 4px; }
-            .meta-block span { font-size: 14px; font-weight: 600; color: #1e293b; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            thead th { background: #f1f5f9; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px; text-align: left; border-bottom: 2px solid #e2e8f0; }
-            tbody td { padding: 14px 16px; font-size: 13px; font-weight: 500; color: #334155; border-bottom: 1px solid #f1f5f9; }
-            .total-row td { font-weight: 800; font-size: 15px; color: #1e293b; background: #f8fafc; border-top: 2px solid #2563eb; }
-            .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-            .status-paid { background: #d1fae5; color: #059669; }
-            .status-pending { background: #fef3c7; color: #d97706; }
-            .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; }
+            body { font-family: 'Poppins', sans-serif; color: #0f172a; background: #fff; padding: 40px; }
+            
+            .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; }
+            .header-left img { height: 60px; margin-bottom: 15px; }
+            .company { font-size: 16px; font-weight: 800; color: #0ea5e9; letter-spacing: 0.5px; }
+            .company-sub { font-size: 10px; font-weight: 500; color: #64748b; line-height: 1.5; margin-top: 4px; }
+            
+            .header-right { text-align: right; }
+            .invoice-title { font-size: 36px; font-weight: 800; color: #0ea5e9; letter-spacing: 2px; line-height: 1; margin-bottom: 8px; }
+            .invoice-number { font-size: 13px; font-weight: 700; color: #334155; margin-top: 4px; }
+            .date-row { font-size: 11px; font-weight: 500; color: #64748b; margin-top: 4px; }
+            
+            .client-section { margin-top: 20px; margin-bottom: 40px; }
+            .client-title { font-size: 11px; font-weight: 700; color: #0ea5e9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+            .client-details { font-size: 12px; color: #475569; line-height: 1.6; font-weight: 400; }
+            .client-details strong { color: #0f172a; font-weight: 700; font-size: 13px; }
+            
+            table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+            thead th { background: #f8fafc; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+            tbody td { padding: 16px; font-size: 12px; font-weight: 500; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+            tbody tr:last-child td { border-bottom: none; }
+            
+            .summary-section { width: 100%; display: flex; justify-content: flex-end; margin-top: 20px; }
+            .summary-box { width: 350px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+            .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; font-weight: 500; color: #475569; }
+            .summary-row.total { font-size: 16px; font-weight: 700; color: #0ea5e9; border-top: 1px solid #cbd5e1; padding-top: 12px; margin-top: 4px; margin-bottom: 0; }
+            .summary-row.pending { font-size: 12px; font-weight: 600; color: #ef4444; }
+            
+            .sign-section { margin-top: 50px; text-align: right; padding-right: 20px; }
+            .sign-label { font-size: 12px; font-weight: 700; color: #1e293b; margin-top: 5px; }
+            .sign-sub { font-size: 10px; font-weight: 600; color: #64748b; }
+            
+            .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; font-weight: 600; }
           </style>
         </head>
         <body>
-          <div class="header">
-            <div>
+          <div class="header-flex">
+            <div class="header-left">
+              <img src="${window.location.origin}/logo.png" alt="Logo" onerror="this.style.display='none'" />
               <div class="company">HIG AI AUTOMATION LLP</div>
-              <div class="company-sub">Enterprise Resource Planning Portal</div>
+              <div class="company-sub">
+                Enterprise Resource Planning Portal<br/>
+                S Bazaar, Palayamkottai, Tirunelveli<br/>
+                Tamil Nadu 627002
+              </div>
             </div>
-            <div>
+            <div class="header-right">
               <div class="invoice-title">INVOICE</div>
-              <div class="invoice-number">${p.invoiceNumber}</div>
+              <div class="invoice-number"># ${p.invoiceNumber}</div>
+              <div class="date-row">Issue Date: ${p.createdAt.split('T')[0]}</div>
+              <div class="date-row">Due Date: ${p.dueDate.split('T')[0]}</div>
             </div>
           </div>
 
-          <div class="meta-grid">
-            <div class="meta-block">
-              <label>Bill To / Project</label>
-              <span>${p.project.name}</span>
-            </div>
-            <div class="meta-block">
-              <label>Invoice Number</label>
-              <span>${p.invoiceNumber}</span>
-            </div>
-            <div class="meta-block">
-              <label>Issue Date</label>
-              <span>${p.createdAt.split('T')[0]}</span>
-            </div>
-            <div class="meta-block">
-              <label>Due Date</label>
-              <span>${p.dueDate.split('T')[0]}</span>
+          <div class="client-section">
+            <div class="client-title">Bill To</div>
+            <div class="client-details">
+              <strong>${client.username || p.project?.clientName || 'Client Name'}</strong><br/>
+              Client ID: ${client.id || 'N/A'}<br/>
+              Address: ${p.project?.clientAddress || 'N/A'}<br/>
+              Phone: ${p.project?.whatsappNumber || 'N/A'}<br/>
+              Email: ${p.project?.clientEmail || client.email || 'N/A'}
             </div>
           </div>
 
@@ -352,24 +433,59 @@ export default function PaymentsPage() {
             <thead>
               <tr>
                 <th>Description</th>
-                <th>Status</th>
+                <th>Details</th>
                 <th style="text-align:right">Amount</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Project services for ${p.project.name}</td>
-                <td><span class="status-badge ${p.status === 'paid' ? 'status-paid' : 'status-pending'}">${p.status}</span></td>
-                <td style="text-align:right">Rs. ${parseFloat(p.amount).toLocaleString()}</td>
-              </tr>
-              <tr class="total-row">
-                <td colspan="2" style="text-align:right">Total Payable:</td>
-                <td style="text-align:right">Rs. ${parseFloat(p.amount).toLocaleString()}</td>
+                <td style="width: 35%;">
+                  <strong style="color: #0f172a;">Project ID:</strong> ${projId.toUpperCase()}<br/>
+                  <span style="font-size: 11px; color: #64748b; display: block; margin-top: 4px;">${projName}</span>
+                </td>
+                <td style="width: 45%;">
+                  <strong style="color: #0f172a;">Phase:</strong> ${phaseName}<br/>
+                  <div style="font-size: 10px; color: #64748b; margin-top: 4px; line-height: 1.4;">
+                    <strong>Modules:</strong> ${p.project?.modules || 'Standard Services'}
+                  </div>
+                  <div style="font-size: 10px; color: #64748b; margin-top: 4px;">
+                    Total Project Price: Rs. ${Number(projPrice).toLocaleString()}
+                  </div>
+                </td>
+                <td style="text-align:right; width: 20%; font-weight: 700; color: #0f172a;">
+                  Rs. ${parseFloat(amount).toLocaleString()}
+                </td>
               </tr>
             </tbody>
           </table>
 
-          ${p.updatedBy ? `<p style="font-size:11px; color:#64748b; margin-bottom: 20px;">Payment cleared by: <strong>${p.updatedBy}</strong></p>` : ''}
+          <div class="summary-section">
+            <div class="summary-box">
+              <div class="summary-row">
+                <span>Phase Price:</span>
+                <span>Rs. ${parseFloat(amount).toLocaleString()}</span>
+              </div>
+              <div class="summary-row pending">
+                <span>Pending Project Balance:</span>
+                <span>Rs. ${pendingAmount > 0 ? pendingAmount.toLocaleString() : '0'}</span>
+              </div>
+              <div class="summary-row total">
+                <span>Grand Total:</span>
+                <span>Rs. ${parseFloat(amount).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sign-section">
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+              <div style="font-size: 10px; color: #94a3b8; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px;">AUTHORIZED BY</div>
+              ${ceoSignatureHtml || '<div style="height: 60px;"></div>'}
+              <div class="sign-label">Mr. Ajay S</div>
+              <div class="sign-sub">CEO, HIG AI Automation LLP</div>
+            </div>
+          </div>
+
+          ${p.updatedBy ? `<p style="font-size:11px; color:#64748b; margin-top: 20px; font-weight: 600;">Payment cleared by: <strong>${p.updatedBy}</strong></p>` : ''}
 
           <div class="footer">
             <p>This is a computer-generated invoice from HIG Enterprise Portal.</p>

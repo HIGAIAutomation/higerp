@@ -207,6 +207,9 @@ model Project {
   socialCredentials  Json?
   moduleDetails      Json?
   techStack          Json?
+  apiList            Json?
+  domainDetails      Json?
+  serverDetails      Json?
   projectInclusions  String?
   clientEmail        String?
   clientAddress      String?
