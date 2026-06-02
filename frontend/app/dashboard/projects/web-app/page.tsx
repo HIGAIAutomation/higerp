@@ -48,7 +48,7 @@ interface GeneratedDoc {
 
 export default function WebAppProjectsPage() {
   const { user } = useAuth();
-  const isStaff = ['superadmin', 'admin', 'employee'].includes(user?.role);
+  const isStaff = user?.role ? ['superadmin', 'admin', 'employee'].includes(user.role) : false;
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectDocs, setProjectDocs] = useState<Record<string, GeneratedDoc[]>>({});

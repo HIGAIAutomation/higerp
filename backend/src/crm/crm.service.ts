@@ -52,7 +52,7 @@ export class CrmService {
   }
 
   private async ensureSalesQuotationTemplate(tenantId: string) {
-    const LOGO_URL = 'http://localhost:3001/logo.png';
+    const LOGO_URL = 'http://127.0.0.1:3001/logo.png';
     const contentHtml = `
 <div style="font-family:'Inter',sans-serif;padding:20px;line-height:1.7;color:#1e293b;">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #2E9EDE;padding-bottom:14px;margin-bottom:28px;">
@@ -244,7 +244,7 @@ export class CrmService {
 <div style="font-family: 'Inter', sans-serif; padding: 20px; line-height: 1.6; color: #334155;">
   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 3px solid #2E9EDE; padding-bottom: 20px;">
     <div style="display: flex; align-items: center; gap: 14px;">
-      <img src="http://localhost:3001/logo.png" alt="HIG AI Automation LLP" style="height: 55px; width: auto; border-radius: 10px; flex-shrink: 0;" />
+      <img src="http://127.0.0.1:3001/logo.png" alt="HIG AI Automation LLP" style="height: 55px; width: auto; border-radius: 10px; flex-shrink: 0;" />
       <div>
         <h2 style="color: #0f172a; margin: 0; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.2;">HIG AI AUTOMATION LLP</h2>
         <p style="margin: 4px 0 0 0; font-size: 9px; color: #64748b; font-weight: 500; max-width: 320px; line-height: 1.4;">

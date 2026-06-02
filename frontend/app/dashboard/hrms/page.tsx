@@ -1,31 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import OfferLetterModal from '@/components/hrms/offer-letter-modal';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import { fetchWithAuth } from '@/lib/api';
-import { 
-  Users, 
-  UserPlus, 
-  FileText, 
-  CheckCircle2, 
-  Loader2, 
-  AlertCircle,
-  Briefcase,
-  Mail,
-  IndianRupee,
-  Calendar,
-  Download,
-  X,
-  Hash,
-  ChevronDown,
-  GraduationCap,
-  PlusCircle,
-  MapPin,
-  Clock,
-  User,
-  CreditCard,
-  BookOpen
+import {
+    AlertCircle,
+    BookOpen,
+    Briefcase,
+    Calendar,
+    CheckCircle2,
+    ChevronDown,
+    Clock,
+    CreditCard,
+    Download,
+    FileCheck,
+    FileText,
+    GraduationCap,
+    Hash,
+    IndianRupee,
+    Loader2,
+    Mail,
+    MapPin,
+    PlusCircle,
+    User,
+    UserPlus,
+    Users,
+    X
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface Employee {
   id: string;
@@ -48,6 +50,7 @@ export default function HRMSPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedEmpDocs, setSelectedEmpDocs] = useState<Employee | null>(null);
   const [selectedEmpDetails, setSelectedEmpDetails] = useState<Employee | null>(null);
+  const [selectedEmpOfferLetter, setSelectedEmpOfferLetter] = useState<string | null>(null);
   const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
   
   // View mode state: 'employee-records' | 'intern-records' | 'add-employee' | 'add-intern'
@@ -1430,6 +1433,15 @@ export default function HRMSPage() {
           </div>
         );
       })()}
+
+      {/* Offer Letter Modal */}
+      {selectedEmpOfferLetter && (
+        <OfferLetterModal
+          isOpen={selectedEmpOfferLetter !== null}
+          employeeId={selectedEmpOfferLetter || ''}
+          onClose={() => setSelectedEmpOfferLetter(null)}
+        />
+      )}
     </DashboardLayout>
   );
 }

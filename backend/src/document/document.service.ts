@@ -1,28 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import * as Handlebars from 'handlebars';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DocumentService {
   constructor(private prisma: PrismaService) { }
 
   async generateDocument(templateName: string, tenantId: string, data: any, entityType: string, entityId: string) {
+    console.log(`[DOCUMENT] Generating document: ${templateName} for ${entityType} ${entityId}`);
+    
     const template = await this.prisma.documentTemplate.findFirst({
       where: { name: templateName, tenantId },
       orderBy: { createdAt: 'desc' },
     });
 
     if (!template) {
-      throw new Error(`Template ${templateName} not found for tenant ${tenantId}`);
+      const error = `Template ${templateName} not found for tenant ${tenantId}`;
+      console.error(`[DOCUMENT] ${error}`);
+      throw new Error(error);
     }
+
+    console.log(`[DOCUMENT] Found template: ${templateName} (ID: ${template.id})`);
 
     if (!Handlebars.helpers['or']) {
       Handlebars.registerHelper('or', function (a, b) {
         return a || b;
       });
     }
-    const compiledTemplate = Handlebars.compile(template.contentHtml);
-    const contentHtml = compiledTemplate(data);
+    
+    try {
+      const compiledTemplate = Handlebars.compile(template.contentHtml);
+      const contentHtml = compiledTemplate(data);
+      console.log(`[DOCUMENT] Template compiled successfully`);
+    } catch (compileError) {
+      console.error(`[DOCUMENT] Template compilation error:`, compileError);
+      throw compileError;
+    }
 
     const existingDoc = await this.prisma.generatedDocument.findFirst({
       where: {
@@ -33,7 +46,11 @@ export class DocumentService {
       },
     });
 
+    const compiledTemplate = Handlebars.compile(template.contentHtml);
+    const contentHtml = compiledTemplate(data);
+
     if (existingDoc) {
+      console.log(`[DOCUMENT] Updating existing document: ${existingDoc.id}`);
       return this.prisma.generatedDocument.update({
         where: { id: existingDoc.id },
         data: {
@@ -43,6 +60,7 @@ export class DocumentService {
       });
     }
 
+    console.log(`[DOCUMENT] Creating new document for ${templateName}`);
     return this.prisma.generatedDocument.create({
       data: {
         tenantId,
@@ -144,7 +162,7 @@ export class DocumentService {
           <div class="legal-document-wrapper">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2E9EDE; padding-bottom: 14px; margin-bottom: 28px;">
               <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="http://localhost:3001/logo.png" class="doc-header-logo" alt="HIG AI Automation LLP" />
+                <img src="http://127.0.0.1:3001/logo.png" class="doc-header-logo" alt="HIG AI Automation LLP" />
                 <div>
                   <div style="font-family: sans-serif; font-size: 15px; font-weight: 800; color: #0f172a; letter-spacing: 0.3px; line-height: 1.2;">HIG AI AUTOMATION LLP</div>
                   <div style="font-family: sans-serif; font-size: 9px; font-weight: 600; color: #64748b; margin-top: 2px;">PPCQ+XH5, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002</div>

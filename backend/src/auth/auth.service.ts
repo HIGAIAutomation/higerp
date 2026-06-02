@@ -1,7 +1,7 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
 
 import { HrmsService } from '../hrms/hrms.service';
 
@@ -87,7 +87,7 @@ export class AuthService {
     });
 
     if (data.roleType === 'employee' || data.roleType === 'intern') {
-      await this.prisma.employee.create({
+      const employee = await this.prisma.employee.create({
         data: {
           tenantId,
           firstName: data.firstName || data.studentName || data.username,
@@ -101,6 +101,17 @@ export class AuthService {
           metadata: data,
         }
       });
+
+      console.log(`[AUTH] Employee created: ${employee.id}, triggering document generation...`);
+
+      // Generate onboarding documents immediately upon registration
+      try {
+        const docs = await this.hrmsService.generateOnboardingDocuments(tenantId, employee);
+        console.log(`[AUTH] Generated ${docs.length} documents for employee ${employee.id}`);
+      } catch (error) {
+        console.error(`[AUTH] Failed to generate onboarding documents during registration:`, error);
+        // Don't throw - allow registration to succeed even if document generation fails
+      }
     }
 
     const { password, ...result } = user;
