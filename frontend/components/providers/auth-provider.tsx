@@ -79,7 +79,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       setAuthToken(data.access_token);
       setUser(data.user);
-      router.push('/dashboard');
+      if (data.user?.role === 'client' || data.user?.role === 'intern' || data.user?.role === 'employee') {
+        router.push('/dashboard/profile');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error) {
       setLoading(false);
       throw error;

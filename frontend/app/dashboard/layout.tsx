@@ -38,16 +38,36 @@ export default function DashboardLayoutGuard({
 
   // Permission check
   const isSuperAdmin = user.role === 'superadmin';
+  const isClient = user.role === 'client';
+  const isIntern = user.role === 'intern';
   
-  // Dashboard home page is accessible by all authenticated users
+  // Dashboard home page is accessible by all authenticated users (except interns)
   const isDashboardRoot = pathname === '/dashboard';
   
-  // Check if user has explicit access to this route prefix
-  const userAccessList = user.pageAccess || [];
-  const hasAccess = isSuperAdmin || isDashboardRoot || userAccessList.some(path => {
-    // Exact match or matches as folder prefix
-    return pathname === path || pathname.startsWith(path + '/');
-  });
+  let hasAccess = false;
+  if (isSuperAdmin) {
+    hasAccess = true;
+  } else if (isIntern) {
+    // Interns only see profile page
+    hasAccess = pathname === '/dashboard/profile';
+  } else if (isClient) {
+    // Clients see profile, payments, dashboard root, and project tracking sub-pages
+    hasAccess = 
+      pathname === '/dashboard/profile' ||
+      pathname === '/dashboard/payments' ||
+      pathname === '/dashboard' ||
+      pathname.startsWith('/dashboard/projects/');
+  } else {
+    // Employees or other roles see dashboard root + profile + pageAccess list
+    const userAccessList = user.pageAccess || [];
+    hasAccess = 
+      isDashboardRoot || 
+      pathname === '/dashboard/profile' || 
+      userAccessList.some(path => {
+        // Exact match or matches as folder prefix
+        return pathname === path || pathname.startsWith(path + '/');
+      });
+  }
 
   if (!hasAccess) {
     return (

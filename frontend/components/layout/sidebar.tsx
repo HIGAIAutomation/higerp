@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -42,27 +42,64 @@ export function Sidebar({ onClose }: { onClose?: () => void } = {}) {
   const [projectsExpanded, setProjectsExpanded] = useState(pathname.startsWith("/dashboard/projects"));
   const [hrmsExpanded, setHrmsExpanded] = useState(pathname.startsWith("/dashboard/hrms"));
   const [crmExpanded, setCrmExpanded] = useState(pathname.startsWith("/dashboard/crm"));
+  const [projectCategory, setProjectCategory] = useState<string | null>(null);
 
   const isSuperAdmin = user?.role === 'superadmin';
   const pageAccessList = user?.pageAccess || [];
 
-  const clientNavigation = [
-    { name: "My Profile", href: "/dashboard/profile", icon: UserCheck },
-    { name: "Project Tracking", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Payment", href: "/dashboard/payments", icon: CreditCard },
-  ];
+  useEffect(() => {
+    if (user?.role === 'client') {
+      import('@/lib/api').then(({ fetchWithAuth }) => {
+        fetchWithAuth('/projects')
+          .then((allProjects: any) => {
+            const filtered = allProjects.filter((p: any) => p.clientId === user?.id);
+            if (filtered.length > 0) {
+              setProjectCategory(filtered[0].category || 'Digital Marketing');
+            }
+          })
+          .catch((err) => console.error("Error fetching projects in sidebar:", err));
+      });
+    }
+  }, [user]);
+
+  // Determine project tracking link based on category
+  let projectTrackHref = "/dashboard"; // Default fallback
+  if (projectCategory) {
+    const cat = projectCategory.toLowerCase();
+    if (cat.includes("web") || cat.includes("app")) {
+      projectTrackHref = "/dashboard/projects/web-app";
+    } else if (cat.includes("marketing")) {
+      projectTrackHref = "/dashboard/projects/digital-marketing";
+    } else if (cat.includes("automation")) {
+      projectTrackHref = "/dashboard/projects/automation";
+    } else if (cat.includes("ai")) {
+      projectTrackHref = "/dashboard/projects/ai";
+    }
+  }
 
   // Filter navigation links
-  let visibleNavigation: typeof navigation = [];
+  let visibleNavigation: any[] = [];
   
-  if (user?.role === "client") {
-    visibleNavigation = clientNavigation;
+  if (user?.role === "intern") {
+    visibleNavigation = [
+      { name: "My Profile", href: "/dashboard/profile", icon: UserCheck }
+    ];
+  } else if (user?.role === "client") {
+    visibleNavigation = [
+      { name: "My Profile", href: "/dashboard/profile", icon: UserCheck },
+      { name: "Project Tracking", href: projectTrackHref, icon: Briefcase },
+      { name: "Payment", href: "/dashboard/payments", icon: CreditCard },
+    ];
   } else {
-    visibleNavigation = navigation.filter((item) => {
+    visibleNavigation = [
+      { name: "My Profile", href: "/dashboard/profile", icon: UserCheck }
+    ];
+    const filteredNav = navigation.filter((item) => {
       if (item.href === "/dashboard") return true; // Everyone sees Dashboard home
       if (isSuperAdmin) return true; // Super Admin sees everything
       return pageAccessList.includes(item.href); // Normal users see what they are allowed
     });
+    visibleNavigation = [...visibleNavigation, ...filteredNav];
   }
 
   // If superadmin, add Access Control to the menu list

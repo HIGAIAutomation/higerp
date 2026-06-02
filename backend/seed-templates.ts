@@ -115,9 +115,9 @@ async function main() {
   }
 
   .header-title-block h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 24px;
-    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
     color: #0f172a;
     text-transform: uppercase;
     margin: 0 0 6px 0;
@@ -137,8 +137,8 @@ async function main() {
   }
   
   .section h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
     font-weight: 700;
     color: #0f172a;
     text-transform: uppercase;

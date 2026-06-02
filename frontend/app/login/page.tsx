@@ -16,9 +16,13 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // If already logged in, redirect to dashboard
+    // If already logged in, redirect to appropriate landing page
     if (user && !loading) {
-      router.push('/dashboard');
+      if (user.role === 'client' || user.role === 'intern' || user.role === 'employee') {
+        router.push('/dashboard/profile');
+      } else {
+        router.push('/dashboard');
+      }
     }
   }, [user, loading, router]);
 
