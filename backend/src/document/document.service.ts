@@ -81,6 +81,10 @@ export class DocumentService {
     });
 
     if (doc && doc.compiledHtml) {
+      doc.compiledHtml = doc.compiledHtml.replace(
+        /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
+        process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/logo.png` : 'https://higerp.onrender.com/logo.png'
+      );
       // 1. Always replace the generic left column signature label with CEO details
       const robustLabelPattern = /<p>For: <strong>(HIG AI AUTOMATION LLP|HIGAI AUTOMATION LLP|HIG AI AUTOMATION|HIGAI AUTOMATION)<\/strong><\/p>\s*(<div class="sig-line"(?: style="[^"]*")?>[\s\S]*?<\/div>)\s*<p class="sig-label">(?:Authorized Signature|Authorized Signatory|Authorized Representative|Authorized Lead)<\/p>/g;
       doc.compiledHtml = doc.compiledHtml.replace(robustLabelPattern, (match, companyName, sigLine) => {
@@ -162,7 +166,7 @@ export class DocumentService {
           <div class="legal-document-wrapper">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2E9EDE; padding-bottom: 14px; margin-bottom: 28px;">
               <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="http://127.0.0.1:3001/logo.png" class="doc-header-logo" alt="HIG AI Automation LLP" />
+                <img src="${process.env.BACKEND_URL ? process.env.BACKEND_URL + '/logo.png' : 'https://higerp.onrender.com/logo.png'}" class="doc-header-logo" alt="HIG AI Automation LLP" />
                 <div>
                   <div style="font-family: sans-serif; font-size: 15px; font-weight: 800; color: #0f172a; letter-spacing: 0.3px; line-height: 1.2;">HIG AI AUTOMATION LLP</div>
                   <div style="font-family: sans-serif; font-size: 9px; font-weight: 600; color: #64748b; margin-top: 2px;">PPCQ+XH5, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002</div>
@@ -219,6 +223,10 @@ export class DocumentService {
     const robustLabelPattern = /<p>For: <strong>(HIG AI AUTOMATION LLP|HIGAI AUTOMATION LLP|HIG AI AUTOMATION|HIGAI AUTOMATION)<\/strong><\/p>\s*(<div class="sig-line"(?: style="[^"]*")?>[\s\S]*?<\/div>)\s*<p class="sig-label">(?:Authorized Signature|Authorized Signatory|Authorized Representative|Authorized Lead)<\/p>/g;
     for (const doc of docs) {
       if (doc.compiledHtml) {
+        doc.compiledHtml = doc.compiledHtml.replace(
+          /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
+          process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/logo.png` : 'https://higerp.onrender.com/logo.png'
+        );
         doc.compiledHtml = doc.compiledHtml.replace(robustLabelPattern, (match, companyName, sigLine) => {
           return `<p>For: <strong>${companyName}</strong></p>
         ${sigLine}

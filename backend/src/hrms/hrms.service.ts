@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DocumentService } from '../document/document.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const LOGO_URL = 'http://127.0.0.1:3001/logo.png';
+const LOGO_URL = process.env.BACKEND_URL || 'https://higerp.onrender.com/logo.png';
 const COMPANY = 'HIG AI Automation LLP';
 const ADDRESS = 'PPCQ+XH5, 6, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002';
 const LLPIN = 'LLPIN: AAY-0857';
