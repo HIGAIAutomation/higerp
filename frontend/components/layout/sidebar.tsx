@@ -1,27 +1,27 @@
 "use client";
 
+import HIGLogo from "@/components/logo";
+import { useAuth } from "@/components/providers/auth-provider";
+import { cn } from "@/lib/utils";
+import {
+    BookOpen,
+    Briefcase,
+    ChevronDown,
+    ChevronRight,
+    ClipboardCheck,
+    CreditCard,
+    LayoutDashboard,
+    LifeBuoy,
+    LogOut,
+    Package,
+    ShieldAlert,
+    TrendingUp,
+    UserCheck,
+    Users
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/components/providers/auth-provider";
 import { useState } from "react";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Briefcase, 
-  TrendingUp, 
-  CreditCard, 
-  LifeBuoy, 
-  Package, 
-  BookOpen,
-  ShieldAlert,
-  LogOut,
-  UserCheck,
-  ClipboardCheck,
-  ChevronDown,
-  ChevronRight
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import HIGLogo from "@/components/logo";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -36,7 +36,7 @@ const navigation = [
   { name: "Attendance & Tasks", href: "/dashboard/attendance-tasks", icon: ClipboardCheck },
 ];
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void } = {}) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [projectsExpanded, setProjectsExpanded] = useState(pathname.startsWith("/dashboard/projects"));
@@ -115,6 +115,7 @@ export function Sidebar() {
                   <div className="pl-8 space-y-1 pr-2 transition-all duration-200">
                     <Link
                       href="/dashboard/hrms"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/hrms"
@@ -126,6 +127,7 @@ export function Sidebar() {
                     </Link>
                     <Link
                       href="/dashboard/hrms/offboarding"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/hrms/offboarding"
@@ -137,6 +139,7 @@ export function Sidebar() {
                     </Link>
                     <Link
                       href="/dashboard/hrms/payroll"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/hrms/payroll"
@@ -148,6 +151,7 @@ export function Sidebar() {
                     </Link>
                     <Link
                       href="/dashboard/hrms/birthdays"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/hrms/birthdays"
@@ -190,6 +194,7 @@ export function Sidebar() {
                   <div className="pl-8 space-y-1 pr-2 transition-all duration-200">
                     <Link
                       href="/dashboard/projects"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/projects"
@@ -201,6 +206,7 @@ export function Sidebar() {
                     </Link>
                     <Link
                       href="/dashboard/projects/digital-marketing"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/projects/digital-marketing"
@@ -214,6 +220,7 @@ export function Sidebar() {
                       <>
                         <Link
                           href="/dashboard/projects/web-app"
+                          onClick={onClose}
                           className={cn(
                             "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                             pathname === "/dashboard/projects/web-app"
@@ -225,6 +232,7 @@ export function Sidebar() {
                         </Link>
                         <Link
                           href="/dashboard/projects/automation"
+                          onClick={onClose}
                           className={cn(
                             "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                             pathname === "/dashboard/projects/automation"
@@ -236,6 +244,7 @@ export function Sidebar() {
                         </Link>
                         <Link
                           href="/dashboard/projects/ai"
+                          onClick={onClose}
                           className={cn(
                             "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                             pathname === "/dashboard/projects/ai"
@@ -247,6 +256,7 @@ export function Sidebar() {
                         </Link>
                         <Link
                           href="/dashboard/projects/payments"
+                          onClick={onClose}
                           className={cn(
                             "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                             pathname === "/dashboard/projects/payments"
@@ -291,6 +301,7 @@ export function Sidebar() {
                   <div className="pl-8 space-y-1 pr-2 transition-all duration-200">
                     <Link
                       href="/dashboard/crm"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/crm"
@@ -302,6 +313,7 @@ export function Sidebar() {
                     </Link>
                     <Link
                       href="/dashboard/crm/services"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/crm/services"
@@ -313,6 +325,7 @@ export function Sidebar() {
                     </Link>
                     <Link
                       href="/dashboard/crm/followups"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/crm/followups"
@@ -324,6 +337,7 @@ export function Sidebar() {
                     </Link>
                     <Link
                       href="/dashboard/crm/closed-leads"
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition-colors",
                         pathname === "/dashboard/crm/closed-leads"
@@ -343,6 +357,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200",
                 pathname === item.href

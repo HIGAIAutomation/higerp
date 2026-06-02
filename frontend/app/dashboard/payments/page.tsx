@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/dashboard-layout';
-import { fetchWithAuth } from '@/lib/api';
-import { 
-  CreditCard,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Download
-} from 'lucide-react';
 import HIGLogo from '@/components/logo';
+import { fetchWithAuth } from '@/lib/api';
+import {
+    AlertCircle,
+    Clock,
+    CreditCard,
+    Download,
+    Loader2
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface PaymentInvoice {
   id: string;
@@ -21,8 +20,15 @@ interface PaymentInvoice {
   status: string;
   createdAt: string;
   project: {
+    id: string;
     name: string;
+    clientId: string;
+    clientName: string;
+    clientEmail: string;
+    clientAddress: string;
     whatsappNumber?: string;
+    price: number;
+    modules: string;
   };
 }
 
@@ -59,23 +65,31 @@ export default function ClientPaymentsPage() {
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
             * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: 'Inter', sans-serif; color: #1e293b; background: #fff; padding: 40px; }
-            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
-            .company { font-size: 24px; font-weight: 800; color: #1e293b; letter-spacing: 1px; }
-            .company-sub { font-size: 10px; font-weight: 600; color: #64748b; margin-top: 4px; }
-            .invoice-title { font-size: 28px; font-weight: 800; color: #2563eb; text-align: right; }
-            .invoice-number { font-size: 12px; font-weight: 600; color: #64748b; text-align: right; margin-top: 4px; }
-            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
-            .meta-block label { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 4px; }
-            .meta-block span { font-size: 14px; font-weight: 600; color: #1e293b; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            thead th { background: #f1f5f9; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px; text-align: left; border-bottom: 2px solid #e2e8f0; }
-            tbody td { padding: 14px 16px; font-size: 13px; font-weight: 500; color: #334155; border-bottom: 1px solid #f1f5f9; }
-            .total-row td { font-weight: 800; font-size: 15px; color: #1e293b; background: #f8fafc; border-top: 2px solid #2563eb; }
-            .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+            body { font-family: 'Inter', sans-serif; color: #1e293b; background: #fff; padding: 25px 35px; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 16px; }
+            .company { font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: 1px; }
+            .company-sub { font-size: 9px; font-weight: 600; color: #64748b; margin-top: 2px; }
+            .header-right { text-align: right; }
+            .invoice-title { font-size: 24px; font-weight: 800; color: #2563eb; letter-spacing: 1px; }
+            .invoice-number { font-size: 12px; font-weight: 600; color: #64748b; margin-top: 4px; }
+            .project-price { font-size: 10px; font-weight: 700; color: #0f172a; margin-top: 3px; }
+            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+            .meta-block label { font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 2px; }
+            .meta-block span { font-size: 12px; font-weight: 600; color: #1e293b; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+            thead th { background: #f1f5f9; font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+            tbody td { padding: 8px 10px; font-size: 12px; font-weight: 500; color: #334155; border-bottom: 1px solid #f1f5f9; }
+            .total-row td { font-weight: 800; font-size: 13px; color: #1e293b; background: #f8fafc; border-top: 2px solid #2563eb; }
+            .status-badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
             .status-paid { background: #d1fae5; color: #059669; }
             .status-pending { background: #fef3c7; color: #d97706; }
-            .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; }
+            .sign-section { margin-top: 20px; display: flex; justify-content: flex-end; }
+            .sign-box { text-align: center; width: 160px; }
+            .sign-header { font-size: 8px; font-weight: 700; color: #64748b; margin-bottom: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
+            .sign-image { height: 45px; margin-bottom: 2px; }
+            .sign-label { font-size: 10px; font-weight: 700; color: #0f172a; }
+            .sign-sub { font-size: 8px; font-weight: 600; color: #64748b; margin-top: 1px; }
+            .footer { text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 8px; color: #94a3b8; }
           </style>
         </head>
         <body>
@@ -84,28 +98,37 @@ export default function ClientPaymentsPage() {
               <div class="company">HIG AI AUTOMATION LLP</div>
               <div class="company-sub">Enterprise Resource Planning Portal</div>
             </div>
-            <div>
+            <div class="header-right">
               <div class="invoice-title">INVOICE</div>
-              <div class="invoice-number">${p.invoiceNumber}</div>
+              <div class="invoice-number">${p.invoiceNumber.split('#').pop()?.split('-PHASE')[0]?.trim()}</div>
+              <div class="project-price">Total Project: Rs. ${p.project.price.toLocaleString()}</div>
             </div>
           </div>
 
           <div class="meta-grid">
             <div class="meta-block">
-              <label>Bill To / Project</label>
+              <label>Bill To</label>
+              <span>${p.project.clientName}</span>
+            </div>
+            <div class="meta-block">
+              <label>Project</label>
               <span>${p.project.name}</span>
             </div>
             <div class="meta-block">
-              <label>Invoice Number</label>
-              <span>${p.invoiceNumber}</span>
-            </div>
-            <div class="meta-block">
-              <label>Issue Date</label>
+              <label>Invoice Date</label>
               <span>${p.createdAt.split('T')[0]}</span>
             </div>
             <div class="meta-block">
               <label>Due Date</label>
               <span>${p.dueDate.split('T')[0]}</span>
+            </div>
+            <div class="meta-block">
+              <label>Email</label>
+              <span>${p.project.clientEmail}</span>
+            </div>
+            <div class="meta-block">
+              <label>Address</label>
+              <span>${p.project.clientAddress}</span>
             </div>
           </div>
 
@@ -129,6 +152,15 @@ export default function ClientPaymentsPage() {
               </tr>
             </tbody>
           </table>
+
+          <div class="sign-section">
+            <div class="sign-box">
+              <div style="font-size: 10px; font-weight: 700; color: #0f172a; margin-bottom: 4px; letter-spacing: 1px;">AUTHORIZED BY</div>
+              <div class="sign-line"></div>
+              <div class="sign-label">Mr. Ajay S</div>
+              <div class="sign-sub">CEO, HIG AI Automation LLP</div>
+            </div>
+          </div>
 
           <div class="footer">
             <p>This is a computer-generated invoice from HIG Enterprise Portal.</p>

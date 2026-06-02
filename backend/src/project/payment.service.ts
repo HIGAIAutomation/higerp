@@ -11,8 +11,15 @@ export class PaymentService {
       include: {
         project: {
           select: {
+            id: true,
             name: true,
+            clientId: true,
+            clientName: true,
+            clientEmail: true,
+            clientAddress: true,
             whatsappNumber: true,
+            price: true,
+            modules: true,
           },
         },
       },
@@ -82,8 +89,15 @@ export class PaymentService {
       include: {
         project: {
           select: {
+            id: true,
             name: true,
+            clientId: true,
+            clientName: true,
+            clientEmail: true,
+            clientAddress: true,
             whatsappNumber: true,
+            price: true,
+            modules: true,
           },
         },
       },

@@ -1,36 +1,32 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import SignatureCanvas from 'react-signature-canvas';
+import { DocumentPreviewModal } from '@/components/dashboard/DocumentPreviewModal';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import { useAuth } from '@/components/providers/auth-provider';
-import { 
-  User, 
-  Mail, 
-  Shield, 
-  Building2, 
-  Phone, 
-  Save, 
-  Edit2, 
-  Loader2, 
-  CheckCircle2,
-  Briefcase, 
-  Calendar, 
-  ListTodo, 
-  Check, 
-  Layers, 
-  Download, 
-  IndianRupee, 
-  ShieldCheck, 
-  FileText, 
-  Clock,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  PenTool
-} from 'lucide-react';
 import { fetchWithAuth } from '@/lib/api';
-import { DocumentPreviewModal } from '@/components/dashboard/DocumentPreviewModal';
+import {
+    Briefcase,
+    Building2,
+    Calendar,
+    CheckCircle2,
+    Clock,
+    Download,
+    Edit2,
+    Eye,
+    EyeOff,
+    FileText,
+    IndianRupee,
+    Layers,
+    Loader2,
+    Mail,
+    PenTool,
+    Phone,
+    Save,
+    ShieldCheck,
+    User
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import SignatureCanvas from 'react-signature-canvas';
 
 interface Project {
   id: string;
@@ -451,100 +447,102 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden relative">
-          <div className="h-32 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div className="bg-white rounded-2xl sm:rounded-[32px] border border-slate-200 shadow-sm overflow-hidden relative">
+          <div className="h-20 sm:h-32 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
           
-          <div className="px-8 pb-8">
-            <div className="relative flex justify-between items-end -mt-12 mb-8">
-              <div className="flex items-end gap-6">
-                <div className="h-24 w-24 rounded-full bg-white p-1.5 shadow-lg border-2 border-indigo-100 flex-shrink-0">
-                  <div className="h-full w-full rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-700 font-black text-3xl">
+          <div className="px-4 sm:px-8 pb-6 sm:pb-8">
+            <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 -mt-10 sm:-mt-12 mb-6 sm:mb-8">
+              <div className="flex items-end gap-3 sm:gap-6 w-full sm:w-auto">
+                <div className="h-16 w-16 sm:h-24 sm:w-24 rounded-full bg-white p-1 sm:p-1.5 shadow-lg border-2 border-indigo-100 flex-shrink-0">
+                  <div className="h-full w-full rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-700 font-black text-xl sm:text-3xl">
                     {user?.username?.substring(0, 2).toUpperCase() || 'US'}
                   </div>
                 </div>
-                <div className="pb-2">
-                  <h2 className="text-2xl font-extrabold text-slate-800">{formatNameStyle(user?.username)}</h2>
-                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mt-1">{user?.role || 'Client Account'}</p>
+                <div className="pb-1 sm:pb-2 flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-2xl font-extrabold text-slate-800 truncate">{formatNameStyle(user?.username)}</h2>
+                  <p className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase tracking-wider mt-0.5 sm:mt-1">{user?.role || 'Client Account'}</p>
                 </div>
               </div>
               
               <button
                 onClick={() => setIsEditing(!isEditing)}
-                className={`pb-2 flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-colors ${
+                className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
                   isEditing ? 'bg-slate-100 text-slate-600' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
                 }`}
               >
-                <Edit2 className="h-4 w-4" />
-                {isEditing ? 'Cancel' : 'Edit Profile'}
+                <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">{isEditing ? 'Cancel' : 'Edit Profile'}</span>
+                <span className="sm:hidden">{isEditing ? 'Cancel' : 'Edit'}</span>
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <User className="h-3.5 w-3.5" /> Full Name
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                    <User className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Full Name
                   </label>
                   <input
                     type="text"
                     disabled={!isEditing}
                     value={formData.username}
                     onChange={(e) => setFormData({...formData, username: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-slate-700"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <Mail className="h-3.5 w-3.5" /> Email Address
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                    <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Email Address
                   </label>
                   <input
                     type="email"
                     disabled={!isEditing}
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-slate-700"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <Phone className="h-3.5 w-3.5" /> Phone Number
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                    <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Phone Number
                   </label>
                   <input
                     type="text"
                     disabled={!isEditing}
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-slate-700"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
                     placeholder="+1 (555) 000-0000"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <Building2 className="h-3.5 w-3.5" /> Company / Organization
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
+                    <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Company / Organization
                   </label>
                   <input
                     type="text"
                     disabled={!isEditing}
                     value={formData.company}
                     onChange={(e) => setFormData({...formData, company: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-slate-700"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
                     placeholder="Your Company Name"
                   />
                 </div>
               </div>
 
               {isEditing && (
-                <div className="pt-4 flex justify-end">
+                <div className="pt-2 sm:pt-4 flex justify-end">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all disabled:opacity-70"
+                    className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm sm:text-base rounded-lg sm:rounded-xl shadow-lg shadow-indigo-200 transition-all disabled:opacity-70"
                   >
-                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                    Save Changes
+                    {loading ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <Save className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    <span className="hidden sm:inline">Save Changes</span>
+                    <span className="sm:hidden">Save</span>
                   </button>
                 </div>
               )}
@@ -992,26 +990,26 @@ export default function ProfilePage() {
                   </p>
                 </div>
                 
-                <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                   {projectDocs.map((doc) => (
-                    <div key={doc.id} className="p-5 border border-slate-200 rounded-2xl bg-slate-50/80 hover:bg-white hover:border-indigo-300 hover:shadow-md transition-all duration-300 flex flex-col group">
-                      <div className="flex items-start gap-4 mb-5">
-                        <div className="p-3 bg-white border border-slate-200 text-indigo-600 rounded-xl shadow-sm group-hover:scale-110 group-hover:text-indigo-500 transition-transform">
-                          <FileText className="h-6 w-6" />
+                    <div key={doc.id} className="p-3 sm:p-5 border border-slate-200 rounded-xl sm:rounded-2xl bg-slate-50/80 hover:bg-white hover:border-indigo-300 hover:shadow-md transition-all duration-300 flex flex-col group">
+                      <div className="flex items-start gap-2 sm:gap-4 mb-3 sm:mb-5">
+                        <div className="p-2 sm:p-3 bg-white border border-slate-200 text-indigo-600 rounded-lg sm:rounded-xl shadow-sm group-hover:scale-110 group-hover:text-indigo-500 transition-transform flex-shrink-0">
+                          <FileText className="h-4 w-4 sm:h-6 sm:w-6" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-bold text-slate-800 truncate" title={doc.template?.name || "Document"}>
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-800 truncate" title={doc.template?.name || "Document"}>
                             {doc.template?.name || "Project Document"}
                           </h4>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1.5">
-                            <Clock className="h-3 w-3" />
+                          <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
+                            <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                             {new Date(doc.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       
-                      <div className="mt-auto pt-4 border-t border-slate-200 flex items-center justify-between">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                      <div className="mt-auto pt-3 sm:pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                        <span className={`inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider border ${
                           doc.status === 'signed' 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                             : 'bg-amber-50 text-amber-700 border-amber-200'
@@ -1019,25 +1017,25 @@ export default function ProfilePage() {
                           {doc.status === 'signed' ? '✅ Signed' : '⏳ Pending'}
                         </span>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
                           {doc.status !== 'signed' ? (
                             <button
                               type="button"
                               onClick={() => handlePreviewDoc(doc)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-white hover:bg-accent/80 hover:scale-105 active:scale-95 transition-all text-xs font-bold cursor-pointer shadow-md shadow-accent/15"
+                              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 px-2 sm:px-3 py-1.5 sm:py-1.5 rounded-lg sm:rounded-xl bg-accent text-white hover:bg-accent/80 hover:scale-105 active:scale-95 transition-all text-[10px] sm:text-xs font-bold cursor-pointer shadow-md shadow-accent/15"
                               title="Sign Document"
                             >
-                              <PenTool className="h-3.5 w-3.5" />
-                              Sign
+                              <PenTool className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+                              <span className="hidden sm:inline">Sign</span>
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={() => handlePreviewDoc(doc)}
-                              className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors cursor-pointer"
+                              className="p-1.5 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors cursor-pointer"
                               title="Preview Document"
                             >
-                              <Eye className="h-4.5 w-4.5" />
+                              <Eye className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                             </button>
                           )}
                           
@@ -1045,14 +1043,14 @@ export default function ProfilePage() {
                             type="button"
                             onClick={() => handleDownloadDoc(doc.id, doc.template?.name || 'Document')}
                             disabled={downloadingDocId === doc.id}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 text-slate-700 text-xs font-bold transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 text-slate-700 text-[10px] sm:text-xs font-bold transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
                           >
                             {downloadingDocId === doc.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-500" />
+                              <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin text-indigo-500 flex-shrink-0" />
                             ) : (
-                              <Download className="h-3.5 w-3.5" />
+                              <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
                             )}
-                            Download
+                            <span className="hidden sm:inline">Download</span>
                           </button>
                         </div>
                       </div>

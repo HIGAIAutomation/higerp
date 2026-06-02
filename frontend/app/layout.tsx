@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
-import { Poppins, Outfit, Inter, Playfair_Display } from "next/font/google";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { UndoProvider } from "@/components/providers/undo-provider";
+import TopNav from "@/components/topnav/TopNav";
+import type { Metadata } from "next";
+import { Inter, Outfit, Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -43,6 +44,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <UndoProvider>
+            <TopNav />
             {children}
           </UndoProvider>
         </AuthProvider>

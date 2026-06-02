@@ -55,11 +55,22 @@ export async function fetchWithAuth(path: string, options: RequestInit = {}): Pr
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    cache: 'no-store',
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      cache: 'no-store',
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    // Network level failure (server down, CORS, no connection).
+    // For profile fetches, return null so callers can handle unauthenticated state gracefully.
+    if (path === '/auth/profile') {
+      return null;
+    }
+    const msg = err && err.message ? err.message : 'Network error during fetch';
+    throw new Error(`Network error: ${msg}`);
+  }
 
   if (!response.ok) {
     // If fetching profile fails due to auth issues (e.g. invalid/expired token, db reset),

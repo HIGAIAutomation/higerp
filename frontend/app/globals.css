@@ -30,7 +30,20 @@
   --font-sans: var(--font-poppins), system-ui, sans-serif;
 }
 
+* {
+  /* Ensure inputs are not zoomed on mobile when focused */
+  @apply text-base;
+}
 
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
+}
 
 body {
   background: var(--background);
@@ -38,6 +51,10 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Mobile touch improvements */
+  -webkit-touch-callout: none;
+  /* Better mobile viewport */
+  touch-action: manipulation;
 }
 
 /* Glassmorphism Utility */
@@ -45,6 +62,83 @@ body {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Mobile-friendly input focus - prevent zoom on iOS */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Scrollbar styling for better mobile feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Utility for hiding scrollbars while keeping scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  /* Better button touch targets */
+  button,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better link touch targets */
+  a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Improve form field accessibility on mobile */
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  /* Better spacing on mobile */
+  body {
+    line-height: 1.5;
+  }
+
+  /* Hide hover effects on mobile */
+  @media (hover: none) {
+    button:hover,
+    a:hover,
+    [role="button"]:hover {
+      opacity: 1;
+    }
+  }
 }
 
 

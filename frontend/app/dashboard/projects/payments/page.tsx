@@ -1,23 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/dashboard-layout';
-import { fetchWithAuth } from '@/lib/api';
-import { useAuth } from '@/components/providers/auth-provider';
-import { 
-  CreditCard,
-  Plus,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  User,
-  ShieldAlert,
-  Send,
-  Check,
-  Download
-} from 'lucide-react';
 import HIGLogo from '@/components/logo';
+import { useAuth } from '@/components/providers/auth-provider';
+import { fetchWithAuth } from '@/lib/api';
+import {
+    AlertCircle,
+    Check,
+    CheckCircle2,
+    Clock,
+    CreditCard,
+    Download,
+    Loader2,
+    Plus,
+    Send,
+    ShieldAlert,
+    User
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface Project {
   id: string;
@@ -375,6 +375,7 @@ export default function PaymentsPage() {
             .invoice-title { font-size: 36px; font-weight: 800; color: #0ea5e9; letter-spacing: 2px; line-height: 1; margin-bottom: 8px; }
             .invoice-number { font-size: 13px; font-weight: 700; color: #334155; margin-top: 4px; }
             .date-row { font-size: 11px; font-weight: 500; color: #64748b; margin-top: 4px; }
+            .project-price { font-size: 11px; font-weight: 700; color: #0f172a; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
             
             .client-section { margin-top: 20px; margin-bottom: 40px; }
             .client-title { font-size: 11px; font-weight: 700; color: #0ea5e9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
@@ -392,9 +393,12 @@ export default function PaymentsPage() {
             .summary-row.total { font-size: 16px; font-weight: 700; color: #0ea5e9; border-top: 1px solid #cbd5e1; padding-top: 12px; margin-top: 4px; margin-bottom: 0; }
             .summary-row.pending { font-size: 12px; font-weight: 600; color: #ef4444; }
             
-            .sign-section { margin-top: 50px; text-align: right; padding-right: 20px; }
-            .sign-label { font-size: 12px; font-weight: 700; color: #1e293b; margin-top: 5px; }
-            .sign-sub { font-size: 10px; font-weight: 600; color: #64748b; }
+            .sign-section { margin-top: 50px; display: flex; justify-content: flex-end; }
+            .sign-box { text-align: center; width: 220px; }
+            .sign-label { font-size: 12px; font-weight: 700; color: #1e293b; margin-top: 8px; }
+            .sign-sub { font-size: 10px; font-weight: 600; color: #64748b; margin-top: 2px; }
+            .sign-line { border-top: 2px solid #0f172a; height: 60px; display: flex; align-items: flex-end; justify-content: center; font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+            .sign-header { font-size: 9px; color: #64748b; font-weight: 700; margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
             
             .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; font-weight: 600; }
           </style>
@@ -412,9 +416,10 @@ export default function PaymentsPage() {
             </div>
             <div class="header-right">
               <div class="invoice-title">INVOICE</div>
-              <div class="invoice-number"># ${p.invoiceNumber}</div>
+              <div class="invoice-number">${p.invoiceNumber.split('#').pop()?.split('-PHASE')[0]?.trim()}</div>
               <div class="date-row">Issue Date: ${p.createdAt.split('T')[0]}</div>
               <div class="date-row">Due Date: ${p.dueDate.split('T')[0]}</div>
+              <div class="project-price">Total Project: Rs. ${Number(p.project?.price).toLocaleString()}</div>
             </div>
           </div>
 
@@ -422,7 +427,6 @@ export default function PaymentsPage() {
             <div class="client-title">Bill To</div>
             <div class="client-details">
               <strong>${client.username || p.project?.clientName || 'Client Name'}</strong><br/>
-              Client ID: ${client.id || 'N/A'}<br/>
               Address: ${p.project?.clientAddress || 'N/A'}<br/>
               Phone: ${p.project?.whatsappNumber || 'N/A'}<br/>
               Email: ${p.project?.clientEmail || client.email || 'N/A'}
@@ -477,9 +481,9 @@ export default function PaymentsPage() {
           </div>
 
           <div class="sign-section">
-            <div style="display: flex; flex-direction: column; align-items: flex-end;">
-              <div style="font-size: 10px; color: #94a3b8; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px;">AUTHORIZED BY</div>
-              ${ceoSignatureHtml || '<div style="height: 60px;"></div>'}
+            <div class="sign-box">
+              <div class="sign-header">Authorized By</div>
+              <div class="sign-line"></div>
               <div class="sign-label">Mr. Ajay S</div>
               <div class="sign-sub">CEO, HIG AI Automation LLP</div>
             </div>
@@ -977,7 +981,8 @@ export default function PaymentsPage() {
                       <thead>
                         <tr className="border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-widest pb-3">
                           <th className="pb-3">Bill Number</th>
-                          <th className="pb-3">Project / Client</th>
+                          <th className="pb-3">Project</th>
+                          <th className="pb-3">Client Details</th>
                           <th className="pb-3">Amount</th>
                           <th className="pb-3">Due Date</th>
                           <th className="pb-3">Status</th>
@@ -989,6 +994,13 @@ export default function PaymentsPage() {
                           <tr key={p.id} className="hover:bg-secondary/20 transition-colors">
                             <td className="py-4 font-bold text-foreground">{p.invoiceNumber}</td>
                             <td className="py-4 text-foreground/90">{p.project.name}</td>
+                            <td className="py-4">
+                              <div className="text-xs space-y-0.5">
+                                <div className="font-semibold text-foreground">{p.project.clientName}</div>
+                                <div className="text-muted-foreground text-[9px]">📧 {p.project.clientEmail}</div>
+                                <div className="text-muted-foreground text-[9px]">📍 {p.project.clientAddress}</div>
+                              </div>
+                            </td>
                             <td className="py-4 text-accent font-bold">Rs. {parseFloat(p.amount).toLocaleString()}</td>
                             <td className="py-4 flex items-center gap-1.5 text-muted-foreground">
                               <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
