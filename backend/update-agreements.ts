@@ -27,11 +27,11 @@ const DOC_HEADER = `
   </div>
 </div>`;
 
-const NEW_TEMPLATE = `
+const NEW_IPAA_TEMPLATE = `
 ${DOC_HEADER}
 <div style="font-family:'Inter',sans-serif;padding:10px;line-height:1.6;color:#1e293b;font-size:13px;">
-  <h1 style="font-size:20px;font-weight:800;color:#0f172a;margin-bottom:4px;text-align:center;letter-spacing:1px;">EMPLOYMENT AGREEMENT</h1>
-  <p style="color:#64748b;font-size:12px;margin-bottom:20px;text-align:center;">This Employment Agreement (&ldquo;Agreement&rdquo;) is made and entered into on {{joiningDate}}, between:</p>
+  <h1 style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:4px;text-align:center;letter-spacing:0.5px;">INTELLECTUAL PROPERTY ASSIGNMENT AGREEMENT (IPAA)</h1>
+  <p style="color:#64748b;font-size:12px;margin-bottom:20px;text-align:center;">This Intellectual Property Assignment Agreement (&ldquo;Agreement&rdquo;) is made and entered into on {{joiningDate}}, by and between:</p>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:15px;">
@@ -53,104 +53,113 @@ ${DOC_HEADER}
     </div>
   </div>
 
-  <p style="margin-bottom:20px;">Both parties hereby agree to the following terms and conditions:</p>
+  <p style="margin-bottom:20px;font-style:italic;color:#64748b;text-align:center;">Collectively referred to as the &ldquo;Parties&rdquo;.</p>
 
   <div style="space-y-4;">
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">1. APPOINTMENT</strong>
-      <p style="margin:0;">The Company hereby appoints the Employee as <strong style="text-transform:capitalize;">{{designation}}</strong>, and the Employee agrees to serve the Company under the terms and conditions set forth in this Agreement.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">1. PURPOSE</strong>
+      <p style="margin:0;">The purpose of this Agreement is to ensure that all intellectual property, inventions, developments, and work products created by the Employee during the course of employment or engagement with <strong>HIG AI Automation LLP</strong> remain the exclusive property of the Company.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">2. DATE OF JOINING</strong>
-      <p style="margin:0;">The Employee shall commence employment on <strong>{{joiningDate}}</strong>.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">2. DEFINITIONS</strong>
+      <p style="margin:0 0 6px 0;">For the purpose of this Agreement, &ldquo;Intellectual Property&rdquo; (&ldquo;IP&rdquo;) includes but is not limited to:</p>
+      <ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+        <li>Software and source code</li>
+        <li>AI automation systems</li>
+        <li>Scripts and APIs</li>
+        <li>Websites and applications</li>
+        <li>Databases and dashboards</li>
+        <li>UI/UX designs</li>
+        <li>Logos, graphics, &amp; branding</li>
+        <li>Marketing content &amp; strategies</li>
+        <li>Business methods &amp; workflows</li>
+        <li>Technical documentation</li>
+        <li>Trade secrets</li>
+        <li>Client deliverables</li>
+      </ul>
+      <p style="margin:0;font-size:11px;color:#64748b;font-style:italic;">Whether developed individually or collaboratively.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">3. PLACE OF WORK</strong>
-      <p style="margin:0;">The Employee shall work from: <strong>${COMPANY}, Tirunelveli, Tamil Nadu</strong>. The Company may change the work location, assign remote work, or transfer responsibilities as required.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">3. ASSIGNMENT OF INTELLECTUAL PROPERTY</strong>
+      <p style="margin:0;">The Employee hereby irrevocably assigns, transfers, and conveys to <strong>HIG AI Automation LLP</strong> all worldwide rights, title, and interest in any Intellectual Property created, developed, conceived, or reduced to practice during employment with the Company, company-sponsored projects, use of company resources, or work related to company business or clients. This assignment applies whether such work is created during office hours or outside working hours if related to Company business.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:6px;">4. EMPLOYMENT TYPE</strong>
-      <div style="display:flex;gap:20px;font-size:12px;font-weight:600;color:#334155;background:#f8fafc;padding:10px 15px;border-radius:8px;border:1px solid #e2e8f0;">
-        <span>☑ Full-Time</span>
-        <span>☐ Part-Time</span>
-        <span>☐ Internship</span>
-        <span>☐ Contract-Based</span>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">4. WORK MADE FOR HIRE</strong>
+      <p style="margin:0;">All work created by the Employee during employment shall be considered &ldquo;Work Made for Hire&rdquo; under applicable intellectual property laws. The Company shall be the sole and exclusive owner of all such work products.</p>
+    </div>
+
+    <div style="margin-bottom:15px;">
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">5. COMPANY RESOURCES</strong>
+      <p style="margin:0;">Any work developed using company devices, software, accounts, systems, infrastructure, client information, or internal tools shall automatically become the exclusive property of <strong>HIG AI Automation LLP</strong>.</p>
+    </div>
+
+    <div style="margin-bottom:15px;">
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">6. DISCLOSURE OBLIGATION</strong>
+      <p style="margin:0;">The Employee agrees to promptly disclose to the Company any invention, innovation, design, development, improvement, automation process, software code, or creative work created during the course of employment.</p>
+    </div>
+
+    <div style="margin-bottom:15px;">
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">7. PRE-EXISTING INTELLECTUAL PROPERTY</strong>
+      <p style="margin:0 0 6px 0;">The Employee shall disclose any pre-existing intellectual property owned before joining the Company. Such pre-existing IP shall remain the property of the Employee unless explicitly assigned in writing.</p>
+      <div style="border:1px dashed #cbd5e1;padding:10px;border-radius:6px;font-style:italic;color:#64748b;font-size:11px;">
+        Pre-Existing IP Disclosure (if any): None
       </div>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">5. DUTIES &amp; RESPONSIBILITIES</strong>
-      <p style="margin:0 0 6px 0;">The Employee shall:</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">8. RESTRICTIONS</strong>
+      <p style="margin:0 0 6px 0;">The Employee shall not:</p>
       <ul style="margin:0;padding-left:20px;">
-        <li style="margin-bottom:4px;">Perform assigned duties sincerely and professionally.</li>
-        <li style="margin-bottom:4px;">Maintain discipline and ethical behavior.</li>
-        <li style="margin-bottom:4px;">Meet project deadlines and reporting requirements.</li>
-        <li style="margin-bottom:4px;">Protect company assets and confidential information.</li>
-        <li style="margin-bottom:4px;">Follow company policies and management instructions.</li>
+        <li style="margin-bottom:4px;">Reuse company-developed code or systems for personal business</li>
+        <li style="margin-bottom:4px;">Share proprietary materials with third parties</li>
+        <li style="margin-bottom:4px;">Sell or license company-created assets</li>
+        <li style="margin-bottom:4px;">Claim ownership of Company IP</li>
+        <li style="margin-bottom:4px;">Copy internal systems or workflows</li>
       </ul>
+      <p style="margin:0;font-size:11px;color:#64748b;font-style:italic;">without prior written consent from the Company.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">6. WORKING HOURS</strong>
-      <p style="margin:0;">The standard working hours shall be: <strong>Monday to Saturday, 9:30 AM &ndash; 6:30 PM</strong>. The Employee may be required to work additional hours depending on project requirements.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">9. MORAL RIGHTS WAIVER</strong>
+      <p style="margin:0;">To the extent permitted by law, the Employee waives any moral rights, authorship claims, or similar rights relating to Company-owned intellectual property.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">7. COMPENSATION</strong>
-      <p style="margin:0;">The Company shall pay the Employee a Monthly Salary of <strong>₹{{salaryBasis}}</strong>. Additional incentives, bonuses, or benefits may be provided based on performance and company policies. Salary shall be credited monthly to the Employee&rsquo;s registered bank account.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">10. ASSISTANCE &amp; COOPERATION</strong>
+      <p style="margin:0;">The Employee agrees to cooperate with the Company in filing patents, registering copyrights, trademark applications, legal documentation, and IP enforcement procedures, even after termination of employment, if reasonably requested by the Company.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">8. PROBATION PERIOD</strong>
-      <p style="margin:0;">The Employee shall be under probation for a period of <strong>3 months</strong> from the date of joining. During probation, the Company reserves the right to terminate employment without prior notice if performance or conduct is found unsatisfactory.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">11. CONFIDENTIALITY</strong>
+      <p style="margin:0;">Any intellectual property or related information developed during employment shall be treated as confidential and subject to the Company&rsquo;s NDA and confidentiality policies.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">9. CONFIDENTIALITY</strong>
-      <p style="margin:0 0 6px 0;">The Employee agrees to maintain complete confidentiality regarding client information, source code, business strategies, marketing plans, financial data, internal documents, AI automation systems, and company credentials/passwords. The Employee shall not disclose or misuse confidential information during or after employment.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">12. TERMINATION</strong>
+      <p style="margin:0;">Termination or resignation shall not affect the Company&rsquo;s ownership rights over intellectual property created during employment. All Company-owned assets and materials must be returned immediately upon termination.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">10. INTELLECTUAL PROPERTY</strong>
-      <p style="margin:0;">Any work, design, software, code, content, automation systems, or materials developed during employment shall remain the sole property of <strong>${COMPANY}</strong>. The Employee shall not claim ownership rights over company projects or client deliverables.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">13. BREACH OF AGREEMENT</strong>
+      <p style="margin:0;">Any unauthorized use, disclosure, copying, or misuse of Company intellectual property may result in legal action, financial damages, injunctions, criminal or civil liability, and immediate termination.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">11. NON-COMPETE &amp; NON-SOLICITATION</strong>
-      <p style="margin:0;">During employment and for a period of <strong>12 months</strong> after leaving the Company, the Employee shall not directly compete with the Company, solicit company clients, recruit company employees, or use company data for personal business purposes.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">14. GOVERNING LAW</strong>
+      <p style="margin:0;">This Agreement shall be governed by the laws of India and subject to the jurisdiction of the courts of <strong>Tirunelveli, Tamil Nadu</strong>.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">12. LEAVE POLICY</strong>
-      <p style="margin:0;">The Employee shall be entitled to leave as per company policy. Unauthorized absence or excessive leave without approval may result in disciplinary action.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">15. ENTIRE AGREEMENT</strong>
+      <p style="margin:0;">This Agreement constitutes the complete understanding between the Parties concerning intellectual property ownership and supersedes all prior discussions or understandings.</p>
     </div>
 
     <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">13. CODE OF CONDUCT</strong>
-      <p style="margin:0;">The Employee shall maintain professional conduct and shall not engage in harassment, fraudulent activities, data theft, misuse of company resources, illegal activities, or defamation of the Company or clients. Violation may result in immediate termination and legal action.</p>
-    </div>
-
-    <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">14. TERMINATION</strong>
-      <p style="margin:0;">Either party may terminate this Agreement by giving <strong>15 days</strong> written notice. The Company reserves the right to terminate employment immediately in cases involving misconduct, breach of confidentiality, fraud, poor performance, or policy violations. Upon termination, the Employee must return all company property, credentials, files, and devices.</p>
-    </div>
-
-    <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">15. BACKGROUND VERIFICATION</strong>
-      <p style="margin:0;">Employment is subject to successful verification of all documents and information provided by the Employee. Providing false information may result in termination.</p>
-    </div>
-
-    <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">16. GOVERNING LAW</strong>
-      <p style="margin:0;">This Agreement shall be governed under the laws of India and subject to the jurisdiction of the courts of <strong>Tirunelveli, Tamil Nadu</strong>.</p>
-    </div>
-
-    <div style="margin-bottom:15px;">
-      <strong style="color:#0f172a;display:block;margin-bottom:4px;">17. ACCEPTANCE</strong>
-      <p style="margin:0;">By signing this Agreement, the Employee confirms that they have read, understood, and agreed to all terms and conditions mentioned herein.</p>
+      <strong style="color:#0f172a;display:block;margin-bottom:4px;">16. ACCEPTANCE</strong>
+      <p style="margin:0;">By signing below, the Employee acknowledges that they have read, understood, and agreed to all terms and conditions of this Intellectual Property Assignment Agreement.</p>
     </div>
   </div>
 
@@ -159,13 +168,18 @@ ${DOC_HEADER}
     
     <table style="width:100%;margin-top:25px;font-size:11px;border-collapse:collapse;">
       <tr>
-        <td style="width:50%;padding-bottom:15px;font-weight:700;vertical-align:top;">FOR HIG AI AUTOMATION LLP</td>
-        <td style="width:50%;padding-bottom:15px;font-weight:700;vertical-align:top;">EMPLOYEE</td>
+        <td style="width:33%;padding-bottom:15px;font-weight:700;vertical-align:top;">FOR HIG AI AUTOMATION LLP</td>
+        <td style="width:33%;padding-bottom:15px;font-weight:700;vertical-align:top;">EMPLOYEE</td>
+        <td style="width:33%;padding-bottom:15px;font-weight:700;vertical-align:top;">WITNESS (Optional)</td>
       </tr>
       <tr>
         <td style="padding-bottom:5px;">
           <!-- Admin/CEO Signature (Default) -->
           <div style="font-family: 'Playfair Display', cursive; font-size: 24px; color: #1e293b; margin: 15px 0 5px 0; font-style: italic;">Ajay S</div>
+          ____________________
+        </td>
+        <td style="padding-bottom:5px;vertical-align:bottom;">
+          <div style="height: 40px;"></div>
           ____________________
         </td>
         <td style="padding-bottom:5px;vertical-align:bottom;">
@@ -185,11 +199,16 @@ ${DOC_HEADER}
           Name: {{firstName}} {{lastName}}<br/>
           Date: {{joiningDate}}
         </td>
+        <td style="color:#64748b;padding-bottom:15px;vertical-align:top;">
+          Witness Signature<br/>
+          Name: ____________________<br/>
+          Date: ____________________
+        </td>
       </tr>
     </table>
   </div>
 
-  <p style="font-size:10px;color:#94a3b8;margin-top:30px;text-align:center;font-style:italic;">This document is confidential and intended solely for employment purposes under HIG AI Automation LLP.</p>
+  <p style="font-size:10px;color:#94a3b8;margin-top:30px;text-align:center;font-style:italic;">This document is confidential and legally binding under applicable intellectual property laws.</p>
 </div>`;
 
 async function run() {
@@ -199,57 +218,51 @@ async function run() {
     });
   }
 
-  // Find the template ID for Employment Agreement
-  const template = await prisma.documentTemplate.findFirst({
-    where: { name: 'Employment Agreement' }
-  });
-
-  if (!template) {
-    console.error('Employment Agreement template not found');
-    process.exit(1);
-  }
-
-  // Update template HTML in the database just in case
+  // 1. Update IPAA template in DB
   await prisma.documentTemplate.updateMany({
-    where: { name: 'Employment Agreement' },
-    data: { contentHtml: NEW_TEMPLATE }
+    where: { name: 'IP Assignment Agreement (IPAA)' },
+    data: { contentHtml: NEW_IPAA_TEMPLATE }
   });
 
-  // Find all generated employment agreements that are unsigned
-  const docs = await prisma.generatedDocument.findMany({
-    where: {
-      templateId: template.id,
-      status: 'generated'
-    }
+  const ipaaTemplate = await prisma.documentTemplate.findFirst({
+    where: { name: 'IP Assignment Agreement (IPAA)' }
   });
 
-  console.log(`Found ${docs.length} generated unsigned agreements to update.`);
-
-  for (const doc of docs) {
-    // Fetch the associated employee
-    const employee = await prisma.employee.findUnique({
-      where: { id: doc.entityId }
+  if (ipaaTemplate) {
+    const docs = await prisma.generatedDocument.findMany({
+      where: {
+        templateId: ipaaTemplate.id,
+        status: 'generated'
+      }
     });
 
-    if (employee) {
-      const data = {
-        ...employee,
-        companyName: COMPANY,
-        joiningDate: employee.joiningDate
-          ? new Date(employee.joiningDate).toISOString().split('T')[0]
-          : 'N/A',
-        address: (employee.metadata as any)?.address || '',
-        contact: (employee.metadata as any)?.contact || '',
-      };
+    console.log(`Found ${docs.length} generated unsigned IPAA documents to update.`);
 
-      const compiled = Handlebars.compile(NEW_TEMPLATE);
-      const contentHtml = compiled(data);
-
-      await prisma.generatedDocument.update({
-        where: { id: doc.id },
-        data: { compiledHtml: contentHtml }
+    for (const doc of docs) {
+      const employee = await prisma.employee.findUnique({
+        where: { id: doc.entityId }
       });
-      console.log(`Updated agreement for: ${employee.firstName} ${employee.lastName}`);
+
+      if (employee) {
+        const data = {
+          ...employee,
+          companyName: COMPANY,
+          joiningDate: employee.joiningDate
+            ? new Date(employee.joiningDate).toISOString().split('T')[0]
+            : 'N/A',
+          address: (employee.metadata as any)?.address || '',
+          contact: (employee.metadata as any)?.contact || '',
+        };
+
+        const compiled = Handlebars.compile(NEW_IPAA_TEMPLATE);
+        const contentHtml = compiled(data);
+
+        await prisma.generatedDocument.update({
+          where: { id: doc.id },
+          data: { compiledHtml: contentHtml }
+        });
+        console.log(`Updated IPAA for: ${employee.firstName} ${employee.lastName}`);
+      }
     }
   }
 
