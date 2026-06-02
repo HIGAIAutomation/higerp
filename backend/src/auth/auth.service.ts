@@ -3,11 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
+import { HrmsService } from '../hrms/hrms.service';
+
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private hrmsService: HrmsService,
   ) {}
 
   async validateUser(username: string, pass: string, tenantId: string = '00000000-0000-0000-0000-000000000000'): Promise<any> {
@@ -145,10 +148,17 @@ export class AuthService {
         where: { tenantId, email: empEmail }
       });
       if (emp && emp.status === 'pending') {
-        await this.prisma.employee.update({
+        const updatedEmp = await this.prisma.employee.update({
           where: { id: emp.id },
           data: { status: 'active', designation: updateData.designation || emp.designation, salaryBasis: updateData.salary || emp.salaryBasis }
         });
+
+        // Generate onboarding documents on approval
+        try {
+          await this.hrmsService.generateOnboardingDocuments(tenantId, updatedEmp);
+        } catch (error) {
+          console.error(`Failed to generate onboarding documents on approval: ${error.message}`);
+        }
       }
     }
 

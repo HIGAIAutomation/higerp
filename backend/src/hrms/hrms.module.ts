@@ -7,5 +7,6 @@ import { DocumentModule } from '../document/document.module';
   imports: [DocumentModule],
   providers: [HrmsService],
   controllers: [HrmsController],
+  exports: [HrmsService],
 })
 export class HrmsModule {}

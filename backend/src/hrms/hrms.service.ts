@@ -322,6 +322,40 @@ export class HrmsService {
     }
   }
 
+  async generateOnboardingDocuments(tenantId: string, employee: any) {
+    await this.ensureTemplates(tenantId);
+
+    const docsToGenerate = [
+      'Offer Letter',
+      'Employment Agreement',
+      'NDA (Employee)',
+      'IP Assignment Agreement (IPAA)',
+    ];
+
+    const generatedDocs: any[] = [];
+    for (const docName of docsToGenerate) {
+      try {
+        const doc = await this.documentService.generateDocument(
+          docName,
+          tenantId,
+          {
+            ...employee,
+            companyName: COMPANY,
+            joiningDate: employee.joiningDate
+              ? new Date(employee.joiningDate).toISOString().split('T')[0]
+              : 'N/A',
+          },
+          'EMPLOYEE',
+          employee.id,
+        );
+        generatedDocs.push(doc);
+      } catch (error) {
+        console.error(`Failed to auto-generate ${docName}: ${error.message}`);
+      }
+    }
+    return generatedDocs;
+  }
+
   async createEmployee(tenantId: string, data: any) {
     // Seed/update HRMS document templates before creating employee
     await this.ensureTemplates(tenantId);
@@ -341,36 +375,7 @@ export class HrmsService {
       },
     });
 
-    // Automatically trigger document generation for the new employee
-    const docsToGenerate = [
-      'Offer Letter',
-      'Employment Agreement',
-      'NDA (Employee)',
-      'IP Assignment Agreement (IPAA)',
-    ];
-
-    const generatedDocs: any[] = [];
-    for (const docName of docsToGenerate) {
-      try {
-        const doc = await this.documentService.generateDocument(
-          docName,
-          tenantId,
-          {
-            ...employee,
-            companyName: COMPANY,
-            joiningDate: employee.joiningDate
-              ? employee.joiningDate.toISOString().split('T')[0]
-              : 'N/A',
-          },
-          'EMPLOYEE',
-          employee.id,
-        );
-        generatedDocs.push(doc);
-      } catch (error) {
-        console.error(`Failed to auto-generate ${docName}: ${error.message}`);
-      }
-    }
-
+    const generatedDocs = await this.generateOnboardingDocuments(tenantId, employee);
     return { ...employee, documents: generatedDocs };
   }
 
