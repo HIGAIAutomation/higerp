@@ -1681,8 +1681,8 @@ export default function ProjectsPage() {
                           
                           {docs.length === 0 ? (
                             <div className="flex items-center text-muted-foreground py-3 italic bg-card border border-dashed border-border rounded-2xl justify-center text-sm font-semibold">
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin text-accent" />
-                              Compiling documentation suite...
+                              <AlertCircle className="h-4 w-4 mr-2 text-muted-foreground" />
+                              No documentation generated.
                             </div>
                           ) : (
                             <div className="space-y-3">
