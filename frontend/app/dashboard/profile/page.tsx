@@ -87,7 +87,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  const isClient = user?.role === 'user' || user?.role === 'client';
+  const isClient = user?.role === 'client';
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [projectDocs, setProjectDocs] = useState<GeneratedDoc[]>([]);
   const [profileLoading, setProfileLoading] = useState(isClient);

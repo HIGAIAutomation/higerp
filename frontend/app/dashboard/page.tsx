@@ -466,7 +466,7 @@ const recentDocsAdmin = [
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const isClient = user?.role === "user" || user?.role === "client";
+  const isClient = user?.role === "client";
 
   // Client States
   const [projects, setProjects] = useState<Project[]>([]);

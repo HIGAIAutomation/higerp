@@ -55,7 +55,7 @@ export function Sidebar({ onClose }: { onClose?: () => void } = {}) {
   // Filter navigation links
   let visibleNavigation: typeof navigation = [];
   
-  if (user?.role === "user" || user?.role === "client") {
+  if (user?.role === "client") {
     visibleNavigation = clientNavigation;
   } else {
     visibleNavigation = navigation.filter((item) => {

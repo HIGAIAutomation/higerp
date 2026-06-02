@@ -1,4 +1,4 @@
-const BASE_URL = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : 'http://127.0.0.1:3001';
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : 'http://127.0.0.1:3001');
 const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000000';
 
 export interface UserProfile {

@@ -42,9 +42,23 @@ interface PaymentInvoice {
   whatsappSent: boolean;
   updatedBy?: string;
   createdAt: string;
+  projectId?: string;
+  projectName?: string;
+  clientName?: string;
+  whatsappNumber?: string;
   project: {
+    id?: string;
     name: string;
     whatsappNumber?: string;
+    price?: number;
+    client?: {
+      username?: string;
+      email?: string;
+    } | null;
+    clientName?: string | null;
+    clientAddress?: string | null;
+    clientEmail?: string | null;
+    modules?: string | null;
   };
 }
 

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserProfile, getAuthToken, setAuthToken, logout as apiLogout, fetchWithAuth } from '@/lib/api';
+import { UserProfile, getAuthToken, setAuthToken, logout as apiLogout, fetchWithAuth, BASE_URL } from '@/lib/api';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (username: string, pass: string) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/auth/login', {
+      const response = await fetch(`${BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password: pass }),
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (formData: any) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/auth/register', {
+      const response = await fetch(`${BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

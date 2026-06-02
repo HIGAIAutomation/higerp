@@ -337,6 +337,7 @@ export class HrmsService {
         profDocNumber: data.profDocNumber || null,
         joiningDate: new Date(data.joiningDate),
         status: 'active',
+        metadata: data.metadata || null,
       },
     });
 
