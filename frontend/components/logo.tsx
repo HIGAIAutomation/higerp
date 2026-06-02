@@ -14,7 +14,6 @@ export default function HIGLogo({ className = '', size = 32 }: LogoProps) {
       width={size}
       height={size}
       className={`rounded-lg object-cover flex-shrink-0 ${className}`}
-      style={{ width: 'auto', height: 'auto' }}
       priority
     />
   );

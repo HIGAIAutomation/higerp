@@ -75,10 +75,9 @@ export default function Home() {
           <Image
             src="/logo.png"
             alt="HIG AI Automation LLP"
-            width={100}
-            height={100}
+            width={80}
+            height={80}
             className="relative rounded-2xl sm:rounded-3xl shadow-2xl shadow-accent/30 border-4 border-white/10"
-            style={{ width: 'auto', height: 'auto' }}
             priority
           />
         </div>
