@@ -395,56 +395,112 @@ export default function HRMSPage() {
                 No employee records found.
               </div>
             ) : (
-              <div className="overflow-x-auto font-inter">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border text-[10px] font-bold text-muted-foreground tracking-wider uppercase bg-secondary/10">
-                      <th className="pb-4 pt-2 px-3">Name</th>
-                      <th className="pb-4 pt-2 px-3">Email</th>
-                      <th className="pb-4 pt-2 px-3">Designation</th>
-                      <th className="pb-4 pt-2 px-3">Prof Doc #</th>
-                      <th className="pb-4 pt-2 px-3">Joined Date</th>
-                      <th className="pb-4 pt-2 px-3">Salary Basis</th>
-                      <th className="pb-4 pt-2 px-3">Status</th>
-                      <th className="pb-4 pt-2 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border text-sm">
-                    {employeeRecords.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-secondary/20 transition-colors">
-                        <td className="py-4 px-3 font-bold text-primary">{emp.firstName} {emp.lastName}</td>
-                        <td className="py-4 px-3 text-muted-foreground">{emp.email}</td>
-                        <td className="py-4 px-3 font-medium text-foreground/80 capitalize">{emp.designation}</td>
-                        <td className="py-4 px-3 text-muted-foreground font-mono text-xs">{emp.profDocNumber || '—'}</td>
-                        <td className="py-4 px-3 text-muted-foreground">{emp.joiningDate ? emp.joiningDate.split('T')[0] : 'N/A'}</td>
-                        <td className="py-4 px-3 font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-4 px-3">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 capitalize">
-                            {emp.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-3 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => setSelectedEmpDetails(emp)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
-                            >
-                              <User className="h-3.5 w-3.5" />
-                              Details
-                            </button>
-                            <button
-                              onClick={() => setSelectedEmpDocs(emp)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
-                            >
-                              <FileText className="h-3.5 w-3.5" />
-                              Docs
-                            </button>
-                          </div>
-                        </td>
+              <div className="font-inter">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border text-[10px] font-bold text-muted-foreground tracking-wider uppercase bg-secondary/10">
+                        <th className="pb-4 pt-2 px-3">Name</th>
+                        <th className="pb-4 pt-2 px-3">Email</th>
+                        <th className="pb-4 pt-2 px-3">Designation</th>
+                        <th className="pb-4 pt-2 px-3">Prof Doc #</th>
+                        <th className="pb-4 pt-2 px-3">Joined Date</th>
+                        <th className="pb-4 pt-2 px-3">Salary Basis</th>
+                        <th className="pb-4 pt-2 px-3">Status</th>
+                        <th className="pb-4 pt-2 px-3 text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border text-sm">
+                      {employeeRecords.map((emp) => (
+                        <tr key={emp.id} className="hover:bg-secondary/20 transition-colors">
+                          <td className="py-4 px-3 font-bold text-primary">{emp.firstName} {emp.lastName}</td>
+                          <td className="py-4 px-3 text-muted-foreground">{emp.email}</td>
+                          <td className="py-4 px-3 font-medium text-foreground/80 capitalize">{emp.designation}</td>
+                          <td className="py-4 px-3 text-muted-foreground font-mono text-xs">{emp.profDocNumber || '—'}</td>
+                          <td className="py-4 px-3 text-muted-foreground">{emp.joiningDate ? emp.joiningDate.split('T')[0] : 'N/A'}</td>
+                          <td className="py-4 px-3 font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          <td className="py-4 px-3">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 capitalize">
+                              {emp.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => setSelectedEmpDetails(emp)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                              >
+                                <User className="h-3.5 w-3.5" />
+                                Details
+                              </button>
+                              <button
+                                onClick={() => setSelectedEmpDocs(emp)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                              >
+                                <FileText className="h-3.5 w-3.5" />
+                                Docs
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card List View */}
+                <div className="md:hidden space-y-4">
+                  {employeeRecords.map((emp) => (
+                    <div key={emp.id} className="p-5 bg-secondary/20 border border-border rounded-2xl space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-primary text-base">{emp.firstName} {emp.lastName}</h4>
+                          <p className="text-xs text-muted-foreground mt-0.5 capitalize">{emp.designation}</p>
+                        </div>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 capitalize">
+                          {emp.status}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs border-y border-border/50 py-3 text-muted-foreground">
+                        <div>
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">Joined</span>
+                          <span className="font-semibold text-foreground/80">{emp.joiningDate ? emp.joiningDate.split('T')[0] : 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">Salary</span>
+                          <span className="font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">Email</span>
+                          <span className="font-medium text-foreground/80 break-all">{emp.email}</span>
+                        </div>
+                        {emp.profDocNumber && (
+                          <div className="col-span-2">
+                            <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">Doc ID</span>
+                            <span className="font-mono text-foreground/80">{emp.profDocNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2 pt-1">
+                        <button
+                          onClick={() => setSelectedEmpDetails(emp)}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                        >
+                          <User className="h-3.5 w-3.5" />
+                          Details
+                        </button>
+                        <button
+                          onClick={() => setSelectedEmpDocs(emp)}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Docs
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -476,60 +532,118 @@ export default function HRMSPage() {
                 No intern records found.
               </div>
             ) : (
-              <div className="overflow-x-auto font-inter">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border text-[10px] font-bold text-muted-foreground tracking-wider uppercase bg-secondary/10">
-                      <th className="pb-4 pt-2 px-3">Student Name</th>
-                      <th className="pb-4 pt-2 px-3">Email</th>
-                      <th className="pb-4 pt-2 px-3">Domain</th>
-                      <th className="pb-4 pt-2 px-3">College</th>
-                      <th className="pb-4 pt-2 px-3">Reg. Number</th>
-                      <th className="pb-4 pt-2 px-3">Start Date</th>
-                      <th className="pb-4 pt-2 px-3">End Date</th>
-                      <th className="pb-4 pt-2 px-3">Stipend</th>
-                      <th className="pb-4 pt-2 px-3">Status</th>
-                      <th className="pb-4 pt-2 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border text-sm">
-                    {internRecords.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-secondary/20 transition-colors">
-                        <td className="py-4 px-3 font-bold text-primary">{emp.firstName}</td>
-                        <td className="py-4 px-3 text-muted-foreground">{emp.email}</td>
-                        <td className="py-4 px-3 font-medium text-foreground/80 capitalize">{emp.designation}</td>
-                        <td className="py-4 px-3 text-muted-foreground truncate max-w-[150px]">{emp.metadata?.college || '—'}</td>
-                        <td className="py-4 px-3 text-muted-foreground font-mono text-xs">{emp.profDocNumber || '—'}</td>
-                        <td className="py-4 px-3 text-muted-foreground">{emp.joiningDate ? emp.joiningDate.split('T')[0] : 'N/A'}</td>
-                        <td className="py-4 px-3 text-muted-foreground">{emp.metadata?.endDate || '—'}</td>
-                        <td className="py-4 px-3 font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-4 px-3">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 capitalize">
-                            {emp.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-3 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => setSelectedEmpDetails(emp)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
-                            >
-                              <User className="h-3.5 w-3.5" />
-                              Details
-                            </button>
-                            <button
-                              onClick={() => setSelectedEmpDocs(emp)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
-                            >
-                              <FileText className="h-3.5 w-3.5" />
-                              Docs
-                            </button>
-                          </div>
-                        </td>
+              <div className="font-inter">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border text-[10px] font-bold text-muted-foreground tracking-wider uppercase bg-secondary/10">
+                        <th className="pb-4 pt-2 px-3">Student Name</th>
+                        <th className="pb-4 pt-2 px-3">Email</th>
+                        <th className="pb-4 pt-2 px-3">Domain</th>
+                        <th className="pb-4 pt-2 px-3">College</th>
+                        <th className="pb-4 pt-2 px-3">Reg. Number</th>
+                        <th className="pb-4 pt-2 px-3">Start Date</th>
+                        <th className="pb-4 pt-2 px-3">End Date</th>
+                        <th className="pb-4 pt-2 px-3">Stipend</th>
+                        <th className="pb-4 pt-2 px-3">Status</th>
+                        <th className="pb-4 pt-2 px-3 text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border text-sm">
+                      {internRecords.map((emp) => (
+                        <tr key={emp.id} className="hover:bg-secondary/20 transition-colors">
+                          <td className="py-4 px-3 font-bold text-primary">{emp.firstName}</td>
+                          <td className="py-4 px-3 text-muted-foreground">{emp.email}</td>
+                          <td className="py-4 px-3 font-medium text-foreground/80 capitalize">{emp.designation}</td>
+                          <td className="py-4 px-3 text-muted-foreground truncate max-w-[150px]">{emp.metadata?.college || '—'}</td>
+                          <td className="py-4 px-3 text-muted-foreground font-mono text-xs">{emp.profDocNumber || '—'}</td>
+                          <td className="py-4 px-3 text-muted-foreground">{emp.joiningDate ? emp.joiningDate.split('T')[0] : 'N/A'}</td>
+                          <td className="py-4 px-3 text-muted-foreground">{emp.metadata?.endDate || '—'}</td>
+                          <td className="py-4 px-3 font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          <td className="py-4 px-3">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 capitalize">
+                              {emp.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => setSelectedEmpDetails(emp)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                              >
+                                <User className="h-3.5 w-3.5" />
+                                Details
+                              </button>
+                              <button
+                                onClick={() => setSelectedEmpDocs(emp)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                              >
+                                <FileText className="h-3.5 w-3.5" />
+                                Docs
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card List View */}
+                <div className="md:hidden space-y-4">
+                  {internRecords.map((emp) => (
+                    <div key={emp.id} className="p-5 bg-secondary/20 border border-border rounded-2xl space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-primary text-base">{emp.firstName}</h4>
+                          <p className="text-xs text-muted-foreground mt-0.5 capitalize">{emp.designation}</p>
+                        </div>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 capitalize">
+                          {emp.status}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs border-y border-border/50 py-3 text-muted-foreground">
+                        <div>
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">College</span>
+                          <span className="font-semibold text-foreground/80 truncate block max-w-[140px]">{emp.metadata?.college || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">Stipend</span>
+                          <span className="font-bold text-primary">₹{Number(emp.salaryBasis).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">Start Date</span>
+                          <span className="font-semibold text-foreground/80">{emp.joiningDate ? emp.joiningDate.split('T')[0] : 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">End Date</span>
+                          <span className="font-semibold text-foreground/80">{emp.metadata?.endDate || '—'}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="block text-[10px] font-bold text-muted-foreground/60 uppercase">Email</span>
+                          <span className="font-medium text-foreground/80 break-all">{emp.email}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-1">
+                        <button
+                          onClick={() => setSelectedEmpDetails(emp)}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                        >
+                          <User className="h-3.5 w-3.5" />
+                          Details
+                        </button>
+                        <button
+                          onClick={() => setSelectedEmpDocs(emp)}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-secondary hover:bg-accent/10 hover:text-accent text-primary font-bold rounded-xl border border-border text-xs transition-colors cursor-pointer"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Docs
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
