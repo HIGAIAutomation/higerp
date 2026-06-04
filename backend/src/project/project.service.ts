@@ -260,11 +260,12 @@ export class ProjectService {
         throw new BadRequestException('Forbidden: You do not own this project');
       }
 
-      // Restrict the payload to ONLY update socialCredentials
+      // Restrict the payload to ONLY update socialCredentials or moduleDetails
       return (this.prisma.project as any).update({
         where: { id, tenantId },
         data: {
           socialCredentials: data.socialCredentials !== undefined ? data.socialCredentials : undefined,
+          moduleDetails: data.moduleDetails !== undefined ? data.moduleDetails : undefined,
         },
       });
     }
@@ -276,6 +277,13 @@ export class ProjectService {
       });
       if (existingUser) {
         clientId = existingUser.id;
+        if (data.clientPassword) {
+          const hashedPassword = await bcrypt.hash(data.clientPassword, 10);
+          await this.prisma.user.update({
+            where: { id: clientId },
+            data: { password: hashedPassword },
+          });
+        }
       } else {
         if (clientId) {
           const userUpdateData: any = { username: data.clientUsername };

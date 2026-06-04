@@ -22,6 +22,8 @@ interface Project {
   startDate: string;
   endDate: string;
   status: string;
+  clientId?: string;
+  client?: any;
 }
 
 interface GeneratedDoc {
@@ -40,7 +42,7 @@ interface GeneratedDoc {
 
 export default function AIProjectsPage() {
   const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'superadmin';
+  const hasAccess = user?.role ? ['superadmin', 'admin', 'employee', 'client'].includes(user.role) : false;
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectDocs, setProjectDocs] = useState<Record<string, GeneratedDoc[]>>({});
@@ -48,7 +50,7 @@ export default function AIProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
 
-  if (!isSuperAdmin) {
+  if (!hasAccess) {
     return (
       <DashboardLayout>
         <div className="font-sans min-h-screen flex items-center justify-center p-4">
@@ -58,7 +60,7 @@ export default function AIProjectsPage() {
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">Access Restricted</h2>
             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-              This project dashboard is restricted to **Super Admin** users only. Your account does not possess the permissions necessary to view restricted project category pipelines.
+              This project dashboard is restricted. Your account does not possess the permissions necessary to view restricted project category pipelines.
             </p>
           </div>
         </div>
@@ -70,7 +72,10 @@ export default function AIProjectsPage() {
     try {
       setLoading(true);
       const data = await fetchWithAuth('/projects');
-      const filtered = data.filter((p: Project) => p.category === 'AI Development');
+      let filtered = data.filter((p: Project) => p.category === 'AI Development');
+      if (user?.role === 'client') {
+        filtered = filtered.filter((p: Project) => p.clientId === user.id || p.client?.id === user.id);
+      }
       setProjects(filtered);
       
       const docsMap: Record<string, GeneratedDoc[]> = {};

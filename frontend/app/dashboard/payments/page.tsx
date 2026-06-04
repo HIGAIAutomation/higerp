@@ -18,6 +18,7 @@ interface PaymentInvoice {
   amount: string;
   dueDate: string;
   status: string;
+  utrNumber?: string;
   createdAt: string;
   project: {
     id: string;
@@ -237,14 +238,21 @@ export default function ClientPaymentsPage() {
                         <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
                         {p.dueDate.split('T')[0]}
                       </td>
-                      <td className="py-4">
+                      <td className="py-4 font-sans">
                         <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                           p.status === 'paid'
                             ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                            : p.utrNumber
+                            ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse'
                             : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                         }`}>
-                          {p.status}
+                          {p.status === 'paid' ? 'Paid' : p.utrNumber ? 'Verify Req' : 'Pending'}
                         </span>
+                        {p.utrNumber && (
+                          <div className="mt-1 block text-[8px] text-blue-500 font-mono uppercase font-bold tracking-wider">
+                            Ref UTR: {p.utrNumber}
+                          </div>
+                        )}
                       </td>
                       <td className="py-4 text-right">
                         <button

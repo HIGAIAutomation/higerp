@@ -98,6 +98,8 @@ interface Project {
   startDate: string;
   endDate: string;
   status: string;
+  clientId?: string;
+  client?: any;
 }
 
 // Maharaja Catering 21 items Seed Data - Updated with Special Day columns
@@ -443,6 +445,7 @@ const MAHARAJA_CATERING_DATA: ContentSheetItem[] = [
 export default function DigitalMarketingPage() {
   const { user } = useAuth();
   const isEmployee = user?.role === 'superadmin' || user?.role === 'admin' || user?.role === 'project_manager';
+  const isClient = user?.role === 'client' || user?.id?.startsWith('higc-') || (user?.role === 'user' && !(user as any).employee);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -454,7 +457,7 @@ export default function DigitalMarketingPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("2026-06"); // Set target month default
   const [activePlatform, setActivePlatform] = useState<'instagram' | 'fb' | 'youtube'>('instagram');
   const [activeTab, setActiveTab] = useState<'operations' | 'chatgpt'>('operations');
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards');
 
   // Operations States - Synced to LocalStorage per project & month
   const [contentItems, setContentItems] = useState<ContentSheetItem[]>([]);
@@ -616,7 +619,10 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
     try {
       setLoading(true);
       const data = await fetchWithAuth('/projects');
-      const filtered = data.filter((p: Project) => p.category === 'Digital Marketing');
+      let filtered = data.filter((p: Project) => p.category === 'Digital Marketing');
+      if (user?.role === 'client') {
+        filtered = filtered.filter((p: Project) => p.clientId === user.id || p.client?.id === user.id);
+      }
       
       // Seed a default project in state in case backend has no digital marketing projects
       const fallbackList = filtered.length > 0 ? filtered : [
@@ -1305,7 +1311,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 mb-8">
           <div>
             <div className="flex items-center space-x-2.5">
-              <div className="p-2 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+              <div className="p-2 rounded-2xl bg-sky-50 text-[#2E9EDE] border border-sky-100">
                 <Share2 className="h-6 w-6" />
               </div>
               <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Digital Marketing Hub</h1>
@@ -1329,24 +1335,26 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             </div>
 
             {/* Upload CSV Button */}
-            <div>
-              <input
-                type="file"
-                id="headerCsvUpload"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => document.getElementById('headerCsvUpload')?.click()}
-                className="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-indigo-600/10 text-sm uppercase tracking-wider font-extrabold"
-                title="Select and parse Excel-saved CSV content sheet"
-              >
-                <Upload className="h-4 w-4" />
-                Upload Content Sheet
-              </button>
-            </div>
+            {!isClient && (
+              <div>
+                <input
+                  type="file"
+                  id="headerCsvUpload"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('headerCsvUpload')?.click()}
+                  className="flex items-center gap-2 px-5 py-3 bg-[#2E9EDE] hover:bg-[#1c85be] text-white font-bold rounded-2xl active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-sky-100 text-sm uppercase tracking-wider font-extrabold"
+                  title="Select and parse Excel-saved CSV content sheet"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Content Sheet
+                </button>
+              </div>
+            )}
 
             {/* Download PDF Button */}
             {contentItems.length > 0 && (
@@ -1365,57 +1373,61 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             )}
 
             {/* Project Selector */}
-            <div className="w-full sm:w-64">
-              <div className="relative">
-                <select
-                  value={selectedProjectId}
-                  onChange={(e) => setSelectedProjectId(e.target.value)}
-                  className="w-full px-4 py-3 bg-card border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-semibold cursor-pointer appearance-none shadow-sm"
-                >
-                  {projects.length === 0 ? (
-                    <option value="">No Active Projects</option>
-                  ) : (
-                    projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))
-                  )}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
-                  <ChevronDown className="h-4.5 w-4.5" />
+            {!isClient && (
+              <div className="w-full sm:w-64">
+                <div className="relative">
+                  <select
+                    value={selectedProjectId}
+                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                    className="w-full px-4 py-3 bg-card border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-sky-500/20 transition-all text-sm font-semibold cursor-pointer appearance-none shadow-sm"
+                  >
+                    {projects.length === 0 ? (
+                      <option value="">No Active Projects</option>
+                    ) : (
+                      projects.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))
+                    )}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                    <ChevronDown className="h-4.5 w-4.5" />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
           </div>
         </div>
 
         {/* ===== Operations vs ChatGPT Tab Selector ===== */}
-        <div className="flex space-x-2 bg-secondary/80 backdrop-blur-md p-1.5 rounded-2xl max-w-sm mb-8 border border-border/40 shadow-inner animate-in fade-in duration-300">
-          <button
-            type="button"
-            onClick={() => setActiveTab('operations')}
-            className={`flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-xs font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
-              activeTab === 'operations'
-                ? 'bg-card text-foreground shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-border/10'
-                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-            }`}
-          >
-            <BarChart2 className="h-4 w-4 text-indigo-500" />
-            Operations Hub
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('chatgpt')}
-            className={`flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-xs font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
-              activeTab === 'chatgpt'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md'
-                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-            }`}
-          >
-            <Sparkles className="h-4 w-4 text-emerald-300" />
-            🤖 ChatGPT Strategy
-          </button>
-        </div>
+        {!isClient && (
+          <div className="flex space-x-2 bg-secondary/80 backdrop-blur-md p-1.5 rounded-2xl max-w-sm mb-8 border border-border/40 shadow-inner animate-in fade-in duration-300">
+            <button
+              type="button"
+              onClick={() => setActiveTab('operations')}
+              className={`flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-xs font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+                activeTab === 'operations'
+                  ? 'bg-card text-foreground shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-border/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+              }`}
+            >
+              <BarChart2 className="h-4 w-4 text-[#2E9EDE]" />
+              Operations Hub
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('chatgpt')}
+              className={`flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-xs font-bold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+                activeTab === 'chatgpt'
+                  ? 'bg-[#2E9EDE] text-white shadow-md'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+              }`}
+            >
+              <Sparkles className="h-4 w-4 text-sky-200" />
+              🤖 ChatGPT Strategy
+            </button>
+          </div>
+        )}
 
         {activeTab === 'operations' && (
           <>
@@ -1436,7 +1448,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                 onClick={() => setActivePlatform('instagram')}
                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
                   activePlatform === 'instagram'
-                    ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white shadow-lg shadow-pink-500/10'
+                    ? 'bg-[#2E9EDE] text-white shadow-lg shadow-sky-500/10'
                     : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
                 }`}
               >
@@ -1450,7 +1462,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                 onClick={() => setActivePlatform('fb')}
                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
                   activePlatform === 'fb'
-                    ? 'bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-lg shadow-blue-500/10'
+                    ? 'bg-[#2E9EDE] text-white shadow-lg shadow-sky-500/10'
                     : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
                 }`}
               >
@@ -1464,7 +1476,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                 onClick={() => setActivePlatform('youtube')}
                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
                   activePlatform === 'youtube'
-                    ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-lg shadow-rose-500/10'
+                    ? 'bg-[#2E9EDE] text-white shadow-lg shadow-sky-500/10'
                     : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
                 }`}
               >
@@ -1484,15 +1496,15 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                  <div className="p-2 rounded-xl bg-[#2E9EDE]/10 text-[#2E9EDE] border border-[#2E9EDE]/20">
                     <ImageIcon className="h-5 w-5" />
                   </div>
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Posters Target</span>
                 </div>
                 {deliveredPosters >= 15 && totalPosters > 0 ? (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Met</span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#2E9EDE]/15 text-[#2E9EDE] border border-[#2E9EDE]/25">Met</span>
                 ) : (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">Pending</span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Pending</span>
                 )}
               </div>
               <div className="flex items-baseline space-x-2 mt-4">
@@ -1503,7 +1515,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
               </div>
               <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
                 <div 
-                  className="bg-sky-500 h-full rounded-full transition-all duration-500" 
+                  className="bg-[#2E9EDE] h-full rounded-full transition-all duration-500" 
                   style={{ width: `${Math.min(100, totalPosters > 0 ? (deliveredPosters / totalPosters) * 100 : 0)}%` }}
                 />
               </div>
@@ -1513,15 +1525,15 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="p-2 rounded-xl bg-pink-500/10 text-pink-500 border border-pink-500/20">
+                  <div className="p-2 rounded-xl bg-[#2E9EDE]/10 text-[#2E9EDE] border border-[#2E9EDE]/20">
                     <Video className="h-5 w-5" />
                   </div>
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reels Target</span>
                 </div>
                 {deliveredReels >= 6 && totalReels > 0 ? (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Met</span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#2E9EDE]/15 text-[#2E9EDE] border border-[#2E9EDE]/25">Met</span>
                 ) : (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">Pending</span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Pending</span>
                 )}
               </div>
               <div className="flex items-baseline space-x-2 mt-4">
@@ -1532,7 +1544,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
               </div>
               <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
                 <div 
-                  className="bg-pink-500 h-full rounded-full transition-all duration-500" 
+                  className="bg-[#2E9EDE] h-full rounded-full transition-all duration-500" 
                   style={{ width: `${Math.min(100, totalReels > 0 ? (deliveredReels / totalReels) * 100 : 0)}%` }}
                 />
               </div>
@@ -1542,15 +1554,15 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                  <div className="p-2 rounded-xl bg-[#2E9EDE]/10 text-[#2E9EDE] border border-[#2E9EDE]/20">
                     <TrendingUp className="h-5 w-5" />
                   </div>
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ad Campaigns</span>
                 </div>
                 {runningAdCampaigns >= 2 && totalAdCampaigns > 0 ? (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Active</span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#2E9EDE]/15 text-[#2E9EDE] border border-[#2E9EDE]/25">Active</span>
                 ) : (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">Setup</span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Setup</span>
                 )}
               </div>
               <div className="flex items-baseline space-x-2 mt-4">
@@ -1561,7 +1573,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
               </div>
               <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
                 <div 
-                  className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
+                  className="bg-[#2E9EDE] h-full rounded-full transition-all duration-500" 
                   style={{ width: `${Math.min(100, totalAdCampaigns > 0 ? (runningAdCampaigns / totalAdCampaigns) * 100 : 0)}%` }}
                 />
               </div>
@@ -1571,12 +1583,12 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
             <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.015)] hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                  <div className="p-2 rounded-xl bg-[#2E9EDE]/10 text-[#2E9EDE] border border-[#2E9EDE]/20">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Channel Score</span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400">Score</span>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Score</span>
               </div>
               <div className="flex items-baseline space-x-2 mt-4">
                 <span className="text-3xl font-extrabold text-foreground">
@@ -1586,7 +1598,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
               </div>
               <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-4">
                 <div 
-                  className="bg-indigo-500 h-full rounded-full transition-all duration-500" 
+                  className="bg-[#2E9EDE] h-full rounded-full transition-all duration-500" 
                   style={{ width: `${Math.min(100, ((deliveredPosters + deliveredReels) / Math.max(1, totalPosters + totalReels)) * 100)}%` }}
                 />
               </div>
@@ -1713,14 +1725,16 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                     </div>
 
                     {/* Clear Button */}
-                    <button
-                      type="button"
-                      onClick={handleClearData}
-                      className="px-3.5 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 rounded-xl transition-all cursor-pointer font-bold text-xs"
-                      title="Clear content calendar"
-                    >
-                      Clear Sheet
-                    </button>
+                    {!isClient && (
+                      <button
+                        type="button"
+                        onClick={handleClearData}
+                        className="px-3.5 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 rounded-xl transition-all cursor-pointer font-bold text-xs"
+                        title="Clear content calendar"
+                      >
+                        Clear Sheet
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1883,19 +1897,31 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                                       'bg-amber-500 animate-pulse'
                                     }`}></span>
                                     
-                                    <select
-                                      value={status}
-                                      onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
-                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-500/10 cursor-pointer border shadow-sm select-none ${
+                                    {isClient ? (
+                                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black border shadow-sm ${
                                         status === 'posted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
                                         status === 'completed' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
                                         'bg-secondary border-border text-foreground'
-                                      }`}
-                                    >
-                                      <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
-                                      <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
-                                      <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
-                                    </select>
+                                      }`}>
+                                        {status === 'posted' ? '🟢 Posted' :
+                                         status === 'completed' ? '🔵 Completed' :
+                                         '🟡 In Progress'}
+                                      </span>
+                                    ) : (
+                                      <select
+                                        value={status}
+                                        onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
+                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-500/10 cursor-pointer border shadow-sm select-none ${
+                                          status === 'posted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                                          status === 'completed' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                                          'bg-secondary border-border text-foreground'
+                                        }`}
+                                      >
+                                        <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
+                                        <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
+                                        <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
+                                      </select>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -1922,9 +1948,9 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                           <div 
                             key={item.id} 
                             className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-start gap-4 shadow-sm hover:shadow-md ${
-                              status === 'posted' ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40' :
-                              status === 'completed' ? 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40' :
-                              'bg-card border-border hover:border-indigo-500/30'
+                              status === 'posted' ? 'bg-[#2E9EDE]/5 border-[#2E9EDE]/20 hover:border-[#2E9EDE]/40' :
+                              status === 'completed' ? 'bg-sky-50/50 border-sky-100 hover:border-sky-300' :
+                              'bg-card border-border hover:border-[#2E9EDE]/30'
                             }`}
                           >
                             
@@ -1940,8 +1966,8 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                               {/* Content Type Badge */}
                               <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-extrabold uppercase border shadow-sm ${
                                 item.contentType === 'Reel' 
-                                  ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' 
-                                  : 'bg-sky-500/10 text-sky-500 border-sky-500/20'
+                                  ? 'bg-[#2E9EDE]/5 text-[#2E9EDE] border-[#2E9EDE]/15' 
+                                  : 'bg-[#2E9EDE]/15 text-[#2E9EDE] border-[#2E9EDE]/25'
                               }`}>
                                 {item.contentType === 'Reel' ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
                                 {item.contentType}
@@ -1960,7 +1986,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                               <div>
                                 {/* Special Day Badge */}
                                 {item.specialDay && (
-                                  <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm animate-pulse mb-2.5 block w-fit">
+                                  <span className="inline-flex items-center gap-1 bg-[#2E9EDE]/10 text-[#2E9EDE] border border-[#2E9EDE]/20 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm animate-pulse mb-2.5 block w-fit">
                                     ✨ Special Day: {item.specialDay}
                                   </span>
                                 )}
@@ -1971,8 +1997,8 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                                 
                                 {/* Viral Content Idea */}
                                 {item.viralIdea && (
-                                  <p className="text-xs text-indigo-400 font-semibold italic mt-1.5 flex items-center gap-1">
-                                    <Lightbulb className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
+                                  <p className="text-xs text-[#2E9EDE] font-semibold italic mt-1.5 flex items-center gap-1">
+                                    <Lightbulb className="h-3.5 w-3.5 text-[#2E9EDE] flex-shrink-0" />
                                     Viral Idea: {item.viralIdea}
                                   </p>
                                 )}
@@ -1988,7 +2014,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                               {/* Keywords and Hashtags */}
                               <div className="flex flex-wrap items-center gap-1.5">
                                 {item.hashtags.split(' ').map((tag, tIdx) => tag && (
-                                  <span key={tIdx} className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded-md">
+                                  <span key={tIdx} className="text-[10px] font-bold text-[#2E9EDE] bg-[#2E9EDE]/5 px-2.5 py-0.5 rounded-md">
                                     {tag}
                                   </span>
                                 ))}
@@ -2002,12 +2028,12 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                               {/* CTA & Campaign Tag */}
                               <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {item.cta && (
-                                  <span className="text-[10px] font-extrabold bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/20">
+                                  <span className="text-[10px] font-extrabold bg-[#2E9EDE]/10 text-[#2E9EDE] px-3 py-1 rounded-full uppercase tracking-wider border border-[#2E9EDE]/20">
                                     CTA: {item.cta}
                                   </span>
                                 )}
                                 {item.runAdCampaign === 'YES' && (
-                                  <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-500 px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
+                                  <span className="text-[9px] font-bold bg-[#2E9EDE]/10 text-[#2E9EDE] px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-[#2E9EDE]/20 flex items-center gap-1">
                                     <TrendingUp className="h-3 w-3" />
                                     Campaign Configured
                                   </span>
@@ -2021,29 +2047,31 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                               
                               {/* Branded status indicator */}
                               <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                                status === 'posted' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                status === 'completed' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                                'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                status === 'posted' ? 'bg-[#2E9EDE] text-white border-[#2E9EDE]' :
+                                status === 'completed' ? 'bg-[#2E9EDE]/10 text-[#2E9EDE] border-[#2E9EDE]/20' :
+                                'bg-slate-100 text-slate-500 border-slate-200'
                               }`}>
                                 {status === 'posted' ? 'Posted' : status === 'completed' ? 'Completed' : 'In Progress'}
                               </span>
 
                               {/* Interactive Status Selector */}
-                              <div className="w-full relative">
-                                <select
-                                  value={status}
-                                  onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
-                                  className={`w-full px-3 py-2.5 rounded-xl text-xs font-extrabold focus:outline-none focus:ring-1 focus:ring-indigo-500/10 cursor-pointer border shadow-sm select-none ${
-                                    status === 'posted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                                    status === 'completed' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                                    'bg-secondary border-border text-foreground'
-                                  }`}
-                                >
-                                  <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
-                                  <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
-                                  <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
-                                </select>
-                              </div>
+                              {!isClient && (
+                                <div className="w-full relative">
+                                  <select
+                                    value={status}
+                                    onChange={(e) => handleUpdateStatus(item.id, e.target.value as any)}
+                                    className={`w-full px-3 py-2.5 rounded-xl text-xs font-extrabold focus:outline-none focus:ring-1 focus:ring-[#2E9EDE]/10 cursor-pointer border shadow-sm select-none ${
+                                      status === 'posted' ? 'bg-[#2E9EDE] border-[#2E9EDE] text-white' :
+                                      status === 'completed' ? 'bg-[#2E9EDE]/10 border-[#2E9EDE]/20 text-[#2E9EDE]' :
+                                      'bg-secondary border-border text-foreground'
+                                    }`}
+                                  >
+                                    <option value="inprogress" className="bg-card text-foreground font-semibold">🟡 In Progress</option>
+                                    <option value="completed" className="bg-card text-foreground font-semibold">🔵 Completed</option>
+                                    <option value="posted" className="bg-card text-foreground font-semibold">🟢 Posted</option>
+                                  </select>
+                                </div>
+                              )}
 
                             </div>
 
@@ -2069,7 +2097,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                 {/* Title */}
                 <div className="border-b border-border pb-4">
                   <div className="flex items-center space-x-2">
-                    <TrendingUp className="h-5.5 w-5.5 text-indigo-500" />
+                    <TrendingUp className="h-5.5 w-5.5 text-[#2E9EDE]" />
                     <h2 className="text-lg font-bold text-foreground">Ad Campaigns Operations</h2>
                   </div>
                   <p className="text-xs text-muted-foreground font-semibold mt-1">
@@ -2094,7 +2122,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                           key={item.id} 
                           className={`p-4 rounded-xl border transition-all duration-300 space-y-3 ${
                             activeState === 'running'
-                              ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
+                              ? 'bg-[#2E9EDE]/5 border-[#2E9EDE]/20 shadow-sm'
                               : 'bg-secondary/40 border-border'
                           }`}
                         >
@@ -2103,8 +2131,8 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                             <span className="text-[10px] font-black text-muted-foreground">{item.date}</span>
                             <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
                               activeState === 'running'
-                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                ? 'bg-[#2E9EDE]/10 text-[#2E9EDE] border border-[#2E9EDE]/20'
+                                : 'bg-slate-100 text-slate-500 border border-slate-200'
                             }`}>
                               {activeState === 'running' ? 'Running' : 'In Progress'}
                             </span>
@@ -2114,7 +2142,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                           <div>
                             <h4 className="text-xs font-extrabold text-foreground leading-tight">{item.topic}</h4>
                             <div className="flex items-center gap-3 mt-1.5">
-                              <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">
+                              <span className="text-[10px] font-bold text-[#2E9EDE] bg-[#2E9EDE]/10 px-2 py-0.5 rounded">
                                 Goal: {item.leadGoal}
                               </span>
                               <span className="text-[9px] font-semibold text-muted-foreground">
@@ -2133,7 +2161,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                                 onClick={() => handleUpdateCampaignStatus(item.id, 'inprogress')}
                                 className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
                                   activeState === 'inprogress'
-                                    ? 'bg-amber-500/20 border-amber-500/30 text-amber-500 shadow-sm'
+                                    ? 'bg-slate-200 border-slate-300 text-slate-700 shadow-sm'
                                     : 'bg-card border-border hover:bg-secondary text-muted-foreground'
                                 }`}
                               >
@@ -2144,7 +2172,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                                 onClick={() => handleUpdateCampaignStatus(item.id, 'running')}
                                 className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
                                   activeState === 'running'
-                                    ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500 shadow-sm'
+                                    ? 'bg-[#2E9EDE]/20 border-[#2E9EDE]/30 text-[#2E9EDE] shadow-sm'
                                     : 'bg-card border-border hover:bg-secondary text-muted-foreground'
                                 }`}
                               >
@@ -2164,7 +2192,7 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
               {/* Mapped platforms information card */}
               <div className="bg-card rounded-[32px] p-6 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-4">
                 <div className="flex items-center space-x-2">
-                  <User className="h-5.5 w-5.5 text-indigo-500" />
+                  <User className="h-5.5 w-5.5 text-[#2E9EDE]" />
                   <h3 className="text-base font-extrabold text-foreground">Employee Accounts</h3>
                 </div>
                 <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
@@ -2174,15 +2202,15 @@ Here is a summary of the 21-row calendar synced into your Operations Hub:
                 <div className="p-3 bg-secondary/50 rounded-2xl border border-border space-y-2">
                   <div className="flex justify-between items-center text-xs font-bold text-foreground">
                     <span>Instagram Profile:</span>
-                    <span className="text-[10px] text-emerald-500 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
+                    <span className="text-[10px] text-[#2E9EDE] font-extrabold bg-[#2E9EDE]/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
                   </div>
                   <div className="flex justify-between items-center text-xs font-bold text-foreground">
                     <span>Facebook Page:</span>
-                    <span className="text-[10px] text-emerald-500 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
+                    <span className="text-[10px] text-[#2E9EDE] font-extrabold bg-[#2E9EDE]/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
                   </div>
                   <div className="flex justify-between items-center text-xs font-bold text-foreground">
                     <span>YouTube Channel:</span>
-                    <span className="text-[10px] text-emerald-500 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
+                    <span className="text-[10px] text-[#2E9EDE] font-extrabold bg-[#2E9EDE]/10 px-2 py-0.5 rounded-md uppercase">Connected</span>
                   </div>
                 </div>
               </div>

@@ -16,10 +16,17 @@ export default function DashboardLayoutGuard({
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    if (!loading) {
+      if (!user) {
+        router.push('/login');
+      } else {
+        const isAdmin = user.role === 'superadmin' || user.role === 'admin';
+        if (!isAdmin && pathname === '/dashboard') {
+          router.replace('/dashboard/profile');
+        }
+      }
     }
-  }, [user, loading, router]);
+  }, [user, loading, pathname, router]);
 
   if (loading) {
     return (
@@ -37,31 +44,39 @@ export default function DashboardLayoutGuard({
   }
 
   // Permission check
-  const isSuperAdmin = user.role === 'superadmin';
+  const isAdmin = user.role === 'superadmin' || user.role === 'admin';
   const isClient = user.role === 'client';
   const isIntern = user.role === 'intern';
-  
-  // Dashboard home page is accessible by all authenticated users (except interns)
   const isDashboardRoot = pathname === '/dashboard';
-  
+
+  // Redirecting loading screen
+  if (!isAdmin && isDashboardRoot) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-800 font-sans">
+        <Loader2 className="h-10 w-10 text-accent animate-spin mb-4" />
+        <p className="text-slate-500 font-inter text-sm animate-pulse">
+          Redirecting to profile...
+        </p>
+      </div>
+    );
+  }
+
   let hasAccess = false;
-  if (isSuperAdmin) {
+  if (isAdmin) {
     hasAccess = true;
   } else if (isIntern) {
     // Interns only see profile page
     hasAccess = pathname === '/dashboard/profile';
   } else if (isClient) {
-    // Clients see profile, payments, dashboard root, and project tracking sub-pages
+    // Clients see profile, payments, and project tracking sub-pages
     hasAccess = 
       pathname === '/dashboard/profile' ||
       pathname === '/dashboard/payments' ||
-      pathname === '/dashboard' ||
       pathname.startsWith('/dashboard/projects/');
   } else {
-    // Employees or other roles see dashboard root + profile + pageAccess list
+    // Employees or other roles see profile + pageAccess list
     const userAccessList = user.pageAccess || [];
     hasAccess = 
-      isDashboardRoot || 
       pathname === '/dashboard/profile' || 
       userAccessList.some(path => {
         // Exact match or matches as folder prefix

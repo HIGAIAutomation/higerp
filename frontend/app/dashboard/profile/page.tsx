@@ -10,19 +10,24 @@ import {
     Calendar,
     CheckCircle2,
     Clock,
+    Compass,
     Download,
     Edit2,
     Eye,
     EyeOff,
     FileText,
+    Fingerprint,
+    Globe,
     IndianRupee,
     Layers,
     Loader2,
     Mail,
+    MapPin,
     PenTool,
     Phone,
     Save,
     ShieldCheck,
+    Tag,
     User
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -87,7 +92,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  const isClient = user?.role === 'client';
+  const isClient = user?.role === 'client' || user?.id?.startsWith('higc-') || (user?.role === 'user' && !(user as any).employee);
+  const isEmployee = (user as any)?.employee?.metadata?.roleType === 'employee';
+  const isIntern = (user as any)?.employee?.metadata?.roleType === 'intern';
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [projectDocs, setProjectDocs] = useState<GeneratedDoc[]>([]);
   const [profileLoading, setProfileLoading] = useState(isClient);
@@ -393,14 +400,55 @@ export default function ProfilePage() {
     company: '',
   });
 
+
+
+  useEffect(() => {
+    const fetchEmployeeDocs = async () => {
+      const u = user as any;
+      if (u?.employee?.id) {
+        try {
+          const empData = await fetchWithAuth(`/hrms/employees/${u.employee.id}`);
+          if (empData && empData.documents) {
+            setProjectDocs(empData.documents);
+          }
+        } catch (err) {
+          console.error("Failed to load employee/intern documents:", err);
+        }
+      }
+    };
+
+    if ((user as any)?.employee?.id) {
+      fetchEmployeeDocs();
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       const u = user as any;
+      const emp = u.employee;
+      
+      let fullName = u.username || '';
+      let email = u.email || '';
+      let phone = u.whatsappNumber || '';
+      let company = u.tenantId || 'Default';
+
+      if (emp) {
+        if (emp.metadata?.roleType === 'intern' && emp.metadata?.studentName) {
+          fullName = emp.metadata.studentName;
+        } else if (emp.firstName) {
+          fullName = emp.firstName + (emp.lastName ? ' ' + emp.lastName : '');
+        }
+        
+        email = emp.email || u.email || '';
+        phone = emp.metadata?.contact || u.whatsappNumber || '';
+        company = emp.metadata?.college || emp.metadata?.previousCompany || 'HIG AI Automation';
+      }
+
       setFormData({
-        username: u.username || '',
-        email: u.email || '',
-        phone: u.whatsappNumber || '',
-        company: u.tenantId || 'Default', // Just a placeholder for now
+        username: fullName,
+        email: email,
+        phone: phone,
+        company: company,
       });
     }
   }, [user]);
@@ -432,117 +480,117 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout fullWidth={true}>
-      <div className="space-y-8 py-8 w-full">
+      <div className="space-y-4 py-4 w-full">
         <div>
-          <h1 className="text-3xl font-extrabold text-primary tracking-tight">My Profile</h1>
-          <p className="text-muted-foreground mt-2 font-inter">
+          <h1 className="text-sm font-bold text-[#2E9EDE] tracking-tight">My Profile</h1>
+          <p className="text-[10px] text-slate-400 mt-0.5 font-inter">
             Manage your account settings, personal information, and preferences.
           </p>
         </div>
 
         {successMsg && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-            <CheckCircle2 className="h-5 w-5" />
-            <p className="text-sm font-bold">{successMsg}</p>
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <p className="text-[10px] font-bold">{successMsg}</p>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl sm:rounded-[32px] border border-slate-200 shadow-sm overflow-hidden relative">
-          <div className="h-20 sm:h-32 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
+          <div className="h-12 sm:h-16 bg-gradient-to-r from-[#2E9EDE] to-[#1c85be]"></div>
           
-          <div className="px-4 sm:px-8 pb-6 sm:pb-8">
-            <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 -mt-10 sm:-mt-12 mb-6 sm:mb-8">
-              <div className="flex items-end gap-3 sm:gap-6 w-full sm:w-auto">
-                <div className="h-16 w-16 sm:h-24 sm:w-24 rounded-full bg-white p-1 sm:p-1.5 shadow-lg border-2 border-indigo-100 flex-shrink-0">
-                  <div className="h-full w-full rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-700 font-black text-xl sm:text-3xl">
-                    {user?.username?.substring(0, 2).toUpperCase() || 'US'}
+          <div className="px-3 sm:px-4 pb-4">
+            <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 -mt-6 sm:-mt-8 mb-4">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-white p-0.5 shadow-md border-2 border-sky-100 flex-shrink-0">
+                  <div className="h-full w-full rounded-full bg-gradient-to-br from-sky-50 to-sky-100 flex items-center justify-center text-[#2E9EDE] font-black text-xs sm:text-sm">
+                    {(formData.username || user?.username || 'US').substring(0, 2).toUpperCase()}
                   </div>
                 </div>
-                <div className="pb-1 sm:pb-2 flex-1 min-w-0">
-                  <h2 className="text-lg sm:text-2xl font-extrabold text-slate-800 truncate">{formatNameStyle(user?.username)}</h2>
-                  <p className="text-[10px] sm:text-sm font-medium text-slate-500 uppercase tracking-wider mt-0.5 sm:mt-1">{user?.role || 'Client Account'}</p>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-800 truncate">{formData.username || formatNameStyle(user?.username)}</h2>
+                  <p className="text-[8px] font-medium text-slate-400 uppercase tracking-wider mt-0.5">
+                    {user?.role === 'superadmin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : (user as any)?.employee?.metadata?.roleType || 'Client Account'}
+                  </p>
                 </div>
               </div>
               
               <button
                 onClick={() => setIsEditing(!isEditing)}
-                className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
-                  isEditing ? 'bg-slate-100 text-slate-600' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md font-bold text-[10px] transition-colors whitespace-nowrap flex-shrink-0 ${
+                  isEditing ? 'bg-slate-100 text-slate-600' : 'bg-sky-50 text-[#2E9EDE] hover:bg-sky-100'
                 }`}
               >
-                <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">{isEditing ? 'Cancel' : 'Edit Profile'}</span>
-                <span className="sm:hidden">{isEditing ? 'Cancel' : 'Edit'}</span>
+                <Edit2 className="h-2.5 w-2.5" />
+                <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
-                    <User className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Full Name
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <User className="h-3 w-3 text-[#2E9EDE]" /> Full Name
                   </label>
                   <input
                     type="text"
                     disabled={!isEditing}
                     value={formData.username}
                     onChange={(e) => setFormData({...formData, username: e.target.value})}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-xs text-slate-700"
                   />
                 </div>
                 
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
-                    <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Email Address
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Mail className="h-3 w-3 text-[#2E9EDE]" /> Email Address
                   </label>
                   <input
                     type="email"
                     disabled={!isEditing}
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-xs text-slate-700"
                   />
                 </div>
 
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
-                    <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Phone Number
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 text-[#2E9EDE]" /> Phone Number
                   </label>
                   <input
                     type="text"
                     disabled={!isEditing}
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-xs text-slate-700"
                     placeholder="+1 (555) 000-0000"
                   />
                 </div>
 
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
-                    <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Company / Organization
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Building2 className="h-3 w-3 text-[#2E9EDE]" /> Company / Organization
                   </label>
                   <input
                     type="text"
                     disabled={!isEditing}
                     value={formData.company}
                     onChange={(e) => setFormData({...formData, company: e.target.value})}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-sm sm:text-base text-slate-700"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all disabled:opacity-70 disabled:cursor-not-allowed font-medium text-xs text-slate-700"
                     placeholder="Your Company Name"
                   />
                 </div>
               </div>
 
               {isEditing && (
-                <div className="pt-2 sm:pt-4 flex justify-end">
+                <div className="pt-1 flex justify-end">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm sm:text-base rounded-lg sm:rounded-xl shadow-lg shadow-indigo-200 transition-all disabled:opacity-70"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-[#2E9EDE] hover:bg-[#1c85be] text-white font-bold text-xs rounded-lg shadow-md shadow-sky-100 transition-all disabled:opacity-70"
                   >
-                    {loading ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <Save className="h-4 w-4 sm:h-5 sm:w-5" />}
-                    <span className="hidden sm:inline">Save Changes</span>
-                    <span className="sm:hidden">Save</span>
+                    {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                    <span>Save Changes</span>
                   </button>
                 </div>
               )}
@@ -552,29 +600,29 @@ export default function ProfilePage() {
 
         {/* CEO Signature Card (visible only to superadmin/CEO) */}
         {user?.role === 'superadmin' && (
-          <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm mt-8 relative overflow-hidden">
-            <div className="mb-6">
-              <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                <PenTool className="h-6 w-6 text-indigo-600" />
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mt-6 relative overflow-hidden">
+            <div className="mb-4">
+              <h3 className="text-xs font-bold text-[#2E9EDE] tracking-tight flex items-center gap-2">
+                <PenTool className="h-4 w-4 text-[#2E9EDE]" />
                 CEO Corporate Signature
               </h3>
-              <p className="text-sm text-slate-500 font-medium mt-1 font-inter">
-                Draw or upload your CEO signature. This signature will automatically apply to all company documents in the "For: HIGAI AUTOMATION LLP" slot.
+              <p className="text-[10px] text-slate-400 mt-0.5 font-inter">
+                Draw or upload your CEO signature. This signature will automatically apply to all company documents.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Active Signature View */}
-              <div className="space-y-4 flex flex-col justify-between">
+              <div className="space-y-3 flex flex-col justify-between">
                 <div>
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 font-inter">Active Corporate Signature</h4>
-                  <div className="border border-slate-200 rounded-3xl p-6 bg-slate-50 flex items-center justify-center min-h-[140px]">
+                  <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-inter">Active Corporate Signature</h4>
+                  <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 flex items-center justify-center min-h-[100px]">
                     {ceoSignature ? (
-                      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-center max-w-[280px]">
-                        <img src={ceoSignature} alt="CEO E-Signature" className="max-h-[80px] object-contain" />
+                      <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 flex items-center justify-center max-w-[200px]">
+                        <img src={ceoSignature} alt="CEO E-Signature" className="max-h-[60px] object-contain" />
                       </div>
                     ) : (
-                      <div className="text-center text-slate-400 text-xs italic font-medium font-inter">
+                      <div className="text-center text-slate-400 text-[10px] italic font-medium font-inter">
                         No corporate signature set.<br/>Using default italic "Ajay S" text.
                       </div>
                     )}
@@ -584,7 +632,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleRemoveCeoSignature}
-                    className="w-full bg-rose-500/10 text-rose-600 py-3 rounded-xl font-bold hover:bg-rose-500 hover:text-white transition-all shadow-sm cursor-pointer"
+                    className="w-full bg-rose-500/10 text-rose-600 py-1.5 rounded-lg font-bold hover:bg-rose-500 hover:text-white transition-all text-xs cursor-pointer"
                   >
                     Delete Signature
                   </button>
@@ -592,27 +640,27 @@ export default function ProfilePage() {
               </div>
 
               {/* Set New Signature Pad */}
-              <div className="space-y-4">
-                <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
+              <div className="space-y-3">
+                <div className="flex gap-2 p-0.5 bg-slate-100 rounded-lg">
                   <button 
                     type="button"
                     onClick={() => setCeoSignMode('draw')}
-                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${ceoSignMode === 'draw' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`flex-1 py-1 text-[10px] font-semibold rounded transition-colors cursor-pointer ${ceoSignMode === 'draw' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                   >
                     Draw
                   </button>
                   <button 
                     type="button"
                     onClick={() => setCeoSignMode('upload')}
-                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${ceoSignMode === 'upload' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`flex-1 py-1 text-[10px] font-semibold rounded transition-colors cursor-pointer ${ceoSignMode === 'upload' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                   >
                     Upload
                   </button>
                 </div>
 
                 {ceoSignMode === 'draw' ? (
-                  <div className="space-y-3">
-                    <div className="border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 overflow-hidden h-[140px]">
+                  <div className="space-y-2">
+                    <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 overflow-hidden h-[100px]">
                       <SignatureCanvas 
                         ref={ceoSigCanvas}
                         canvasProps={{ className: 'w-full h-full' }}
@@ -625,7 +673,7 @@ export default function ProfilePage() {
                       <button 
                         type="button"
                         onClick={() => ceoSigCanvas.current?.clear()}
-                        className="text-xs text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+                        className="text-[10px] text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
                       >
                         Clear Signature Pad
                       </button>
@@ -634,18 +682,18 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => handleSaveCeoSignature()}
                       disabled={savingCeoSig}
-                      className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 shadow-md shadow-indigo-100 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+                      className="w-full bg-[#2E9EDE] hover:bg-[#1c85be] text-white py-1.5 rounded-lg font-bold shadow-md shadow-sky-100 flex items-center justify-center gap-1.5 cursor-pointer text-xs transition-all active:scale-95 disabled:opacity-50"
                     >
-                      {savingCeoSig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      Save CEO E-Signature
+                      {savingCeoSig ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                      <span>Save CEO E-Signature</span>
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <label className="border-2 border-dashed border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 transition-colors rounded-2xl h-[140px] flex flex-col items-center justify-center cursor-pointer text-center p-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                      <span className="text-xs font-bold text-slate-700">Click to upload signature image</span>
-                      <span className="text-[10px] text-slate-400 mt-1">PNG or JPG</span>
+                  <div className="space-y-2">
+                    <label className="border-2 border-dashed border-sky-200 bg-sky-50/50 hover:bg-sky-50 transition-colors rounded-xl h-[100px] flex flex-col items-center justify-center cursor-pointer text-center p-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E9EDE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="mb-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span className="text-[10px] font-bold text-slate-700">Click to upload signature image</span>
+                      <span className="text-[8px] text-slate-400">PNG or JPG</span>
                       <input 
                         type="file" 
                         accept="image/png, image/jpeg" 
@@ -662,421 +710,699 @@ export default function ProfilePage() {
 
         {/* Service Scope & Project Overview (visible to client portal users) */}
         {isClient && activeProject && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            <div className="border-t border-slate-200 pt-6">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2.5">
-                <Layers className="h-6 w-6 text-indigo-600" />
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="border-t border-slate-200 pt-5">
+              <h2 className="text-base font-bold text-[#2E9EDE] tracking-tight flex items-center gap-2">
+                <Layers className="h-4 w-4 text-[#2E9EDE]" />
                 Service Scope & Project Overview
               </h2>
-              <p className="text-xs text-slate-500 font-semibold mt-1">
+              <p className="text-[10px] text-slate-400 mt-0.5">
                 View your complete client profile details, campaign targets, and delivery compliance states below.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Column 1: Client Relations Profile */}
-              <div className="space-y-5">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <User className="h-4 w-4 text-indigo-500" />
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 text-[#2E9EDE]" />
                   Client Relations Profile
                 </h3>
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4 text-xs font-semibold text-slate-600">
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Client ID</span>
-                    <span className="text-slate-800 text-sm font-bold uppercase">{activeProject.clientId ? activeProject.clientId.replace(/-/g, '/') : 'N/A'}</span>
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Fingerprint className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Client ID</span>
+                      <span className="text-slate-800 text-xs font-bold uppercase block truncate">{activeProject.clientId ? activeProject.clientId.replace(/-/g, '/') : 'N/A'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Full Name</span>
-                    <span className="text-slate-800 text-sm font-bold">{activeProject.clientName || 'Not Provided'}</span>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <User className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Full Name</span>
+                      <span className="text-slate-800 text-xs font-bold block truncate">{activeProject.clientName || 'Not Provided'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Email Address</span>
-                    <span className="text-slate-800 text-sm font-bold break-all">{activeProject.clientEmail || 'Not Provided'}</span>
+
+                  <div className="flex items-start gap-2.5 sm:col-span-2">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Mail className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Email Address</span>
+                      <span className="text-slate-800 text-xs font-bold block break-all">{activeProject.clientEmail || 'Not Provided'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Phone Number (WhatsApp)</span>
-                    <span className="text-slate-800 text-sm font-bold">{activeProject.whatsappNumber || 'Not Provided'}</span>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Phone className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Phone Number</span>
+                      <span className="text-slate-800 text-xs font-bold block truncate">{activeProject.whatsappNumber || 'Not Provided'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Billing Address</span>
-                    <span className="text-slate-800 text-sm font-bold">{activeProject.clientAddress || 'Not Provided'}</span>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Briefcase className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Occupation</span>
+                      <span className="text-slate-800 text-xs font-bold block truncate">{activeProject.clientOccupation || 'Not Provided'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">GSTIN Number</span>
-                    <span className="text-slate-800 text-sm font-bold uppercase">{activeProject.gstinNumber || 'Not Provided'}</span>
+
+                  <div className="flex items-start gap-2.5 sm:col-span-2">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <MapPin className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Billing Address</span>
+                      <span className="text-slate-800 text-xs font-bold block leading-relaxed">{activeProject.clientAddress || 'Not Provided'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Occupation</span>
-                    <span className="text-slate-800 text-sm font-bold">{activeProject.clientOccupation || 'Not Provided'}</span>
+
+                  <div className="flex items-start gap-2.5 sm:col-span-2">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <FileText className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">GSTIN Number</span>
+                      <span className="text-slate-800 text-xs font-bold uppercase block">{activeProject.gstinNumber || 'Not Provided'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Column 2: Project Specifications */}
-              <div className="space-y-5">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <Briefcase className="h-4 w-4 text-indigo-500" />
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5 text-[#2E9EDE]" />
                   Project Specifications
                 </h3>
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4 text-xs font-semibold text-slate-600">
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Project ID</span>
-                    <span className="text-slate-800 text-sm font-bold uppercase">{activeProject.id ? activeProject.id.replace(/-/g, '/') : 'N/A'}</span>
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Compass className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Project ID</span>
+                      <span className="text-slate-800 text-xs font-bold uppercase block truncate">{activeProject.id ? activeProject.id.replace(/-/g, '/') : 'N/A'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Project Name</span>
-                    <span className="text-slate-800 text-sm font-bold">{activeProject.name}</span>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Building2 className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Project Name</span>
+                      <span className="text-slate-800 text-xs font-bold block truncate">{activeProject.name}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Category</span>
-                    <span className="inline-flex mt-1 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase border bg-rose-50 text-rose-700 border-rose-100">
-                      {activeProject.category || 'Digital Marketing'}
-                    </span>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Tag className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Category</span>
+                      <span className="inline-flex px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-100 text-[8px] font-black uppercase mt-0.5">
+                        {activeProject.category || 'Digital Marketing'}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Pricing (Budget)</span>
-                    <span className="text-indigo-600 text-sm font-black flex items-center gap-0.5">
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
                       <IndianRupee className="h-3.5 w-3.5" />
-                      {activeProject.price ? Number(activeProject.price).toLocaleString('en-IN') : '0.00'}
-                    </span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Pricing (Budget)</span>
+                      <span className="text-[#2E9EDE] text-xs font-black flex items-center gap-0.5 mt-0.5">
+                        ₹{activeProject.price ? Number(activeProject.price).toLocaleString('en-IN') : '0.00'}
+                      </span>
+                    </div>
                   </div>
+
                   {(!activeProject.category || activeProject.category === 'Digital Marketing') && (
-                    <div>
-                      <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Active Platforms</span>
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
-                        {activeProject.platforms ? activeProject.platforms.split(',').map((plat, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[9px] font-bold uppercase">
-                            {plat.trim()}
-                          </span>
-                        )) : <span className="text-slate-400 italic">None specified</span>}
+                    <div className="flex items-start gap-2.5 sm:col-span-2">
+                      <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                        <Globe className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Active Platforms</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {activeProject.platforms ? activeProject.platforms.split(',').map((plat, idx) => (
+                            <span key={idx} className="px-1.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[8px] font-bold uppercase">
+                              {plat.trim()}
+                            </span>
+                          )) : <span className="text-slate-400 italic text-[10px]">None specified</span>}
+                        </div>
                       </div>
                     </div>
                   )}
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Target Deliverables</span>
-                    <div className="flex gap-4 mt-1 font-extrabold text-slate-800">
-                      <span>🖼️ {activeProject.postCount || 0} Posters</span>
-                      <span>🎥 {activeProject.videoCount || 0} Videos</span>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Layers className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Target Deliverables</span>
+                      {activeProject.category === 'Web/App Development' ? (
+                        <span className="text-slate-800 text-xs font-bold block mt-0.5">
+                          📦 {activeProject.moduleDetails?.length || 0} Modules
+                        </span>
+                      ) : (
+                        <div className="flex gap-2 font-bold text-slate-800 text-xs mt-0.5">
+                          <span>🖼️ {activeProject.postCount || 0} Posters</span>
+                          <span>🎥 {activeProject.videoCount || 0} Videos</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-0.5">Milestone Duration</span>
-                    <div className="text-slate-800 text-xs font-bold flex items-center gap-1.5 mt-0.5">
-                      <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                      {new Date(activeProject.startDate).toLocaleDateString()} – {new Date(activeProject.endDate).toLocaleDateString()}
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                      <Calendar className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold">Milestone Duration</span>
+                      <span className="text-slate-800 text-xs font-semibold block mt-0.5">
+                        {new Date(activeProject.startDate).toLocaleDateString()} – {new Date(activeProject.endDate).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
+
                   {activeProject.projectInclusions && (
-                    <div className="pt-3 border-t border-slate-100">
-                      <span className="text-[10px] text-slate-400 block uppercase tracking-wider mb-1.5">Included Deliverables</span>
-                      <ul className="list-disc pl-4 space-y-1 text-[11px] font-medium text-slate-600 leading-normal">
-                        {activeProject.projectInclusions.split('\n').map((inc, i) => inc && (
-                          <li key={i}>{inc.trim()}</li>
-                        ))}
-                      </ul>
+                    <div className="sm:col-span-2 pt-3 border-t border-slate-100 flex items-start gap-2.5">
+                      <div className="p-1 rounded bg-sky-50 text-[#2E9EDE] flex-shrink-0">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider font-semibold mb-1">Included Deliverables</span>
+                        <ul className="list-disc pl-4 space-y-0.5 text-[10px] font-medium text-slate-600 leading-relaxed">
+                          {activeProject.projectInclusions.split('\n').map((inc, i) => inc && (
+                            <li key={i}>{inc.trim()}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Social Media Credentials Section */}
+            {/* Social Media Credentials Card */}
             {(!activeProject.category || activeProject.category === 'Digital Marketing') && (
-              <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm mt-8 relative overflow-hidden">
-              <div className="mb-6">
-                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                  <Layers className="h-6 w-6 text-indigo-600" />
-                  Social Media Access & Page Credentials
-                </h3>
-                <p className="text-sm text-slate-500 font-medium mt-1">
-                  Manage login details for the 3 active social media platforms we handle for your brand. All passwords are saved in a highly secure database repository.
-                </p>
-              </div>
-
-              <form onSubmit={handleSaveSocialCreds} className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  
-                  {/* Instagram Professional */}
-                  <div className="border border-slate-200 rounded-3xl p-6 bg-slate-50/50 hover:border-pink-300 transition-all duration-300 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                      <span className="text-4xl">📸</span>
-                    </div>
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-500 flex items-center justify-center text-white text-lg font-bold shadow-md">
-                        IG
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-800">Instagram</h4>
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Professional Account</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 text-xs font-semibold">
-                      <div className="space-y-1.5">
-                        <label className="text-slate-500 block uppercase tracking-wider text-[9px] font-black">Username / Email</label>
-                        <input
-                          type="text"
-                          value={socialCreds.instagram.username}
-                          onChange={(e) => setSocialCreds({
-                            ...socialCreds,
-                            instagram: { ...socialCreds.instagram, username: e.target.value }
-                          })}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-100 transition-all font-medium text-slate-700"
-                          placeholder="instagram_handle"
-                        />
-                      </div>
-                      <div className="space-y-1.5 relative">
-                        <label className="text-slate-500 block uppercase tracking-wider text-[9px] font-black">Password</label>
-                        <div className="relative">
-                          <input
-                            type={showInstaPass ? "text" : "password"}
-                            value={socialCreds.instagram.password}
-                            onChange={(e) => setSocialCreds({
-                              ...socialCreds,
-                              instagram: { ...socialCreds.instagram, password: e.target.value }
-                            })}
-                            className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-100 transition-all font-medium text-slate-700"
-                            placeholder="••••••••••••"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowInstaPass(!showInstaPass)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
-                          >
-                            {showInstaPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Facebook Page */}
-                  <div className="border border-slate-200 rounded-3xl p-6 bg-slate-50/50 hover:border-blue-300 transition-all duration-300 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                      <span className="text-4xl">👥</span>
-                    </div>
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-lg font-bold shadow-md shadow-blue-100">
-                        FB
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-800">Facebook</h4>
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Business Page</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 text-xs font-semibold">
-                      <div className="space-y-1.5">
-                        <label className="text-slate-500 block uppercase tracking-wider text-[9px] font-black">Username / Email</label>
-                        <input
-                          type="text"
-                          value={socialCreds.facebook.username}
-                          onChange={(e) => setSocialCreds({
-                            ...socialCreds,
-                            facebook: { ...socialCreds.facebook, username: e.target.value }
-                          })}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-700"
-                          placeholder="facebook_username"
-                        />
-                      </div>
-                      <div className="space-y-1.5 relative">
-                        <label className="text-slate-500 block uppercase tracking-wider text-[9px] font-black">Password</label>
-                        <div className="relative">
-                          <input
-                            type={showFbPass ? "text" : "password"}
-                            value={socialCreds.facebook.password}
-                            onChange={(e) => setSocialCreds({
-                              ...socialCreds,
-                              facebook: { ...socialCreds.facebook, password: e.target.value }
-                            })}
-                            className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-700"
-                            placeholder="••••••••••••"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowFbPass(!showFbPass)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
-                          >
-                            {showFbPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* YouTube Channel */}
-                  <div className="border border-slate-200 rounded-3xl p-6 bg-slate-50/50 hover:border-red-300 transition-all duration-300 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                      <span className="text-4xl">📺</span>
-                    </div>
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white text-lg font-bold shadow-md shadow-red-100">
-                        YT
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-800">YouTube</h4>
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Channel Handle</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 text-xs font-semibold">
-                      <div className="space-y-1.5">
-                        <label className="text-slate-500 block uppercase tracking-wider text-[9px] font-black">Username / Email</label>
-                        <input
-                          type="text"
-                          value={socialCreds.youtube.username}
-                          onChange={(e) => setSocialCreds({
-                            ...socialCreds,
-                            youtube: { ...socialCreds.youtube, username: e.target.value }
-                          })}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 transition-all font-medium text-slate-700"
-                          placeholder="youtube_channel_name"
-                        />
-                      </div>
-                      <div className="space-y-1.5 relative">
-                        <label className="text-slate-500 block uppercase tracking-wider text-[9px] font-black">Password</label>
-                        <div className="relative">
-                          <input
-                            type={showYtPass ? "text" : "password"}
-                            value={socialCreds.youtube.password}
-                            onChange={(e) => setSocialCreds({
-                              ...socialCreds,
-                              youtube: { ...socialCreds.youtube, password: e.target.value }
-                            })}
-                            className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 transition-all font-medium text-slate-700"
-                            placeholder="••••••••••••"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowYtPass(!showYtPass)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
-                          >
-                            {showYtPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    disabled={savingSocialCreds}
-                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-150 transition-all disabled:opacity-70 active:scale-95 cursor-pointer"
-                  >
-                    {savingSocialCreds ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                    Save Brand Credentials
-                  </button>
-                </div>
-              </form>
-            </div>
-            )}
-
-            {/* Project Documents Section */}
-            {projectDocs.length > 0 && (
-              <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm mt-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <ShieldCheck className="h-32 w-32" />
-                </div>
-                <div className="relative z-10 mb-6">
-                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                    <ShieldCheck className="h-6 w-6 text-emerald-500" />
-                    Secure Documents
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mt-6">
+                <div className="mb-4">
+                  <h3 className="text-xs font-bold text-[#2E9EDE] tracking-tight flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-[#2E9EDE]" />
+                    Social Media Credentials
                   </h3>
-                  <p className="text-sm text-slate-500 font-medium mt-1">
-                    Access and download your finalized agreements and project documents.
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Manage login details for the 3 active social media platforms we handle for your brand.
                   </p>
                 </div>
-                
-                <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                  {projectDocs.map((doc) => (
-                    <div key={doc.id} className="p-3 sm:p-5 border border-slate-200 rounded-xl sm:rounded-2xl bg-slate-50/80 hover:bg-white hover:border-indigo-300 hover:shadow-md transition-all duration-300 flex flex-col group">
-                      <div className="flex items-start gap-2 sm:gap-4 mb-3 sm:mb-5">
-                        <div className="p-2 sm:p-3 bg-white border border-slate-200 text-indigo-600 rounded-lg sm:rounded-xl shadow-sm group-hover:scale-110 group-hover:text-indigo-500 transition-transform flex-shrink-0">
-                          <FileText className="h-4 w-4 sm:h-6 sm:w-6" />
+
+                <form onSubmit={handleSaveSocialCreds} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    {/* Instagram Professional */}
+                    <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 hover:border-pink-300 transition-all duration-300 relative overflow-hidden group">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
+                          IG
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-800 truncate" title={doc.template?.name || "Document"}>
-                            {doc.template?.name || "Project Document"}
-                          </h4>
-                          <p className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
-                            <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
-                            {new Date(doc.createdAt).toLocaleDateString()}
-                          </p>
+                        <div>
+                          <h4 className="text-[11px] font-bold text-slate-800">Instagram</h4>
+                          <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider">Professional Account</p>
                         </div>
                       </div>
-                      
-                      <div className="mt-auto pt-3 sm:pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-                        <span className={`inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-wider border ${
-                          doc.status === 'signed' 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}>
-                          {doc.status === 'signed' ? '✅ Signed' : '⏳ Pending'}
-                        </span>
-                        
-                        <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
-                          {doc.status !== 'signed' ? (
+
+                      <div className="space-y-2 text-[10px] font-semibold">
+                        <div className="space-y-1">
+                          <label className="text-slate-500 block uppercase tracking-wider text-[8px] font-black">Username / Email</label>
+                          <input
+                            type="text"
+                            value={socialCreds.instagram.username}
+                            onChange={(e) => setSocialCreds({
+                              ...socialCreds,
+                              instagram: { ...socialCreds.instagram, username: e.target.value }
+                            })}
+                            className="w-full px-2 py-1 rounded-md border border-slate-200 bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all font-medium text-slate-700 text-xs"
+                            placeholder="instagram_handle"
+                          />
+                        </div>
+                        <div className="space-y-1 relative">
+                          <label className="text-slate-500 block uppercase tracking-wider text-[8px] font-black">Password</label>
+                          <div className="relative">
+                            <input
+                              type={showInstaPass ? "text" : "password"}
+                              value={socialCreds.instagram.password}
+                              onChange={(e) => setSocialCreds({
+                                ...socialCreds,
+                                instagram: { ...socialCreds.instagram, password: e.target.value }
+                              })}
+                              className="w-full pl-2 pr-8 py-1 rounded-md border border-slate-200 bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all font-medium text-slate-700 text-xs"
+                              placeholder="••••••••••••"
+                            />
                             <button
                               type="button"
-                              onClick={() => handlePreviewDoc(doc)}
-                              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 px-2 sm:px-3 py-1.5 sm:py-1.5 rounded-lg sm:rounded-xl bg-accent text-white hover:bg-accent/80 hover:scale-105 active:scale-95 transition-all text-[10px] sm:text-xs font-bold cursor-pointer shadow-md shadow-accent/15"
-                              title="Sign Document"
+                              onClick={() => setShowInstaPass(!showInstaPass)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
                             >
-                              <PenTool className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
-                              <span className="hidden sm:inline">Sign</span>
+                              {showInstaPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                             </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handlePreviewDoc(doc)}
-                              className="p-1.5 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors cursor-pointer"
-                              title="Preview Document"
-                            >
-                              <Eye className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
-                            </button>
-                          )}
-                          
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadDoc(doc.id, doc.template?.name || 'Document')}
-                            disabled={downloadingDocId === doc.id}
-                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 text-slate-700 text-[10px] sm:text-xs font-bold transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
-                          >
-                            {downloadingDocId === doc.id ? (
-                              <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin text-indigo-500 flex-shrink-0" />
-                            ) : (
-                              <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
-                            )}
-                            <span className="hidden sm:inline">Download</span>
-                          </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* Facebook Page */}
+                    <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 hover:border-blue-300 transition-all duration-300 relative overflow-hidden group">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
+                          FB
+                        </div>
+                        <div>
+                          <h4 className="text-[11px] font-bold text-slate-800">Facebook</h4>
+                          <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider">Business Page</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-[10px] font-semibold">
+                        <div className="space-y-1">
+                          <label className="text-slate-500 block uppercase tracking-wider text-[8px] font-black">Username / Email</label>
+                          <input
+                            type="text"
+                            value={socialCreds.facebook.username}
+                            onChange={(e) => setSocialCreds({
+                              ...socialCreds,
+                              facebook: { ...socialCreds.facebook, username: e.target.value }
+                            })}
+                            className="w-full px-2 py-1 rounded-md border border-slate-200 bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all font-medium text-slate-700 text-xs"
+                            placeholder="facebook_username"
+                          />
+                        </div>
+                        <div className="space-y-1 relative">
+                          <label className="text-slate-500 block uppercase tracking-wider text-[8px] font-black">Password</label>
+                          <div className="relative">
+                            <input
+                              type={showFbPass ? "text" : "password"}
+                              value={socialCreds.facebook.password}
+                              onChange={(e) => setSocialCreds({
+                                ...socialCreds,
+                                facebook: { ...socialCreds.facebook, password: e.target.value }
+                              })}
+                              className="w-full pl-2 pr-8 py-1 rounded-md border border-slate-200 bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all font-medium text-slate-700 text-xs"
+                              placeholder="••••••••••••"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowFbPass(!showFbPass)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                            >
+                              {showFbPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* YouTube Channel */}
+                    <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 hover:border-red-300 transition-all duration-300 relative overflow-hidden group">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded bg-red-600 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
+                          YT
+                        </div>
+                        <div>
+                          <h4 className="text-[11px] font-bold text-slate-800">YouTube</h4>
+                          <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider">Channel Handle</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-[10px] font-semibold">
+                        <div className="space-y-1">
+                          <label className="text-slate-500 block uppercase tracking-wider text-[8px] font-black">Username / Email</label>
+                          <input
+                            type="text"
+                            value={socialCreds.youtube.username}
+                            onChange={(e) => setSocialCreds({
+                              ...socialCreds,
+                              youtube: { ...socialCreds.youtube, username: e.target.value }
+                            })}
+                            className="w-full px-2 py-1 rounded-md border border-slate-200 bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all font-medium text-slate-700 text-xs"
+                            placeholder="youtube_channel_name"
+                          />
+                        </div>
+                        <div className="space-y-1 relative">
+                          <label className="text-slate-500 block uppercase tracking-wider text-[8px] font-black">Password</label>
+                          <div className="relative">
+                            <input
+                              type={showYtPass ? "text" : "password"}
+                              value={socialCreds.youtube.password}
+                              onChange={(e) => setSocialCreds({
+                                ...socialCreds,
+                                youtube: { ...socialCreds.youtube, password: e.target.value }
+                              })}
+                              className="w-full pl-2 pr-8 py-1 rounded-md border border-slate-200 bg-white focus:border-[#2E9EDE] focus:ring-1 focus:ring-sky-100 transition-all font-medium text-slate-700 text-xs"
+                              placeholder="••••••••••••"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowYtPass(!showYtPass)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                            >
+                              {showYtPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="submit"
+                      disabled={savingSocialCreds}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-[#2E9EDE] hover:bg-[#1c85be] text-white font-bold text-xs rounded-lg shadow-md shadow-sky-100 transition-all disabled:opacity-70 active:scale-95 cursor-pointer"
+                    >
+                      {savingSocialCreds ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                      <span>Save Brand Credentials</span>
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
-            
-            {/* Document Preview Modal */}
-            <DocumentPreviewModal
-              isOpen={!!previewDoc}
-              onClose={() => setPreviewDoc(null)}
-              documentId={previewDoc?.id || ''}
-              documentName={previewDoc?.template?.name || 'Document'}
-              compiledHtml={previewDoc?.compiledHtml || null}
-              onSign={handleSignDocument}
-              onUnsign={handleUnsignDocument}
-              status={previewDoc?.status}
-              onNext={handleNextPreview}
-              onPrev={handlePrevPreview}
-              hasNext={getPreviewNavInfo().hasNext}
-              hasPrev={getPreviewNavInfo().hasPrev}
-            />
           </div>
         )}
+
+        {/* Employee Additional Details */}
+        {isEmployee && (user as any)?.employee && (
+          <div className="space-y-4 animate-in fade-in duration-300">
+            <div className="border-t border-slate-200 pt-4">
+              <h2 className="text-sm font-bold text-[#2E9EDE] tracking-tight flex items-center gap-2">
+                <Layers className="h-4 w-4 text-[#2E9EDE]" />
+                Employment Records & Details
+              </h2>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                View your complete registered employment details, credentials, and verification values.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Column 1: Academic & Professional */}
+              <div className="space-y-3">
+                <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5 text-[#2E9EDE]" />
+                  Academic & Professional Details
+                </h3>
+                <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3 text-[10px] font-semibold text-slate-600">
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Qualification</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.qualification || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">College / University</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.college || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Year of Passing</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.yearOfPassing || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Previous Company</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.previousCompany || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Experience (Years)</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.experience || '0'} Years</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Previous Salary</span>
+                    <span className="text-slate-800 text-xs font-bold">₹{(user as any).employee.metadata?.previousSalary || '0'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Expected Salary</span>
+                    <span className="text-slate-800 text-xs font-bold">₹{(user as any).employee.metadata?.expectedSalary || (user as any).employee.salaryBasis || '0'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Notice Period</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.noticePeriod || '0'} Days</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Reason for Leaving</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.reasonForLeaving || 'Not Provided'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2: Documents, Verification & Bank Details */}
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                    Identity & Verification
+                  </h3>
+                  <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3 text-[10px] font-semibold text-slate-600">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Aadhar Number</span>
+                        <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.aadhar || 'Not Provided'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">PAN Card</span>
+                        <span className="text-slate-800 text-xs font-bold uppercase">{(user as any).employee.metadata?.pan || 'Not Provided'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Emergency Contact</span>
+                      <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.emergencyContact || 'Not Provided'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <IndianRupee className="h-3.5 w-3.5 text-[#2E9EDE]" />
+                    Bank Account & Payments
+                  </h3>
+                  <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3 text-[10px] font-semibold text-slate-600">
+                    <div>
+                      <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Bank Holder Name</span>
+                      <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.bankHolder || 'Not Provided'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Account Number</span>
+                        <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.bankAccount || 'Not Provided'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">IFSC Code</span>
+                        <span className="text-slate-800 text-xs font-bold uppercase">{(user as any).employee.metadata?.ifsc || 'Not Provided'}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Branch Name</span>
+                        <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.branch || 'Not Provided'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">UPI ID</span>
+                        <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.upi || 'Not Provided'}</span>
+                      </div>
+                    </div>
+                    {((user as any).employee.metadata?.epfDetails || (user as any).employee.metadata?.epf) && (
+                      <div>
+                        <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">EPF Details</span>
+                        <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.epfDetails || (user as any).employee.metadata?.epf}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Intern Additional Details */}
+        {isIntern && (user as any)?.employee && (
+          <div className="space-y-4 animate-in fade-in duration-300">
+            <div className="border-t border-slate-200 pt-4">
+              <h2 className="text-sm font-bold text-[#2E9EDE] tracking-tight flex items-center gap-2">
+                <Layers className="h-4 w-4 text-[#2E9EDE]" />
+                Internship Records & Details
+              </h2>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                View your registered internship specs, institution credentials, and program timelines.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Column 1: College & Timeline */}
+              <div className="space-y-3">
+                <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5 text-[#2E9EDE]" />
+                  Academic Institution Details
+                </h3>
+                <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3 text-[10px] font-semibold text-slate-600">
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">College / Institution</span>
+                    <span className="text-slate-800 text-xs font-bold">{(user as any).employee.metadata?.college || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Register / Student ID Number</span>
+                    <span className="text-slate-800 text-xs font-bold uppercase">{(user as any).employee.metadata?.registerNumber || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Internship Timeline</span>
+                    <div className="text-slate-800 text-xs font-bold flex items-center gap-1 mt-0.5">
+                      <Calendar className="h-3 w-3 text-slate-400" />
+                      {(user as any).employee.metadata?.startDate ? new Date((user as any).employee.metadata.startDate).toLocaleDateString() : 'N/A'} – {(user as any).employee.metadata?.endDate ? new Date((user as any).employee.metadata.endDate).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2: Program Specifications */}
+              <div className="space-y-3">
+                <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5 text-[#2E9EDE]" />
+                  Program Specifications
+                </h3>
+                <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3 text-[10px] font-semibold text-slate-600">
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Internship Domain</span>
+                    <span className="inline-flex mt-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border bg-sky-50 text-[#2E9EDE] border-sky-100">
+                      {(user as any).employee.metadata?.domain || 'Web/App Development'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 block uppercase tracking-wider mb-0.5">Program Value / Fees</span>
+                    <span className="text-[#2E9EDE] text-xs font-black flex items-center gap-0.5 mt-0.5">
+                      ₹{(user as any).employee.metadata?.price ? Number((user as any).employee.metadata.price).toLocaleString('en-IN') : '0.00'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Secure Documents Section */}
+        {projectDocs.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mt-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <ShieldCheck className="h-16 w-16 text-[#2E9EDE]" />
+            </div>
+            <div className="relative z-10 mb-4">
+              <h3 className="text-xs font-bold text-[#2E9EDE] tracking-tight flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                Secure Onboarding & Project Documents
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Access, sign, and download your finalized agreements, offer letters, and corporate documents.
+              </p>
+            </div>
+            
+            <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projectDocs.map((doc) => (
+                <div key={doc.id} className="p-3 border border-slate-200 rounded-xl bg-slate-50/80 hover:bg-white hover:border-sky-300 hover:shadow-sm transition-all duration-300 flex flex-col group">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-1.5 bg-white border border-slate-200 text-[#2E9EDE] rounded-lg shadow-sm group-hover:scale-105 group-hover:text-[#1c85be] transition-transform flex-shrink-0">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[11px] font-bold text-slate-800 truncate" title={doc.template?.name || "Document"}>
+                        {doc.template?.name || "Agreement Document"}
+                      </h4>
+                      <p className="text-[8px] text-slate-400 font-medium mt-0.5 flex items-center gap-1">
+                        <Clock className="h-2 w-2 flex-shrink-0" />
+                        {new Date(doc.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto pt-3 border-t border-slate-200 flex items-center justify-between">
+                    {doc.status === 'signed' ? (
+                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Signed
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-amber-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        Pending
+                      </span>
+                    )}
+                    
+                    <div className="flex items-center gap-1.5">
+                      {doc.status !== 'signed' ? (
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewDoc(doc)}
+                          className="p-1.5 rounded bg-sky-50 text-[#2E9EDE] hover:bg-sky-100 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-sky-100 flex items-center justify-center"
+                          title="Sign Document"
+                        >
+                          <PenTool className="h-3.5 w-3.5 flex-shrink-0" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewDoc(doc)}
+                          className="p-1.5 text-slate-500 hover:text-[#2E9EDE] hover:bg-sky-50 rounded transition-colors cursor-pointer border border-transparent flex items-center justify-center"
+                          title="Preview Document"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadDoc(doc.id, doc.template?.name || 'Document')}
+                        disabled={downloadingDocId === doc.id}
+                        className="p-1.5 rounded bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-200 hover:text-[#2E9EDE] text-slate-600 transition-all disabled:opacity-50 active:scale-95 cursor-pointer flex items-center justify-center"
+                        title="Download Document"
+                      >
+                        {downloadingDocId === doc.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-[#2E9EDE] flex-shrink-0" />
+                        ) : (
+                          <Download className="h-3.5 w-3.5 flex-shrink-0" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Document Preview Modal */}
+        <DocumentPreviewModal
+          isOpen={!!previewDoc}
+          onClose={() => setPreviewDoc(null)}
+          documentId={previewDoc?.id || ''}
+          documentName={previewDoc?.template?.name || 'Document'}
+          compiledHtml={previewDoc?.compiledHtml || null}
+          onSign={handleSignDocument}
+          onUnsign={handleUnsignDocument}
+          status={previewDoc?.status}
+          onNext={handleNextPreview}
+          onPrev={handlePrevPreview}
+          hasNext={getPreviewNavInfo().hasNext}
+          hasPrev={getPreviewNavInfo().hasPrev}
+        />
       </div>
     </DashboardLayout>
   );

@@ -388,6 +388,7 @@ model ProjectPayment {
   dueDate       DateTime
   status        String   @default("pending") // pending, paid
   whatsappSent  Boolean  @default(false)
+  utrNumber     String?
   updatedBy     String?  // username
   updatedAt     DateTime @updatedAt
   createdAt     DateTime @default(now())

@@ -32,4 +32,10 @@ export class PaymentController {
   async markAsPaid(@Param('id') id: string, @Request() req: any) {
     return this.paymentService.markAsPaid(req.user.tenantId, id, req.user.username);
   }
+
+  @Put('client/submit-payment')
+  @Roles('client', 'user')
+  async submitClientPayment(@Body() body: any, @Request() req: any) {
+    return this.paymentService.submitClientPayment(req.user.tenantId, body, req.user.username);
+  }
 }

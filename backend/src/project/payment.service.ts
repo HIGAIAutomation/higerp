@@ -104,4 +104,39 @@ export class PaymentService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async submitClientPayment(tenantId: string, data: any, username: string) {
+    const { projectId, invoiceNumber, amount, utrNumber } = data;
+    const existingPayment = await this.prisma.projectPayment.findFirst({
+      where: {
+        tenantId,
+        projectId,
+        invoiceNumber,
+      },
+    });
+
+    if (existingPayment) {
+      return this.prisma.projectPayment.update({
+        where: { id: existingPayment.id },
+        data: {
+          utrNumber,
+          amount: parseFloat(amount),
+          status: 'pending',
+        },
+      });
+    }
+
+    return this.prisma.projectPayment.create({
+      data: {
+        tenantId,
+        projectId,
+        invoiceNumber,
+        amount: parseFloat(amount),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        status: 'pending',
+        utrNumber,
+        whatsappSent: false,
+      },
+    });
+  }
 }

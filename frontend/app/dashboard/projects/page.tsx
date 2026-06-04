@@ -32,6 +32,7 @@ interface Project {
   category?: string;
   description: string;
   clientName?: string;
+  clientId?: string;
   startDate: string;
   endDate: string;
   status: string;
@@ -402,11 +403,14 @@ export default function ProjectsPage() {
     try {
       setLoading(true);
       const data = await fetchWithAuth('/projects');
-      setProjects(data);
+      const filtered = user?.role === 'client'
+        ? data.filter((p: Project) => p.clientId === user.id || p.client?.id === user.id)
+        : data;
+      setProjects(filtered);
       
       // Fetch documents for each project
       const docsMap: Record<string, GeneratedDoc[]> = {};
-      for (const proj of data) {
+      for (const proj of filtered) {
         try {
           const docs = await fetchWithAuth(`/document/entity/PROJECT/${proj.id}`);
           docsMap[proj.id] = docs;

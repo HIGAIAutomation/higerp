@@ -178,9 +178,17 @@ export class AuthService {
   }
 
   async getUserById(userId: string, tenantId: string) {
-    return this.prisma.user.findFirst({
+    const user = await this.prisma.user.findFirst({
       where: { id: userId, tenantId },
     });
+    if (!user) return null;
+    const employee = await this.prisma.employee.findFirst({
+      where: { tenantId, email: user.email || undefined },
+    });
+    return {
+      ...user,
+      employee: employee || null,
+    };
   }
 
   async updateProfile(userId: string, tenantId: string, data: any) {

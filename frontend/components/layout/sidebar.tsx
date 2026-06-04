@@ -46,9 +46,10 @@ export function Sidebar({ onClose }: { onClose?: () => void } = {}) {
 
   const isSuperAdmin = user?.role === 'superadmin';
   const pageAccessList = user?.pageAccess || [];
+  const isClientUser = user?.role === 'client' || user?.id?.startsWith('higc-') || (user?.role === 'user' && !(user as any).employee);
 
   useEffect(() => {
-    if (user?.role === 'client') {
+    if (isClientUser) {
       import('@/lib/api').then(({ fetchWithAuth }) => {
         fetchWithAuth('/projects')
           .then((allProjects: any) => {
@@ -60,7 +61,7 @@ export function Sidebar({ onClose }: { onClose?: () => void } = {}) {
           .catch((err) => console.error("Error fetching projects in sidebar:", err));
       });
     }
-  }, [user]);
+  }, [user, isClientUser]);
 
   // Determine project tracking link based on category
   let projectTrackHref = "/dashboard"; // Default fallback
@@ -80,24 +81,47 @@ export function Sidebar({ onClose }: { onClose?: () => void } = {}) {
   // Filter navigation links
   let visibleNavigation: any[] = [];
   
+  const isAdmin = isSuperAdmin || user?.role === 'admin';
+
   if (user?.role === "intern") {
     visibleNavigation = [
-      { name: "My Profile", href: "/dashboard/profile", icon: UserCheck }
+      { name: "My Profile", href: "/dashboard/profile", icon: UserCheck },
+      { name: "Internship Tracking (Coming Soon)", href: "#", icon: ClipboardCheck, disabled: true }
     ];
-  } else if (user?.role === "client") {
+  } else if (isClientUser) {
+    let trackName = "Project Tracking";
+    if (projectCategory) {
+      const cat = projectCategory.toLowerCase();
+      if (cat.includes("web") || cat.includes("app")) {
+        trackName = "Web/App Dev Tracking";
+      } else if (cat.includes("marketing")) {
+        trackName = "Digital Marketing Tracking";
+      } else if (cat.includes("automation")) {
+        trackName = "Automation Tracking";
+      } else if (cat.includes("ai")) {
+        trackName = "AI Dev Tracking";
+      }
+    }
     visibleNavigation = [
       { name: "My Profile", href: "/dashboard/profile", icon: UserCheck },
-      { name: "Project Tracking", href: projectTrackHref, icon: Briefcase },
+      { name: trackName, href: projectTrackHref, icon: Briefcase },
       { name: "Payment", href: "/dashboard/payments", icon: CreditCard },
     ];
+  } else if (isAdmin) {
+    // Admin and Superadmin see all pages, including Dashboard home
+    visibleNavigation = [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      ...navigation.filter((item) => item.href !== "/dashboard"),
+      { name: "My Profile", href: "/dashboard/profile", icon: UserCheck }
+    ];
   } else {
+    // Employees see My Profile + their allowed pages
     visibleNavigation = [
       { name: "My Profile", href: "/dashboard/profile", icon: UserCheck }
     ];
     const filteredNav = navigation.filter((item) => {
-      if (item.href === "/dashboard") return true; // Everyone sees Dashboard home
-      if (isSuperAdmin) return true; // Super Admin sees everything
-      return pageAccessList.includes(item.href); // Normal users see what they are allowed
+      // Hide Dashboard home link for employees since they don't access dashboard home page
+      return pageAccessList.includes(item.href) && item.href !== "/dashboard";
     });
     visibleNavigation = [...visibleNavigation, ...filteredNav];
   }

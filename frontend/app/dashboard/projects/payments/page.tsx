@@ -40,6 +40,7 @@ interface PaymentInvoice {
   dueDate: string;
   status: string;
   whatsappSent: boolean;
+  utrNumber?: string;
   updatedBy?: string;
   createdAt: string;
   projectId?: string;
@@ -1024,10 +1025,17 @@ export default function PaymentsPage() {
                               <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                                 p.status === 'paid'
                                   ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                  : p.utrNumber
+                                  ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse'
                                   : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                               }`}>
-                                {p.status}
+                                {p.status === 'paid' ? 'Paid' : p.utrNumber ? 'Verify Req' : 'Pending'}
                               </span>
+                              {p.utrNumber && (
+                                <div className="mt-1.5 text-[9px] text-blue-500 font-bold bg-secondary/80 px-2 py-0.5 rounded-md border border-border inline-block uppercase font-mono tracking-wider">
+                                  UTR: {p.utrNumber}
+                                </div>
+                              )}
                               {p.updatedBy && (
                                 <span className="block text-[8px] text-muted-foreground mt-1 font-semibold">
                                   Cleared by: {p.updatedBy}
