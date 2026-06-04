@@ -216,64 +216,125 @@ export default function ClientPaymentsPage() {
               <p className="text-sm text-muted-foreground font-semibold">No invoices generated yet.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-widest pb-3">
-                    <th className="pb-3">Bill Number</th>
-                    <th className="pb-3">Project</th>
-                    <th className="pb-3">Amount</th>
-                    <th className="pb-3">Due Date</th>
-                    <th className="pb-3">Status</th>
-                    <th className="pb-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border text-xs font-semibold text-foreground/85">
-                  {payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-secondary/20 transition-colors">
-                      <td className="py-4 font-bold text-foreground">{p.invoiceNumber}</td>
-                      <td className="py-4 text-foreground/90">{p.project.name}</td>
-                      <td className="py-4 text-accent font-bold">Rs. {parseFloat(p.amount).toLocaleString()}</td>
-                      <td className="py-4 flex items-center gap-1.5 text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
-                        {p.dueDate.split('T')[0]}
-                      </td>
-                      <td className="py-4 font-sans">
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                          p.status === 'paid'
-                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                            : p.utrNumber
-                            ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse'
-                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                        }`}>
-                          {p.status === 'paid' ? 'Paid' : p.utrNumber ? 'Verify Req' : 'Pending'}
-                        </span>
-                        {p.utrNumber && (
-                          <div className="mt-1 block text-[8px] text-blue-500 font-mono uppercase font-bold tracking-wider">
-                            Ref UTR: {p.utrNumber}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-4 text-right">
-                        <button
-                          type="button"
-                          disabled={downloadingInvId === p.id}
-                          onClick={() => handleDownloadInvoice(p)}
-                          className="px-2.5 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 rounded-lg transition-all font-bold hover:scale-105 cursor-pointer disabled:opacity-50 text-[10px] uppercase tracking-wider border border-sky-500/20 inline-flex items-center gap-1"
-                          title="Download Invoice"
-                        >
-                          {downloadingInvId === p.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Download className="h-3 w-3" />
-                          )}
-                          Download PDF
-                        </button>
-                      </td>
+            <div className="space-y-4">
+              {/* Desktop view table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-widest pb-3">
+                      <th className="pb-3">Bill Number</th>
+                      <th className="pb-3">Project</th>
+                      <th className="pb-3">Amount</th>
+                      <th className="pb-3">Due Date</th>
+                      <th className="pb-3">Status</th>
+                      <th className="pb-3 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border text-xs font-semibold text-foreground/85">
+                    {payments.map((p) => (
+                      <tr key={p.id} className="hover:bg-secondary/20 transition-colors">
+                        <td className="py-4 font-bold text-foreground">{p.invoiceNumber}</td>
+                        <td className="py-4 text-foreground/90">{p.project.name}</td>
+                        <td className="py-4 text-accent font-bold">Rs. {parseFloat(p.amount).toLocaleString()}</td>
+                        <td className="py-4 flex items-center gap-1.5 text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
+                          {p.dueDate.split('T')[0]}
+                        </td>
+                        <td className="py-4 font-sans">
+                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                            p.status === 'paid'
+                              ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                              : p.utrNumber
+                              ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse'
+                              : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                          }`}>
+                            {p.status === 'paid' ? 'Paid' : p.utrNumber ? 'Verify Req' : 'Pending'}
+                          </span>
+                          {p.utrNumber && (
+                            <div className="mt-1 block text-[8px] text-blue-500 font-mono uppercase font-bold tracking-wider">
+                              Ref UTR: {p.utrNumber}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            type="button"
+                            disabled={downloadingInvId === p.id}
+                            onClick={() => handleDownloadInvoice(p)}
+                            className="px-2.5 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 rounded-lg transition-all font-bold hover:scale-105 cursor-pointer disabled:opacity-50 text-[10px] uppercase tracking-wider border border-sky-500/20 inline-flex items-center gap-1"
+                            title="Download Invoice"
+                          >
+                            {downloadingInvId === p.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Download className="h-3 w-3" />
+                            )}
+                            Download PDF
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile view card list */}
+              <div className="grid grid-cols-1 gap-4 md:hidden">
+                {payments.map((p) => (
+                  <div key={p.id} className="bg-secondary/10 p-5 rounded-2xl border border-border space-y-4 shadow-sm">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">Bill Number</span>
+                        <span className="text-xs font-black text-foreground font-mono">{p.invoiceNumber}</span>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                        p.status === 'paid'
+                          ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                          : p.utrNumber
+                          ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse'
+                          : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                      }`}>
+                        {p.status === 'paid' ? 'Paid' : p.utrNumber ? 'Verify Req' : 'Pending'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-xs font-semibold">
+                      <div className="flex justify-between gap-4">
+                        <span className="text-muted-foreground">Project:</span>
+                        <span className="text-foreground text-right">{p.project.name}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="text-muted-foreground">Amount:</span>
+                        <span className="text-accent font-bold">Rs. {parseFloat(p.amount).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="text-muted-foreground">Due Date:</span>
+                        <span className="text-foreground">{p.dueDate.split('T')[0]}</span>
+                      </div>
+                      {p.utrNumber && (
+                        <div className="flex justify-between gap-4 pt-2 border-t border-border/40">
+                          <span className="text-muted-foreground">Ref UTR:</span>
+                          <span className="text-blue-500 font-mono font-bold uppercase">{p.utrNumber}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={downloadingInvId === p.id}
+                      onClick={() => handleDownloadInvoice(p)}
+                      className="w-full py-3 bg-sky-500/10 hover:bg-sky-500/20 text-sky-500 rounded-xl transition-all font-bold cursor-pointer disabled:opacity-50 text-[10px] uppercase tracking-wider border border-sky-500/20 flex items-center justify-center gap-1.5"
+                    >
+                      {downloadingInvId === p.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Download className="h-3.5 w-3.5" />
+                      )}
+                      Download Invoice PDF
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

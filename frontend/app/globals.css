@@ -126,6 +126,13 @@ body {
     padding: 10px 12px;
   }
 
+  select.status-select-badge {
+    min-height: unset !important;
+    min-width: unset !important;
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+  }
+
   /* Better spacing on mobile */
   body {
     line-height: 1.5;

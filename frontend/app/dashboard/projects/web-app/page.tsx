@@ -568,23 +568,35 @@ export default function WebAppProjectsPage() {
                                       </div>
                                       <div className="flex items-center justify-between border-t border-border pt-4 mt-auto">
                                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span>
-                                        <select 
-                                          value={mod.status}
-                                          onChange={(e) => handleUpdateModuleStatus(proj.id, mod.id, e.target.value)}
-                                          className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg cursor-pointer appearance-none outline-none border focus:ring-2 focus:ring-accent/20 transition-all ${
+                                        {user?.role === 'client' ? (
+                                          <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border ${
                                             mod.status === 'live' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                             mod.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                             mod.status === 'ready_for_testing' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                             mod.status === 'in_progress' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                            'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                                          }`}
-                                        >
-                                          <option value="new">New</option>
-                                          <option value="in_progress">In Progress</option>
-                                          <option value="ready_for_testing">Ready for Testing</option>
-                                          <option value="completed">Completed</option>
-                                          <option value="live">Live</option>
-                                        </select>
+                                            'bg-slate-100 text-slate-600 border-slate-200'
+                                          }`}>
+                                            {mod.status === 'ready_for_testing' ? 'Testing Ready' : mod.status === 'in_progress' ? 'In Progress' : mod.status}
+                                          </span>
+                                        ) : (
+                                          <select 
+                                            value={mod.status}
+                                            onChange={(e) => handleUpdateModuleStatus(proj.id, mod.id, e.target.value)}
+                                            className={`status-select-badge text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg cursor-pointer appearance-none outline-none border focus:ring-2 focus:ring-accent/20 transition-all ${
+                                              mod.status === 'live' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                              mod.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                              mod.status === 'ready_for_testing' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                              mod.status === 'in_progress' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                              'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                                            }`}
+                                          >
+                                            <option value="new">New</option>
+                                            <option value="in_progress">In Progress</option>
+                                            <option value="ready_for_testing">Ready for Testing</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="live">Live</option>
+                                          </select>
+                                        )}
                                       </div>
                                     </div>
                                   ))}
