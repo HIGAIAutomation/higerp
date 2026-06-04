@@ -81,10 +81,54 @@ export class DocumentService {
     });
 
     if (doc && doc.compiledHtml) {
-      doc.compiledHtml = doc.compiledHtml.replace(
-        /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
-        process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/logo.png` : 'https://higerp.onrender.com/logo.png'
-      );
+      const fs = require('fs');
+      const path = require('path');
+      const logoPath = path.resolve(process.cwd(), 'public/logo.png');
+      let logoBase64 = '';
+      if (fs.existsSync(logoPath)) {
+        logoBase64 = `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`;
+      }
+
+      if (logoBase64) {
+        doc.compiledHtml = doc.compiledHtml.replace(
+          /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
+          logoBase64
+        );
+        doc.compiledHtml = doc.compiledHtml.replace(/src="\/logo\.png"/g, `src="${logoBase64}"`);
+        doc.compiledHtml = doc.compiledHtml.replace(/src='\/logo\.png'/g, `src="${logoBase64}"`);
+      } else {
+        doc.compiledHtml = doc.compiledHtml.replace(
+          /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
+          process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/logo.png` : 'https://higerp.onrender.com/logo.png'
+        );
+      }
+
+      // Branding overrides to position the logo inline on the left of the company details
+      const brandingOverride = `
+<style>
+  .header-branding {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    justify-content: flex-start !important;
+    float: none !important;
+  }
+  .company-logo {
+    float: none !important;
+    display: block !important;
+    max-height: 48px !important;
+    width: auto !important;
+  }
+  .company-details {
+    float: none !important;
+    text-align: left !important;
+  }
+</style>
+`;
+      if (doc.compiledHtml.includes('</style>')) {
+        doc.compiledHtml = doc.compiledHtml.replace('</style>', `</style>${brandingOverride}`);
+      }
+
       // 1. Always replace the generic left column signature label with CEO details
       const robustLabelPattern = /<p>For: <strong>(HIG AI AUTOMATION LLP|HIGAI AUTOMATION LLP|HIG AI AUTOMATION|HIGAI AUTOMATION)<\/strong><\/p>\s*(<div class="sig-line"(?: style="[^"]*")?>[\s\S]*?<\/div>)\s*<p class="sig-label">(?:Authorized Signature|Authorized Signatory|Authorized Representative|Authorized Lead)<\/p>/g;
       doc.compiledHtml = doc.compiledHtml.replace(robustLabelPattern, (match, companyName, sigLine) => {
@@ -94,8 +138,6 @@ export class DocumentService {
       <p class="sig-label" style="text-transform: none; font-size: 11px; color: #475569; margin-top: 2px;">CEO of HIGAI Automation LLP</p>`;
       });
 
-      const fs = require('fs');
-      const path = require('path');
       const signatureFilePath = path.resolve(process.cwd(), 'ceo-signature.txt');
       if (fs.existsSync(signatureFilePath)) {
         const ceoSignatureData = fs.readFileSync(signatureFilePath, 'utf8');
@@ -116,6 +158,9 @@ export class DocumentService {
           doc.compiledHtml = doc.compiledHtml.replace('Mr. Ajay S', 'Mr. Ajay S');
         }
       }
+
+      // Convert layout to aligned table format
+      doc.compiledHtml = this.alignSignatures(doc.compiledHtml);
     }
 
     return doc;
@@ -131,54 +176,57 @@ export class DocumentService {
       <html>
         <head>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
-            body {
-              margin: 0;
-              padding: 20px;
-              font-family: 'Inter', sans-serif;
-              background: #ffffff;
-              color: #0f172a;
+            .page-border {
+              display: none;
             }
-            .legal-document-wrapper {
-              padding: 0 !important;
-              margin: 0 !important;
-              background: #ffffff !important;
-              color: #0f172a !important;
-            }
-            .legal-document-wrapper * {
-              color: #0f172a !important;
-              background-color: transparent !important;
-            }
-            .doc-header-logo {
-              height: 48px;
-              width: auto;
-              border-radius: 10px;
-              object-fit: contain;
+            @page {
+              size: Letter;
+              margin: 15mm 15mm 15mm 15mm;
             }
             @media print {
+              .page-border {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                border: 1px solid #94a3b8;
+                pointer-events: none;
+                z-index: 9999;
+                box-sizing: border-box;
+              }
               body {
-                padding: 0;
+                padding: 15px !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+              }
+              .contract-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+              }
+              .section {
+                margin-bottom: 20px !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+              }
+              .section p, .section li {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+                orphans: 3 !important;
+                widows: 3 !important;
+              }
+              h1, h2, h3, h4 {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
               }
             }
           </style>
         </head>
-        <body>
+        <body style="position: relative;">
+          <div class="page-border"></div>
           <div class="legal-document-wrapper">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2E9EDE; padding-bottom: 14px; margin-bottom: 28px;">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="${process.env.BACKEND_URL ? process.env.BACKEND_URL + '/logo.png' : 'https://higerp.onrender.com/logo.png'}" class="doc-header-logo" alt="HIG AI Automation LLP" />
-                <div>
-                  <div style="font-family: sans-serif; font-size: 15px; font-weight: 800; color: #0f172a; letter-spacing: 0.3px; line-height: 1.2;">HIG AI AUTOMATION LLP</div>
-                  <div style="font-family: sans-serif; font-size: 9px; font-weight: 600; color: #64748b; margin-top: 2px;">PPCQ+XH5, S Bazaar, Palayamkottai, Tirunelveli, Tamil Nadu 627002</div>
-                  <div style="font-family: sans-serif; font-size: 9px; font-weight: 700; color: #2E9EDE; margin-top: 1px;">LLPIN: AAY-0857 &nbsp;|&nbsp; GSTIN: 33ACFHH7098M1ZK</div>
-                </div>
-              </div>
-              <div style="text-align: right;">
-                <span style="font-family: sans-serif; font-size: 10px; font-weight: 800; color: #1e293b; letter-spacing: 0.5px;">OFFICIAL DOCUMENT</span>
-                <br/>
-                <span style="font-family: sans-serif; font-size: 8px; font-weight: 600; color: #64748b; tracking: 0.5px;">CONFIDENTIAL &amp; SECURE</span>
-              </div>
-            </div>
             ${doc.compiledHtml}
           </div>
         </body>
@@ -193,7 +241,7 @@ export class DocumentService {
 
     try {
       const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
       const pdfBuffer = await page.pdf({
         format: 'Letter',
         margin: {
@@ -218,15 +266,56 @@ export class DocumentService {
 
     const fs = require('fs');
     const path = require('path');
+    const logoPath = path.resolve(process.cwd(), 'public/logo.png');
+    let logoBase64 = '';
+    if (fs.existsSync(logoPath)) {
+      logoBase64 = `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`;
+    }
+
+    const brandingOverride = `
+<style>
+  .header-branding {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    justify-content: flex-start !important;
+    float: none !important;
+  }
+  .company-logo {
+    float: none !important;
+    display: block !important;
+    max-height: 48px !important;
+    width: auto !important;
+  }
+  .company-details {
+    float: none !important;
+    text-align: left !important;
+  }
+</style>
+`;
 
     // 1. Always replace the generic left column signature label with CEO details
     const robustLabelPattern = /<p>For: <strong>(HIG AI AUTOMATION LLP|HIGAI AUTOMATION LLP|HIG AI AUTOMATION|HIGAI AUTOMATION)<\/strong><\/p>\s*(<div class="sig-line"(?: style="[^"]*")?>[\s\S]*?<\/div>)\s*<p class="sig-label">(?:Authorized Signature|Authorized Signatory|Authorized Representative|Authorized Lead)<\/p>/g;
     for (const doc of docs) {
       if (doc.compiledHtml) {
-        doc.compiledHtml = doc.compiledHtml.replace(
-          /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
-          process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/logo.png` : 'https://higerp.onrender.com/logo.png'
-        );
+        if (logoBase64) {
+          doc.compiledHtml = doc.compiledHtml.replace(
+            /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
+            logoBase64
+          );
+          doc.compiledHtml = doc.compiledHtml.replace(/src="\/logo\.png"/g, `src="${logoBase64}"`);
+          doc.compiledHtml = doc.compiledHtml.replace(/src='\/logo\.png'/g, `src="${logoBase64}"`);
+        } else {
+          doc.compiledHtml = doc.compiledHtml.replace(
+            /https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/logo\.png/g,
+            process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/logo.png` : 'https://higerp.onrender.com/logo.png'
+          );
+        }
+
+        if (doc.compiledHtml.includes('</style>')) {
+          doc.compiledHtml = doc.compiledHtml.replace('</style>', `</style>${brandingOverride}`);
+        }
+
         doc.compiledHtml = doc.compiledHtml.replace(robustLabelPattern, (match, companyName, sigLine) => {
           return `<p>For: <strong>${companyName}</strong></p>
         ${sigLine}
@@ -258,6 +347,13 @@ export class DocumentService {
             doc.compiledHtml = doc.compiledHtml.replace('Mr. Ajay S', 'Mr. Ajay S (Digitally Signed)');
           }
         }
+      }
+    }
+
+    // Convert layouts to aligned table format for all docs
+    for (const doc of docs) {
+      if (doc.compiledHtml) {
+        doc.compiledHtml = this.alignSignatures(doc.compiledHtml);
       }
     }
 
@@ -367,5 +463,135 @@ export class DocumentService {
     });
 
     return this.getDocument(tenantId, id);
+  }
+
+  private alignSignatures(html: string): string {
+    const sigsStart = html.indexOf('<div class="signatures">');
+    if (sigsStart === -1) return html;
+
+    let openDivs = 1;
+    let currentIndex = sigsStart + '<div class="signatures">'.length;
+    while (openDivs > 0 && currentIndex < html.length) {
+      const nextOpen = html.indexOf('<div', currentIndex);
+      const nextClose = html.indexOf('</div>', currentIndex);
+
+      if (nextClose === -1) break;
+
+      if (nextOpen !== -1 && nextOpen < nextClose) {
+        openDivs++;
+        currentIndex = nextOpen + 4;
+      } else {
+        openDivs--;
+        currentIndex = nextClose + 6;
+      }
+    }
+
+    const signaturesBlockHtml = html.substring(sigsStart, currentIndex);
+
+    const cols: string[] = [];
+    let colSearch = 0;
+    while (true) {
+      const colStart = signaturesBlockHtml.indexOf('<div class="sig-col"', colSearch);
+      if (colStart === -1) break;
+
+      let colOpenDivs = 1;
+      let colIndex = signaturesBlockHtml.indexOf('>', colStart) + 1;
+      while (colOpenDivs > 0 && colIndex < signaturesBlockHtml.length) {
+        const nextOpen = signaturesBlockHtml.indexOf('<div', colIndex);
+        const nextClose = signaturesBlockHtml.indexOf('</div>', colIndex);
+
+        if (nextClose === -1) break;
+
+        if (nextOpen !== -1 && nextOpen < nextClose) {
+          colOpenDivs++;
+          colIndex = nextOpen + 4;
+        } else {
+          colOpenDivs--;
+          colIndex = nextClose + 6;
+        }
+      }
+      cols.push(signaturesBlockHtml.substring(colStart, colIndex));
+      colSearch = colIndex;
+    }
+
+    if (cols.length < 2) return html;
+
+    const companyNameMatch = cols[0].match(/For:\s*<strong>([\s\S]*?)<\/strong>/);
+    const companyName = companyNameMatch ? companyNameMatch[1].trim() : 'HIG AI AUTOMATION LLP';
+
+    const clientNameMatch = cols[1].match(/For:\s*<strong>([\s\S]*?)<\/strong>/);
+    const clientName = clientNameMatch ? clientNameMatch[1].trim() : 'Client';
+
+    const companyHeaderEnd = cols[0].indexOf('</strong></p>') + '</strong></p>'.length;
+    let companyLabelStart = cols[0].indexOf('Mr. Ajay S');
+    if (companyLabelStart === -1) {
+      companyLabelStart = cols[0].indexOf('<p class="sig-label"');
+    }
+    if (companyLabelStart === -1) {
+      companyLabelStart = cols[0].indexOf('<p class="sig-label">');
+    }
+
+    let companySigContent = '';
+    if (companyLabelStart !== -1 && companyLabelStart > companyHeaderEnd) {
+      companySigContent = cols[0].substring(companyHeaderEnd, companyLabelStart).trim();
+    }
+    companySigContent = companySigContent.replace(/<div class="sig-line"[\s\S]*?><\/div>/g, '').trim();
+    companySigContent = companySigContent.replace(/<div class="sig-line"><\/div>/g, '').trim();
+
+    const clientHeaderEnd = cols[1].indexOf('</strong></p>') + '</strong></p>'.length;
+    let clientLabelStart = cols[1].indexOf('<p class="sig-label"');
+    if (clientLabelStart === -1) {
+      clientLabelStart = cols[1].indexOf('<p class="sig-label">');
+    }
+
+    let clientSigContent = '';
+    if (clientLabelStart !== -1 && clientLabelStart > clientHeaderEnd) {
+      clientSigContent = cols[1].substring(clientHeaderEnd, clientLabelStart).trim();
+    }
+    clientSigContent = clientSigContent.replace(/<div class="sig-line"[\s\S]*?><\/div>/g, '').trim();
+    clientSigContent = clientSigContent.replace(/<div class="sig-line"><\/div>/g, '').trim();
+
+    const clientLabelMatch = cols[1].match(/<p class="sig-label"[\s\S]*?>([\s\S]*?)<\/p>/);
+    const clientLabel = clientLabelMatch ? clientLabelMatch[1].trim() : 'Authorized Signature';
+
+    const companyDateMatch = cols[0].match(/Date:\s*([\s\S]*?)(?:<\/p>|<br|\n)/i);
+    const companyDate = companyDateMatch ? companyDateMatch[1].trim() : '______________';
+
+    const clientDateMatch = cols[1].match(/Date:\s*([\s\S]*?)(?:<\/p>|<br|\n)/i);
+    const clientDate = clientDateMatch ? clientDateMatch[1].trim() : '______________';
+
+    const tableHtml = `
+<table style="width: 100%; border-collapse: collapse; margin-top: 40px; page-break-inside: avoid; font-family: 'Inter', sans-serif;">
+  <tr>
+    <td style="width: 45%; vertical-align: bottom; padding-bottom: 5px;">
+      <p style="margin: 0 0 8px 0; font-size: 13px; color: #0f172a;">For: <strong>${companyName}</strong></p>
+      <div style="min-height: 65px; display: flex; align-items: center; justify-content: flex-start; margin-bottom: 5px;">
+        ${companySigContent || '<div style="height: 45px;"></div>'}
+      </div>
+    </td>
+    <td style="width: 10%;"></td>
+    <td style="width: 45%; vertical-align: bottom; padding-bottom: 5px;">
+      <p style="margin: 0 0 8px 0; font-size: 13px; color: #0f172a;">For: <strong>${clientName}</strong></p>
+      <div style="min-height: 65px; display: flex; align-items: center; justify-content: flex-start; margin-bottom: 5px;">
+        ${clientSigContent || '<div style="height: 45px;"></div>'}
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td style="border-top: 1.5px solid #0f172a; padding-top: 8px; font-size: 11px; vertical-align: top; line-height: 1.4;">
+      <p style="margin: 0; font-weight: bold; font-size: 12.5px; color: #0f172a; text-transform: none;">Mr. Ajay S</p>
+      <p style="margin: 2px 0 0 0; font-size: 11px; color: #475569; text-transform: none;">CEO of HIGAI Automation LLP</p>
+      <p style="margin: 6px 0 0 0; color: #64748b; font-size: 11px;">Date: ${companyDate}</p>
+    </td>
+    <td></td>
+    <td style="border-top: 1.5px solid #0f172a; padding-top: 8px; font-size: 11px; vertical-align: top; line-height: 1.4;">
+      <p style="margin: 0; font-weight: bold; font-size: 12px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">${clientLabel}</p>
+      <p style="margin: 6px 0 0 0; color: #64748b; font-size: 11px;">Date: ${clientDate}</p>
+    </td>
+  </tr>
+</table>
+    `.trim();
+
+    return html.substring(0, sigsStart) + tableHtml + html.substring(currentIndex);
   }
 }

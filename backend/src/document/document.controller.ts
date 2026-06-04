@@ -92,7 +92,7 @@ export class DocumentController {
 
       try {
         const page = await browser.newPage();
-        await page.setContent(body.htmlContent, { waitUntil: 'networkidle0' });
+        await page.setContent(body.htmlContent, { waitUntil: 'domcontentloaded' });
         const pdfBuffer = await page.pdf({
           format: 'Letter',
           margin: {

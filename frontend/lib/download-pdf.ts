@@ -7,8 +7,8 @@ export const downloadPdf = async (docId: string, docName: string, setDownloading
     const token = getAuthToken();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     
-    // Fetch raw compiled HTML layout from the backend
-    const response = await fetch(`${apiUrl}/document/${docId}/download`, {
+    // Fetch professional Puppeteer-generated PDF from the backend
+    const response = await fetch(`${apiUrl}/document/${docId}/pdf`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -16,28 +16,18 @@ export const downloadPdf = async (docId: string, docName: string, setDownloading
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
-      throw new Error(`Failed to fetch document layout: ${response.status} ${response.statusText}. ${errorText}`);
+      throw new Error(`Failed to download PDF: ${response.status} ${response.statusText}. ${errorText}`);
     }
     
-    const htmlContent = await response.text();
-    
-    // Render PDF dynamically client-side
-    // @ts-ignore
-    const html2pdf = (await import('html2pdf.js')).default;
-    const container = document.createElement('div');
-    container.innerHTML = htmlContent;
-    document.body.appendChild(container);
-    
-    await html2pdf().set({
-      margin: [15, 15, 15, 15],
-      filename: `${docName.replace(/\s+/g, '_')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    } as any).from(container).save();
-    
-    document.body.removeChild(container);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${docName.replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   } catch (err) {
     console.error('Failed to download document:', err);
     alert('Could not download PDF document. Ensure backend service is online.');
